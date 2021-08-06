@@ -1,6 +1,6 @@
 include(
-    "auction-contracts",
-    "auction-workflows",
+    "gallery-contracts",
+    "gallery-workflows",
     "spring-api",
     "deploy"
 )

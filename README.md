@@ -31,9 +31,9 @@ A demo of swaps in an auction scenario with three distinct Corda Networks
 
 ---
 
-**auction-contracts** - ContractState, Contract, and asset def/models
+**gallery-contracts** - ContractState, Contract, and asset def/models
 
-**auction-workflows** - Business logic and services
+**gallery-workflows** - Business logic and services
 
 **buildSrc** - Docker and K8s deployment builder classes
 
