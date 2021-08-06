@@ -7,7 +7,7 @@ import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.services.api.Receipt.*
 import org.springframework.beans.factory.annotation.Autowired
 
-const val GALLERY = "gallery";
+const val GALLERY = "gallery"
 
 open class AtomicSwapService(
     @Autowired val galleryClient: ArtNetworkGalleryClient,
