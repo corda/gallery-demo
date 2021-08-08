@@ -25,3 +25,7 @@ dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
 }
+
+tasks.jar {
+    archiveBaseName.set("gallery-contracts")
+}

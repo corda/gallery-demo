@@ -42,3 +42,5 @@ A demo of swaps in an auction scenario with three distinct Corda Networks
 **frontend** - Frontend sources and associated proxies
 
 **spring-api** - Spring api controller and orchestration services
+
+**freighter-tests** - Docker based e2e testing module

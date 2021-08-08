@@ -29,3 +29,7 @@ dependencies {
 
     cordapp(project(":gallery-contracts"))
 }
+
+tasks.jar {
+    archiveBaseName.set("gallery-workflows")
+}

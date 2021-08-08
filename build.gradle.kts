@@ -50,7 +50,10 @@ allprojects {
 	version = "0.0.1-SNAPSHOT"
 	java.sourceCompatibility = JavaVersion.VERSION_1_8
 
-	tasks.withType<KotlinCompile> {
+	tasks.withType<KotlinCompile>().all {
+		sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+		targetCompatibility = JavaVersion.VERSION_1_8.toString()
+
 		kotlinOptions {
 			freeCompilerArgs = listOf("-Xjsr305=strict")
 			jvmTarget = JavaVersion.VERSION_1_8.toString()
