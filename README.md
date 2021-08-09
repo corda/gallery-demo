@@ -44,3 +44,7 @@ A demo of swaps in an auction scenario with three distinct Corda Networks
 **spring-api** - Spring api controller and orchestration services
 
 **freighter-tests** - Docker based e2e testing module
+  - You must add the following images to your local docker cache to run `freighterTest` gradle task locally.
+    - `docker pull postgres:9.6`
+    - `docker pull roastario/freighter-base:latest`
+    - `docker pull roastario/notary-and-network-map:4.0`
