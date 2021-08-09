@@ -1,0 +1,74 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.codehaus.groovy.runtime.ProcessGroovyMethods
+
+plugins {
+    id("groovy")
+}
+
+sourceSets {
+    create("freighterTest") {
+        compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+        runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+    }
+}
+
+val freighterTestImplementation: Configuration by configurations.getting {
+    extendsFrom(configurations.implementation.get())
+}
+val freighterTestCompile: Configuration by configurations.getting {
+    extendsFrom(configurations.compile.get())
+}
+val freighterTestRuntime: Configuration by configurations.getting {
+    extendsFrom(configurations.runtime.get())
+}
+
+repositories {
+    maven(url = uri("https://software.r3.com/artifactory/freighter-dev"))
+}
+
+dependencies {
+    val freighterVersion : String by project
+    val cordaCoreReleaseGroup : String by project
+    val cordaCoreVersion : String by project
+    val kotlinVersion : String by project
+
+    freighterTestImplementation("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", kotlinVersion)
+    freighterTestImplementation("freighter", "freighter-testing-core-junit5", freighterVersion)
+    freighterTestImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
+    freighterTestImplementation(cordaCoreReleaseGroup, "corda-rpc", cordaCoreVersion)
+
+    freighterTestImplementation(project(":gallery-contracts"))
+    freighterTestImplementation(project(":gallery-workflows"))
+}
+
+evaluationDependsOn(":gallery-contracts")
+
+val freighterTestTask = tasks.register<Test>("freighterTest") {
+    description = "Runs freighter tests"
+    group = "verification"
+    testClassesDirs = sourceSets["freighterTest"].output.classesDirs
+    classpath = sourceSets["freighterTest"].runtimeClasspath
+    shouldRunAfter("test")
+
+    dependsOn(":gallery-contracts:jar", ":gallery-workflows:jar")
+    maxParallelForks = Integer.parseInt((project.findProperty("freighter.forks") ?: "1") as String?)
+    systemProperties(Pair("java.util.concurrent.ForkJoinPool.common.parallelism", "128"))
+    useJUnitPlatform {
+        includeTags("DOCKER")
+        excludeTags("AZURE", "ORACLE")
+        if (Os.isFamily(Os.FAMILY_WINDOWS) || Os.isFamily(Os.FAMILY_MAC)) {
+            //windows + mac cannot run comcast tests and cannot run oracle tests due to credential store issues
+            excludeTags("FULL_LINUX_KERNEL", "ORACLE")
+        }
+
+        if (Os.isFamily(Os.FAMILY_UNIX) && ProcessGroovyMethods.getText(
+                Runtime.getRuntime().exec("uname -a")
+        ).contains("microsoft")) {
+            excludeTags("FULL_LINUX_KERNEL")
+        }
+    }
+}
+
+tasks.check {
+    dependsOn(freighterTestTask)
+}
