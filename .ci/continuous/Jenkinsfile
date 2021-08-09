@@ -6,7 +6,7 @@ pipeline {
 
     agent {
         dockerfile {
-            filename '.ci/Dockerfile'
+            filename '.ci/continuous/Dockerfile'
             additionalBuildArgs "--build-arg USER=stresstester"
             args '-v /var/run/docker.sock:/var/run/docker.sock --group-add 999'
         }
