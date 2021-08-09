@@ -1,4 +1,4 @@
-package sandbox.deployments
+package deployments
 
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.models.V1ContainerPortBuilder

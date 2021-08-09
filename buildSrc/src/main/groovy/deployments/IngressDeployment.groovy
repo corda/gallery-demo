@@ -1,4 +1,4 @@
-package sandbox.deployments
+package deployments
 
 import io.kubernetes.client.openapi.models.NetworkingV1beta1Ingress
 import io.kubernetes.client.openapi.models.NetworkingV1beta1IngressBuilder

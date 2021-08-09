@@ -1,4 +1,4 @@
-package sandbox.deployments
+package deployments
 
 import com.google.common.collect.Iterables
 import io.kubernetes.client.openapi.models.*

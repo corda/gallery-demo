@@ -1,4 +1,4 @@
-package sandbox.deployments
+package deployments
 
 import io.kubernetes.client.custom.IntOrString
 import io.kubernetes.client.custom.Quantity
@@ -6,23 +6,25 @@ import io.kubernetes.client.openapi.models.*
 
 import java.util.function.Consumer
 
-class FrontEndDeployment implements Iterable<Object> {
-    private final V1Deployment frontEndDeployment
-    private final V1Service frontEndService
+class NginxReverseProxyDeployment implements Iterable<Object> {
+
+    private final V1Deployment nginxDeployment
+    private final V1Service nginxService
     private final List<Object> backingListForIteration
 
-    FrontEndDeployment(V1Deployment frontEndDeployment, V1Service frontEndService) {
-        this.frontEndDeployment = frontEndDeployment
-        this.frontEndService = frontEndService
-        backingListForIteration = Arrays.asList(frontEndDeployment, frontEndService)
+
+    NginxReverseProxyDeployment(V1Deployment nginxDeployment, V1Service nginxService) {
+        this.nginxDeployment = nginxDeployment
+        this.nginxService = nginxService
+        backingListForIteration = Arrays.asList(nginxDeployment, nginxService)
     }
 
-    V1Deployment getFrontEndDeployment() {
-        return frontEndDeployment
+    V1Deployment getNginxDeployment() {
+        return nginxDeployment
     }
 
-    V1Service getFrontEndService() {
-        return frontEndService
+    V1Service getNginxService() {
+        return nginxService
     }
 
     @Override
@@ -40,22 +42,36 @@ class FrontEndDeployment implements Iterable<Object> {
         return backingListForIteration.spliterator()
     }
 
-    static FrontEndDeployment buildFrontEndDeployment(String regcred,
-                                                      String identifier,
-                                                      String imageName,
-                                                      String namespace
+
+    static NginxReverseProxyDeployment buildReverseProxyDeployment(
+            String regcred,
+            String identifier,
+            String nginxImageName,
+            WebAppDeployment api,
+            FrontEndDeployment frontend,
+            String namespace,
+            List<V1EnvVar> env = null
     ) {
 
-        def frontendDeployment = new V1DeploymentBuilder()
+        def reactHost = frontend.frontEndService.metadata.name
+        def apiHost = api.webAppService.metadata.name
+        def envVars = env ?: [ // custom via param or defaulting to React/Spring pair
+                new V1EnvVarBuilder().withName("REACT_NODE_HOST").withValue(reactHost).build(),
+                new V1EnvVarBuilder().withName("REACT_PORT").withValue(80.toString()).build(),
+                new V1EnvVarBuilder().withName("SPRING_BOOT_HOST").withValue(apiHost).build(),
+                new V1EnvVarBuilder().withName("SPRING_BOOT_PORT").withValue(80.toString()).build()
+        ]
+
+        def nginxDeployment = new V1DeploymentBuilder()
                 .withKind("Deployment")
                 .withApiVersion("apps/v1")
                 .withNewMetadata()
-                .withName(identifier + "-frontend")
+                .withName(identifier + "-nginxproxy")
                 .withNamespace(namespace)
                 .endMetadata()
                 .withNewSpec()
                 .withNewSelector()
-                .withMatchLabels([run: identifier + "-frontend"])
+                .withMatchLabels([run: identifier + "-nginxproxy"])
                 .endSelector()
                 .withReplicas(1)
                 .withNewStrategy()
@@ -67,25 +83,24 @@ class FrontEndDeployment implements Iterable<Object> {
                 .endStrategy()
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels([run: identifier + "-frontend"])
+                .withLabels([run: identifier + "-nginxproxy"])
                 .endMetadata()
                 .withNewSpec()
                 .withImagePullSecrets(new V1LocalObjectReferenceBuilder().withName(regcred).build())
                 .addNewContainer()
-                .withName(identifier + "-frontend")
-                .withImage("${imageName}")
+                .withName(identifier + "-nginxproxy")
+                .withImage("${nginxImageName}")
                 .withImagePullPolicy("Always")
                 .withPorts(
-                        new V1ContainerPortBuilder().withName("frontendhttp").withContainerPort(6005).build(),
+                        new V1ContainerPortBuilder().withName("nginxproxyhttp").withContainerPort(80).build(),
                 )
-                .withEnv(
-                        new V1EnvVarBuilder().withName("PARTICIPANT_ROLE").withValue(identifier).build()
-                ).withLivenessProbe(
+                .withEnv(envVars)
+                .withLivenessProbe(
                         new V1ProbeBuilder()
                                 .withInitialDelaySeconds(120)
                                 .withPeriodSeconds(10)
                                 .withHttpGet(new V1HTTPGetActionBuilder()
-                                        .withPort(new IntOrString(6005))
+                                        .withPort(new IntOrString(80))
                                         .withPath("/")
                                         .build()
                                 ).build())
@@ -98,22 +113,22 @@ class FrontEndDeployment implements Iterable<Object> {
                 .endSpec()
                 .build()
 
-        def frontendHttpService = new V1ServiceBuilder()
+        def nginxService = new V1ServiceBuilder()
                 .withKind("Service")
                 .withApiVersion("v1")
                 .withNewMetadata()
                 .withNamespace(namespace)
-                .withName(identifier + "-frontend-http")
-                .withLabels([run: identifier + "-frontend-http"])
+                .withName(identifier + "-nginx-http")
+                .withLabels([run: identifier + "-nginx-http"])
                 .endMetadata()
                 .withNewSpec()
-                .withType("ClusterIP")
                 .withPorts(
-                        new V1ServicePortBuilder().withPort(80).withTargetPort(new IntOrString(6005)).withProtocol("TCP").withName("http").build()
-                ).withSelector([run: identifier + "-frontend"])
+                        new V1ServicePortBuilder().withPort(80).withTargetPort(new IntOrString(80)).withProtocol("TCP").withName("http").build()
+                ).withSelector([run: identifier + "-nginxproxy"])
                 .endSpec()
                 .build()
 
-        return new FrontEndDeployment(frontendDeployment, frontendHttpService)
+        return new NginxReverseProxyDeployment(nginxDeployment, nginxService)
+
     }
 }

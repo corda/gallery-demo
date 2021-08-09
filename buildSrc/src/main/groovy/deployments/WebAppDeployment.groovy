@@ -1,4 +1,4 @@
-package sandbox.deployments
+package deployments
 
 import io.kubernetes.client.custom.IntOrString
 import io.kubernetes.client.custom.Quantity
