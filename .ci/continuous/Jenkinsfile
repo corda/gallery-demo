@@ -1,0 +1,62 @@
+@Library('existing-build-control')
+import static com.r3.build.BuildControl.killAllExistingBuildsForJob
+killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
+
+pipeline {
+
+    agent {
+        dockerfile {
+            filename '.ci/continuous/Dockerfile'
+            additionalBuildArgs "--build-arg USER=stresstester"
+            args '-v /var/run/docker.sock:/var/run/docker.sock --group-add 999'
+        }
+    }
+
+    options { timestamps() }
+
+    environment {
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        DOCKER_CREDENTIALS = credentials('payments-docker-credentials')
+        DOCKER_REGISTRY = "r3payments.azurecr.io"
+        LOOPBACK_ADDRESS = "172.17.0.1"
+    }
+
+    stages {
+
+        stage('Unit Tests') {
+            steps {
+                sh "./gradlew test"
+            }
+         }
+
+        stage('Integration Tests') {
+            steps {
+                sh "./gradlew integrationTest"
+            }
+        }
+
+        stage('Freighter Tests') {
+            steps {
+                timeout(60) {
+                    sh '''
+                        export ARTIFACTORY_USERNAME=\"\${ARTIFACTORY_CREDENTIALS_USR}\"
+                        export ARTIFACTORY_PASSWORD=\"\${ARTIFACTORY_CREDENTIALS_PSW}\"
+                        ./gradlew --parallel -Pfreighter.forks=2 freighterTest --info --stacktrace --no-daemon
+                        '''
+                }
+            }
+        }
+
+    }
+
+    post {
+        always {
+            junit '**/build/test-results/**/*.xml'
+            archiveArtifacts artifacts: '**/build/kubernetes/*.yaml'
+        }
+
+        cleanup {
+            deleteDir() /* clean up our workspace */
+        }
+    }
+}
