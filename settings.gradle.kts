@@ -2,7 +2,8 @@ include(
     "gallery-contracts",
     "gallery-workflows",
     "spring-api",
-    "freighter-tests"
+    "freighter-tests",
+    "deploy"
 )
 
 rootProject.name = "gallery-demo"

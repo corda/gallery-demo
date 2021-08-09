@@ -8,7 +8,6 @@ val cordaCoreVersion : String by project
 val gradlePluginsVersion : String by project
 
 cordapp {
-    val cordaPlatformVersion : String by rootProject
     val cordaLedgerReleaseVersion : String by rootProject
 
     targetPlatformVersion(cordaPlatformVersion.toInt())

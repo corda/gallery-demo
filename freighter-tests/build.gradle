@@ -49,5 +49,4 @@ dependencies {
 
     freighterTestCompile project(":gallery-contracts")
     freighterTestCompile project(":gallery-workflows")
-
 }

@@ -18,6 +18,7 @@ buildscript {
 	}
 
 	dependencies {
+		classpath("net.corda.plugins", "cordformation", gradlePluginsVersion)
 		classpath("org.jetbrains.kotlin", "kotlin-gradle-plugin", kotlinVersion)
 		classpath("net.corda.plugins","cordapp", gradlePluginsVersion)
 		classpath("net.corda.plugins", "quasar-utils", gradlePluginsVersion)
@@ -25,15 +26,17 @@ buildscript {
 }
 
 plugins {
-	kotlin("jvm") version "1.5.21"
+	kotlin("jvm") version "1.4.20"
+}
+
+dependencies {
+	implementation(kotlin("stdlib"))
 }
 
 allprojects {
 	val kotlinVersion : String by project
 
-	apply(
-		plugin = "kotlin"
-	)
+	apply(plugin = "kotlin")
 
 	repositories {
 		mavenCentral()
@@ -49,16 +52,18 @@ allprojects {
 	group = "com.r3"
 	version = "0.0.1-SNAPSHOT"
 	java.sourceCompatibility = JavaVersion.VERSION_1_8
+	java.targetCompatibility = JavaVersion.VERSION_1_8
 
-	tasks.withType<KotlinCompile>().all {
+	tasks.withType<KotlinCompile> {
 		sourceCompatibility = JavaVersion.VERSION_1_8.toString()
 		targetCompatibility = JavaVersion.VERSION_1_8.toString()
 
 		kotlinOptions {
 			freeCompilerArgs = listOf("-Xjsr305=strict")
 			jvmTarget = JavaVersion.VERSION_1_8.toString()
-			languageVersion = "1.5"
-			apiVersion = "1.5"
+			languageVersion = "1.4"
+			apiVersion = "1.4"
+			javaParameters = true
 		}
 	}
 

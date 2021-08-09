@@ -1,0 +1,40 @@
+import net.corda.plugins.Node
+import kotlin.collections.mapOf
+
+val cordaCoreReleaseGroup : String by project
+val cordaCoreVersion : String by project
+val gradlePluginsVersion : String by project
+val kotlinVersion : String by project
+
+plugins {
+    id("net.corda.plugins.cordapp")
+    id("net.corda.plugins.cordformation")
+    `java-library`
+}
+
+dependencies {
+    cordaRuntime(cordaCoreReleaseGroup, "corda", cordaCoreVersion)
+    cordaCompile(cordaCoreReleaseGroup, "corda-node-api", cordaCoreVersion)
+
+    cordapp(project(":gallery-contracts"))
+    cordapp(project(":gallery-workflows"))
+
+    compile(kotlin("stdlib-jdk8"))
+    compile(kotlin("reflect"))
+}
+
+tasks.register<net.corda.plugins.Cordform>("deployNodes") {
+    dependsOn(":gallery-contracts", ":gallery-workflows")
+    description = "Generates cordformation local deployment"
+
+    directory("./build/nodes")
+    nodeDefaults.apply {
+        closureOf<Node> {
+            projectCordapp.deploy = false
+        }
+    }
+    signing.enabled = false
+    node {
+        name("O=Notary,L=London,C=GB")
+    }
+}
