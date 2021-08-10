@@ -1,0 +1,28 @@
+// Global scope props
+rootProject.ext.'docker.push.username' = project.findProperty("docker.push.username")
+        ?: System.getenv("DOCKER_PUSH_USERNAME") ?: "r3payments"
+
+rootProject.ext.'docker.push.password' = project.findProperty("docker.push.password")
+        ?: System.getenv("DOCKER_PUSH_PASSWORD")
+
+// Local scope props
+project.ext {
+    setProperty("docker_push_registry", "r3payments.azurecr.io")
+    setProperty("frontend_docker_image_name", "${docker_push_registry}/ledger-gallery-frontend")
+}
+
+task buildGalleryAppImage() {
+    description = "Pushes gallery front-end image to ACR"
+    group = "deployment"
+
+    doLast {
+        def resourceDir = new File(rootDir, "frontend")
+        DockerClientProvider.buildDockerImage(
+                resourceDir,
+                frontend_docker_image_name as String,
+                project.version as String,
+                true,
+                project
+        )
+    }
+}
