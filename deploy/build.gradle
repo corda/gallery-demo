@@ -1,0 +1,75 @@
+apply plugin: "net.corda.plugins.cordapp"
+apply plugin: "net.corda.plugins.cordformation"
+
+rootProject.ext.corda_release_version = cordaCoreVersion // required for cordform
+
+dependencies {
+    cordaRuntime "$cordaCoreReleaseGroup:corda:$cordaCoreVersion"
+    cordaCompile "$cordaCoreReleaseGroup:corda-node-api:$cordaCoreVersion"
+
+    cordapp project(":gallery-contracts")
+    cordapp project(":gallery-workflows")
+}
+
+task deployNodes(type: net.corda.plugins.Cordform,
+        dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
+
+    directory "./build/nodes"
+    nodeDefaults {
+        projectCordapp {
+            deploy = false
+        }
+    }
+    signing {
+        enabled false
+    }
+    node {
+        name "O=Notary,L=London,C=GB"
+        notary = [validating : false]
+        p2pPort 10002
+        rpcSettings {
+            address("localhost:10003")
+            adminAddress("localhost:10043")
+        }
+        cordapps = []
+    }
+    node {
+        name "O=Alice,L=London,C=GB"
+        p2pPort 10005
+        rpcSettings {
+            address("localhost:10006")
+            adminAddress("localhost:10046")
+        }
+        extraConfig = [
+                h2Settings: [ address: 'localhost:10007' ]
+        ]
+        cordapp(project(":gallery-contracts"))
+        cordapp(project(":gallery-workflows"))
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+    node {
+        name "O=Bob,L=London,C=GB"
+        p2pPort 10015
+        rpcSettings {
+            address("localhost:10016")
+            adminAddress("localhost:10056")
+        }
+        extraConfig = [
+                h2Settings: [ address: 'localhost:10017' ]
+        ]
+        cordapp(project(":gallery-contracts"))
+        cordapp(project(":gallery-workflows"))
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+    node {
+        name "O=Charlie,L=London,C=GB"
+        p2pPort 10025
+        rpcSettings {
+            address("localhost:10026")
+            adminAddress("localhost:10066")
+        }
+        cordapp(project(":gallery-contracts"))
+        cordapp(project(":gallery-workflows"))
+        rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
+    }
+}
