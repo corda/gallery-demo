@@ -1,5 +1,6 @@
 apply plugin: "net.corda.plugins.cordapp"
 apply plugin: "net.corda.plugins.cordformation"
+apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: "./docker.gradle"
 
 rootProject.ext.corda_release_version = cordaCoreVersion // required for cordform
@@ -8,12 +9,26 @@ dependencies {
     cordaRuntime "$cordaCoreReleaseGroup:corda:$cordaCoreVersion"
     cordaCompile "$cordaCoreReleaseGroup:corda-node-api:$cordaCoreVersion"
 
+    cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
+    cordaCompile "org.slf4j:jul-to-slf4j:$slf4jVersion"
+
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
     project(":spring-api")
 }
 
-task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
+sourceSets {
+    main {
+        resources {
+            srcDir rootProject.file("config/dev")
+        }
+    }
+}
+
+/**
+ * Task for single network local deployment for basic testing
+ */
+task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [jar, ':gallery-contracts:jar', ':gallery-workflows:jar']) {
     group = "deployment"
 
     directory "./build/nodes"
@@ -21,6 +36,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         projectCordapp {
             deploy = false
         }
+        cordapp(project(":gallery-contracts"))
+        cordapp(project(":gallery-workflows"))
     }
     signing {
         enabled false
@@ -45,8 +62,6 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         extraConfig = [
                 h2Settings: [ address: 'localhost:10007' ]
         ]
-        cordapp(project(":gallery-contracts"))
-        cordapp(project(":gallery-workflows"))
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
@@ -59,8 +74,6 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         extraConfig = [
                 h2Settings: [ address: 'localhost:10017' ]
         ]
-        cordapp(project(":gallery-contracts"))
-        cordapp(project(":gallery-workflows"))
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
@@ -70,8 +83,9 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
             address("localhost:10026")
             adminAddress("localhost:10066")
         }
-        cordapp(project(":gallery-contracts"))
-        cordapp(project(":gallery-workflows"))
+        extraConfig = [
+                h2Settings: [ address: 'localhost:10027' ]
+        ]
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
 }
