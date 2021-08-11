@@ -5,10 +5,9 @@ repositories {
 }
 
 dependencies {
-    compile ('io.kubernetes:client-java:8.0.0'){
+    compile ('io.kubernetes:client-java:8.0.0') {
         exclude group: 'org.yaml', module: 'snakeyaml'
     }
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.26'
     compile group: 'com.github.docker-java', name: 'docker-java', version: '3.2.6'
     compile group: 'com.github.docker-java', name: 'docker-java-transport-okhttp', version: '3.2.6'
 }

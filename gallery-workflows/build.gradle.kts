@@ -34,12 +34,6 @@ tasks.jar {
 }
 
 sourceSets {
-    sourceSets["main"].resources {
-        srcDir(rootProject.file("config/main"))
-    }
-    sourceSets["test"].resources {
-        srcDir(rootProject.file("config/test"))
-    }
     create("integrationTest") {
         compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
         runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
