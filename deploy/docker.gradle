@@ -22,7 +22,7 @@ evaluationDependsOn(":spring-api")
 task copyImageSources(type: Copy) {
     dependsOn(project(":gallery-contracts").jar, project(":gallery-workflows").jar, project(":spring-api").bootJar)
 
-    def dockerfilesBase = "$projectDir/dockerfiles"
+    def dockerfilesBase = "$projectDir/azure/dockerfiles"
 
     // remove prior deploy assets
     doFirst {
