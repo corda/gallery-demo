@@ -1,3 +1,5 @@
+import kotlin.Pair
+
 // Global scope props
 rootProject.ext.'docker.push.username' = project.findProperty("docker.push.username")
         ?: System.getenv("DOCKER_PUSH_USERNAME") ?: "r3payments"
@@ -9,20 +11,51 @@ rootProject.ext.'docker.push.password' = project.findProperty("docker.push.passw
 project.ext {
     setProperty("docker_push_registry", "r3payments.azurecr.io")
     setProperty("frontend_docker_image_name", "${docker_push_registry}/ledger-gallery-frontend")
+    setProperty("gallery_cordapp_docker_image_name", "${docker_push_registry}/ledger-gallery-cordapp")
+    setProperty("gallery_webappapi_docker_image_name", "${docker_push_registry}/ledger-gallery-webappapi")
 }
 
-task buildGalleryAppImage() {
-    description = "Pushes gallery front-end image to ACR"
-    group = "deployment"
+evaluationDependsOn(":gallery-contracts")
+evaluationDependsOn(":gallery-workflows")
+evaluationDependsOn(":spring-api")
 
-    doLast {
-        def resourceDir = new File(rootDir, "frontend")
-        DockerClientProvider.buildDockerImage(
-                resourceDir,
-                frontend_docker_image_name as String,
-                project.version as String,
-                true,
-                project
-        )
+task copyImageSources(type: Copy) {
+    dependsOn(project(":gallery-contracts").jar, project(":gallery-workflows").jar, project(":spring-api").bootJar)
+
+    def dockerfilesBase = "$projectDir/dockerfiles"
+
+    // remove prior deploy assets
+    doFirst {
+        def resourceDir = new File(project.buildDir, "dockerBuild")
+        resourceDir.deleteDir()
+        resourceDir.mkdir()
     }
+
+    into project.buildDir
+    into("dockerBuild/frontend") {
+        from("$rootDir/frontend") {
+            include '**'
+            exclude '*/node_modules/'
+        }
+        from("$dockerfilesBase/frontend")
+    }
+    into("dockerBuild/galleryCordapp") {
+        from(project(":gallery-contracts").jar.archivePath)
+        from(project(":gallery-workflows").jar.archivePath)
+        from("$dockerfilesBase/galleryCordapp")
+    }
+    into("dockerBuild/spring-api") {
+        from(project(":spring-api").bootJar.archivePath)
+        from("$dockerfilesBase/spring-api")
+    }
+}
+
+task buildAndPushGalleryImages(type: ImageTask, dependsOn: 'copyImageSources') {
+    description = "Pushes gallery docker images to ACR"
+    group = "deployment"
+    resourceAndImage = [
+            new Pair(new File(project.buildDir, "dockerBuild/frontend"),frontend_docker_image_name),
+            new Pair(new File(project.buildDir, "dockerBuild/galleryCordapp"), gallery_cordapp_docker_image_name),
+            new Pair(new File(project.buildDir, "dockerBuild/spring-api"), gallery_webappapi_docker_image_name)
+    ]
 }

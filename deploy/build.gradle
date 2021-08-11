@@ -10,6 +10,7 @@ dependencies {
 
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
+    project(":spring-api")
 }
 
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
