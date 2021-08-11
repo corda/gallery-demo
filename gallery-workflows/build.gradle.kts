@@ -9,7 +9,6 @@ val cordaCoreVersion : String by project
 val gradlePluginsVersion : String by project
 
 cordapp {
-    val cordaPlatformVersion : String by rootProject
     val cordaLedgerReleaseVersion : String by rootProject
 
     targetPlatformVersion(cordaPlatformVersion.toInt())
@@ -35,6 +34,12 @@ tasks.jar {
 }
 
 sourceSets {
+    sourceSets["main"].resources {
+        srcDir(rootProject.file("config/main"))
+    }
+    sourceSets["test"].resources {
+        srcDir(rootProject.file("config/test"))
+    }
     create("integrationTest") {
         compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
         runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
@@ -48,6 +53,10 @@ configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.runtimeO
 val integrationTest = task<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
+
+    // performance
+    maxHeapSize = "4G"
+    setForkEvery(4)
 
     testClassesDirs = sourceSets["integrationTest"].output.classesDirs
     classpath = sourceSets["integrationTest"].runtimeClasspath
