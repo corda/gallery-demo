@@ -26,7 +26,7 @@ sourceSets {
 }
 
 /**
- * Task for single network local deployment for basic testing
+ * Task for single network local deployment for basic initial testing
  */
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
     group = "deployment"
@@ -43,12 +43,12 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         enabled false
     }
     node {
-        name "O=Notary,L=London,C=GB"
+        name "O=DN Notary,L=London,C=GB"
         notary = [validating : false]
         p2pPort 10002
         rpcSettings {
             address("localhost:10003")
-            adminAddress("localhost:10043")
+            adminAddress("localhost:10004")
         }
         cordapps = []
     }
@@ -57,44 +57,50 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         p2pPort 10005
         rpcSettings {
             address("localhost:10006")
-            adminAddress("localhost:10046")
+            adminAddress("localhost:10007")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10007' ]
+                h2Settings: [ address: 'localhost:10008' ]
         ]
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
-        name "O=Bob,L=London,C=GB"
-        p2pPort 10015
+        name "O=Bob,L=San Francisco,C=US"
+        p2pPort 10009
         rpcSettings {
-            address("localhost:10016")
-            adminAddress("localhost:10056")
+            address("localhost:10010")
+            adminAddress("localhost:10011")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10017' ]
+                h2Settings: [ address: 'localhost:10012' ]
         ]
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
     node {
-        name "O=Charlie,L=London,C=GB"
-        p2pPort 10025
+        name "O=Charlie,L=Mumbai,C=IN"
+        p2pPort 10013
         rpcSettings {
-            address("localhost:10026")
-            adminAddress("localhost:10066")
+            address("localhost:10014")
+            adminAddress("localhost:10015")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10027' ]
+                h2Settings: [ address: 'localhost:10016' ]
         ]
         rpcUsers = [[ user: "user1", "password": "test", "permissions": ["ALL"]]]
     }
 }
 
-task prepareDockerNodes(type: net.corda.plugins.Dockerform) {
+/**
+ * Create docker-compose for Auction Network - Alice, Bob, Charlie
+ *
+ * Todo: Test and resolve H2 live jdbc connect
+ */
+task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
     group = "deployment"
 
     dockerImage = "corda/corda-zulu-java1.8-" + corda_release_version + ":latest"
 
+    directory "/home/anthony/Repo/gallery-demo/deploy/build/Auction-Nodes"
     nodeDefaults {
         projectCordapp {
             deploy = false
@@ -102,39 +108,241 @@ task prepareDockerNodes(type: net.corda.plugins.Dockerform) {
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
+//        runSchemaMigration = true
     }
 
     node {
-        name "O=Notary,L=London,C=GB"
+        name "O=Auction Notary,L=London,C=GB"
         notary = [validating: false]
-        p2pPort 10001
+        p2pPort 10017
         p2pAddress "0.0.0.0"
         rpcSettings {
-            address("0.0.0.0:10011")
-            adminAddress("0.0.0.0:10041")
+            address("0.0.0.0:10018")
+            adminAddress("0.0.0.0:10019")
         }
         sshdPort 2221
     }
 
     node {
-        name "O=PartyA,L=London,C=GB"
+        name "O=Alice,L=London,C=GB"
         p2pPort 10002
         p2pAddress "0.0.0.0"
         rpcSettings {
-            address("0.0.0.0:10012")
-            adminAddress("0.0.0.0:10042")
+            address("0.0.0.0:10020")
+            adminAddress("0.0.0.0:10021")
         }
+        extraConfig = [
+                h2Settings: [ address: 'localhost:10022' ],
+                dataSourceProperties: [
+                    dataSource: [
+                        password: "test"
+                    ]
+                ]
+        ]
         sshdPort 2222
     }
 
     node {
-        name "O=PartyB,L=New York,C=US"
+        name "O=Bob,L=San Francisco,C=US"
+        p2pPort 10002
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10023")
+            adminAddress("0.0.0.0:10024")
+        }
+        extraConfig = [
+                h2Settings: [ address: '0.0.0.0:10025' ],
+                dataSourceProperties: [
+                        dataSource: [
+                                password: "test"
+                        ]
+                ]
+        ]
+        sshdPort 2223
+    }
+
+    node {
+        name "O=Charlie,L=Mumbai,C=IN"
         p2pPort 10003
         p2pAddress "0.0.0.0"
         rpcSettings {
-            address("0.0.0.0:10013")
+            address("0.0.0.0:10026")
+            adminAddress("0.0.0.0:10027")
+        }
+        extraConfig = [
+                h2Settings: [ address: "0.0.0.0:10028" ],
+                dataSourceProperties: [
+                        dataSource: [
+                                password: "test"
+                        ]
+                ]
+        ]
+        sshdPort 2224
+    }
+}
+
+/**
+ * Create docker-compose for GBP Network - Alice, Bob
+ */
+task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
+    group = "deployment"
+
+    dockerImage = "corda/corda-zulu-java1.8-" + corda_release_version + ":latest"
+
+    directory "/home/anthony/Repo/gallery-demo/deploy/build/GBP-Nodes"
+    nodeDefaults {
+        projectCordapp {
+            deploy = false
+        }
+        cordapp project(":gallery-contracts")
+        cordapp project(":gallery-workflows")
+        rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
+//        runSchemaMigration = true
+    }
+
+    node {
+        name "O=Auction Notary,L=London,C=GB"
+        notary = [validating: false]
+        p2pPort 10017
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10029")
+            adminAddress("0.0.0.0:10030")
+        }
+        sshdPort 2225
+    }
+
+    node {
+        name "O=Alice,L=London,C=GB"
+        p2pPort 10002
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10031")
+            adminAddress("0.0.0.0:10032")
+        }
+        extraConfig = [
+                h2Settings: [ address: 'localhost:10033' ],
+                dataSourceProperties: [
+                        dataSource: [
+                                password: "test"
+                        ]
+                ]
+        ]
+        sshdPort 2226
+    }
+
+    node {
+        name "O=Bob,L=San Francisco,C=US"
+        p2pPort 10002
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10034")
+            adminAddress("0.0.0.0:10035")
+        }
+        extraConfig = [
+                h2Settings: [ address: '0.0.0.0:10036' ],
+                dataSourceProperties: [
+                        dataSource: [
+                                password: "test"
+                        ]
+                ]
+        ]
+        sshdPort 2227
+    }
+}
+
+/**
+ * Create docker-compose for CBDC Network - Alice, Charlie
+ */
+task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
+    group = "deployment"
+
+    dockerImage = "corda/corda-zulu-java1.8-" + corda_release_version + ":latest"
+
+    directory "/home/anthony/Repo/gallery-demo/deploy/build/CBDC-Nodes"
+    nodeDefaults {
+        projectCordapp {
+            deploy = false
+        }
+        cordapp project(":gallery-contracts")
+        cordapp project(":gallery-workflows")
+        rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
+//        runSchemaMigration = true
+    }
+
+    node {
+        name "O=Auction Notary,L=London,C=GB"
+        notary = [validating: false]
+        p2pPort 10017
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10037")
+            adminAddress("0.0.0.0:10038")
+        }
+        sshdPort 2228
+    }
+
+    node {
+        name "O=Alice,L=London,C=GB"
+        p2pPort 10002
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10039")
+            adminAddress("0.0.0.0:10040")
+        }
+        extraConfig = [
+                h2Settings: [ address: 'localhost:10041' ],
+                dataSourceProperties: [
+                        dataSource: [
+                                password: "test"
+                        ]
+                ]
+        ]
+        sshdPort 2229
+    }
+
+    node {
+        name "O=Bob,L=San Francisco,C=US"
+        p2pPort 10002
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10042")
             adminAddress("0.0.0.0:10043")
         }
-        sshdPort 2223
+        extraConfig = [
+                h2Settings: [ address: '0.0.0.0:10044' ],
+                dataSourceProperties: [
+                        dataSource: [
+                                password: "test"
+                        ]
+                ]
+        ]
+        sshdPort 2230
     }
+
+    node {
+        name "O=Charlie,L=Mumbai,C=IN"
+        p2pPort 10003
+        p2pAddress "0.0.0.0"
+        rpcSettings {
+            address("0.0.0.0:10045")
+            adminAddress("0.0.0.0:10046")
+        }
+        extraConfig = [
+                h2Settings: [ address: "0.0.0.0:10047" ],
+                dataSourceProperties: [
+                        dataSource: [
+                                password: "test"
+                        ]
+                ]
+        ]
+        sshdPort 2231
+    }
+}
+
+/**
+ * TODO: workaround for docker-compose.yml overwrites on chained task
+ */
+task prepareAllDockerNodes(type: Task, dependsOn: ['prepareAuctionDockerNodes','prepareGbpDockerNodes','prepareCbdcDockerNodes']) {
+    group = "deployment"
 }

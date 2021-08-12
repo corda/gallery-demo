@@ -59,3 +59,7 @@ task buildAndPushGalleryImages(type: ImageTask, dependsOn: 'copyImageSources') {
             new Pair(new File(project.buildDir, "dockerBuild/spring-api"), gallery_webappapi_docker_image_name)
     ]
 }
+
+//task buildNetworks(type: DeploymentTask, dependsOn: 'buildAndPushGalleryImages') {
+//
+//}
