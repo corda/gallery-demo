@@ -9,7 +9,6 @@ val cordaCoreVersion : String by project
 val gradlePluginsVersion : String by project
 
 cordapp {
-    val cordaPlatformVersion : String by rootProject
     val cordaLedgerReleaseVersion : String by rootProject
 
     targetPlatformVersion(cordaPlatformVersion.toInt())
@@ -48,6 +47,10 @@ configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.runtimeO
 val integrationTest = task<Test>("integrationTest") {
     description = "Runs integration tests."
     group = "verification"
+
+    // performance
+    maxHeapSize = "4G"
+    setForkEvery(4)
 
     testClassesDirs = sourceSets["integrationTest"].output.classesDirs
     classpath = sourceSets["integrationTest"].runtimeClasspath
