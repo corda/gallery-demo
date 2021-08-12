@@ -1,0 +1,22 @@
+import deployments.DockerRegistrySecret
+
+String nmsImageName = "roastario/network-services:3"
+
+task buildNamespaceAndCreds(type: DeploymentTask) {
+    def namespaceDep = kdeployment.buildNamespace(namespaceName)
+    def acrCredentialsDep = new DockerRegistrySecret(
+            namespaceName,
+            "paymentsRegCred",
+            docker_push_registry,
+            rootProject.ext.'docker.push.username',
+            rootProject.ext.'docker.push.password'
+    )
+    deployments = [namespaceDep, acrCredentialsDep] as Iterable<Object>
+    fileName = "namespaceAndCredDeployment"
+}
+
+task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
+    def auctionNetworkServices = kdeployment.buildNMSDeployment namespaceName, nmsImageName
+    deployments = [auctionNetworkServices]
+    fileName = "auctionNetworkDeployment"
+}

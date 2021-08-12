@@ -2,6 +2,7 @@ apply plugin: "net.corda.plugins.cordapp"
 apply plugin: "net.corda.plugins.cordformation"
 apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: "./docker.gradle"
+apply from: "./azure.gradle"
 
 rootProject.ext.corda_release_version = cordaCoreVersion // required for cordform
 
@@ -214,7 +215,7 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
     }
 
     node {
-        name "O=Auction Notary,L=London,C=GB"
+        name "O=GBP Notary,L=London,C=GB"
         notary = [validating: false]
         p2pPort 10017
         p2pAddress "0.0.0.0"
@@ -289,7 +290,7 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
     }
 
     node {
-        name "O=Auction Notary,L=London,C=GB"
+        name "O=CBDC Notary,L=London,C=GB"
         notary = [validating: false]
         p2pPort 10017
         p2pAddress "0.0.0.0"
