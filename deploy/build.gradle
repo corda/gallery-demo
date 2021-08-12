@@ -214,7 +214,7 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
     }
 
     node {
-        name "O=Auction Notary,L=London,C=GB"
+        name "O=GBP Notary,L=London,C=GB"
         notary = [validating: false]
         p2pPort 10017
         p2pAddress "0.0.0.0"
@@ -289,7 +289,7 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
     }
 
     node {
-        name "O=Auction Notary,L=London,C=GB"
+        name "O=CBDC Notary,L=London,C=GB"
         notary = [validating: false]
         p2pPort 10017
         p2pAddress "0.0.0.0"
