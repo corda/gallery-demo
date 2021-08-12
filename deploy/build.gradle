@@ -356,6 +356,8 @@ task prepareAllDockerNodes(type: Task, dependsOn: ['prepareAuctionDockerNodes','
  * Convenience task for bringing up all docker networks
  */
 task allNetworksUp(type: Task) {
+    group = "deployment"
+
     doLast {
         allNetworks.forEach({ network ->
             exec {
@@ -371,6 +373,8 @@ task allNetworksUp(type: Task) {
  * Convenience task for bringing down all docker networks
  */
 task allNetworksDown(type: Task) {
+    group = "deployment"
+
     doLast {
         allNetworks.forEach({network ->
             exec {

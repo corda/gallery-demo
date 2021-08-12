@@ -1,6 +1,6 @@
 # Deploy Module - Running Local Nodes
 
-### DeployNodes / Cordform Task
+### A) DeployNodes / Cordform Task - Single Net
 
 ```
 ./gradlew deployNodes
@@ -9,11 +9,20 @@
 - Spawns local SINGLE NETWORK node instances with CRaSH interfaces via Xterm.
 - Use and modify node blocks, for simple initial Cordapp testing
 
-### Network PrepareDockerNodes / Dockerform Tasks
+### B) Network PrepareDockerNodes / Dockerform Tasks - Multi Net
 
 #### Prereqs:
-1. Docker Desktop or Docker *NIX
-2. Docker-Compose
+1. [Docker Desktop or Docker *NIX](https://docs.docker.com/docker-for-mac/install/)
+2. [Docker-Compose](https://docs.docker.com/compose/install/)
+
+- IMPORTANT: Docker resources defaults in Docker Desktop for mac are too low. you have to
+allocate a higher ram limit to support Corda nodes. If you have 16GB try setting to around
+  10GB; systems with 32GB can go for more.
+  
+![Docker Desktop Settings](docker.png)
+  
+
+#### Prepare the docker-compose configurations
 
 ```shell
 ./gradlew prepareAllDockerNodes     # generate config for all networks
@@ -23,10 +32,16 @@
 ```
 - generates a docker compose file for associated networks
 
-Run the networks
+#### Up/Down the networks
 
 ```shell
-docker-compose -f ./deploy/build/GBP-Nodes/docker-compose.yml up -d
-docker-compose -f ./deploy/build/GBP-Nodes/docker-compose.yml up -d
-docker-compose -f ./deploy/build/GBP-Nodes/docker-compose.yml up -d
+# Using preset gradle tasks from terminal or IntelliJ
+
+./gradlew allNetworksUp
+./gradlew allNetworksDown
+
+# Or using docker-compose direct commands
+
+docker-compose -f <relative-path>/deploy/build/[Auction-Nodes|GBP-Nodes|CBDC-Nodes]/docker-compose.yml up -d
+docker-compose -f <relative-path>/deploy/build/[Auction-Nodes|GBP-Nodes|CBDC-Nodes]/docker-compose.yml down --remove-orphans
 ```
