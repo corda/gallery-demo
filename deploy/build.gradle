@@ -25,13 +25,20 @@ sourceSets {
     }
 }
 
+String sourceNodeDir = "$project.buildDir/nodes"
+String basicNodeDir = "$project.buildDir/BasicNet-Nodes"
+String auctionNodeDir = "$project.buildDir/Auction-Nodes"
+String gbpNodeDir = "$project.buildDir/GBP-Nodes"
+String cbdcNodeDir = "$project.buildDir/CBDC-Nodes"
+List<String> allNetworks = [auctionNodeDir, gbpNodeDir, cbdcNodeDir]
+
 /**
  * Task for single network local deployment for basic initial testing
  */
 task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
     group = "deployment"
 
-    directory "./build/nodes"
+    directory basicNodeDir
     nodeDefaults {
         projectCordapp {
             deploy = false
@@ -100,7 +107,8 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
 
     dockerImage = "corda/corda-zulu-java1.8-" + corda_release_version + ":latest"
 
-    directory "/home/anthony/Repo/gallery-demo/deploy/build/Auction-Nodes"
+    def depTargetDir = auctionNodeDir
+    directory depTargetDir
     nodeDefaults {
         projectCordapp {
             deploy = false
@@ -108,7 +116,7 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-//        runSchemaMigration = true
+        //        runSchemaMigration = true
     }
 
     node {
@@ -179,6 +187,10 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         ]
         sshdPort 2224
     }
+
+    doLast {
+        mvYamlToTarget(sourceNodeDir, depTargetDir)
+    }
 }
 
 /**
@@ -189,7 +201,8 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
 
     dockerImage = "corda/corda-zulu-java1.8-" + corda_release_version + ":latest"
 
-    directory "/home/anthony/Repo/gallery-demo/deploy/build/GBP-Nodes"
+    def depTargetDir = gbpNodeDir
+    directory depTargetDir
     nodeDefaults {
         projectCordapp {
             deploy = false
@@ -197,7 +210,7 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-//        runSchemaMigration = true
+        //        runSchemaMigration = true
     }
 
     node {
@@ -249,6 +262,10 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         ]
         sshdPort 2227
     }
+
+    doLast {
+        mvYamlToTarget(sourceNodeDir, depTargetDir)
+    }
 }
 
 /**
@@ -259,7 +276,8 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
 
     dockerImage = "corda/corda-zulu-java1.8-" + corda_release_version + ":latest"
 
-    directory "/home/anthony/Repo/gallery-demo/deploy/build/CBDC-Nodes"
+    def depTargetDir = cbdcNodeDir
+    directory depTargetDir
     nodeDefaults {
         projectCordapp {
             deploy = false
@@ -267,7 +285,7 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-//        runSchemaMigration = true
+        //        runSchemaMigration = true
     }
 
     node {
@@ -302,7 +320,7 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
     }
 
     node {
-        name "O=Bob,L=San Francisco,C=US"
+        name "O=Charlie,L=Mumbai,C=IN"
         p2pPort 10002
         p2pAddress "0.0.0.0"
         rpcSettings {
@@ -320,29 +338,67 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         sshdPort 2230
     }
 
-    node {
-        name "O=Charlie,L=Mumbai,C=IN"
-        p2pPort 10003
-        p2pAddress "0.0.0.0"
-        rpcSettings {
-            address("0.0.0.0:10045")
-            adminAddress("0.0.0.0:10046")
-        }
-        extraConfig = [
-                h2Settings: [ address: "0.0.0.0:10047" ],
-                dataSourceProperties: [
-                        dataSource: [
-                                password: "test"
-                        ]
-                ]
-        ]
-        sshdPort 2231
+    doLast {
+        mvYamlToTarget(sourceNodeDir, depTargetDir)
     }
 }
 
 /**
- * TODO: workaround for docker-compose.yml overwrites on chained task
+ * Generates all networks
  */
 task prepareAllDockerNodes(type: Task, dependsOn: ['prepareAuctionDockerNodes','prepareGbpDockerNodes','prepareCbdcDockerNodes']) {
     group = "deployment"
+}
+
+// RUNNERS
+
+/**
+ * Convenience task for bringing up all docker networks
+ */
+task allNetworksUp(type: Task) {
+    doLast {
+        allNetworks.forEach({ network ->
+            exec {
+                environment "ACCEPT_LICENSE", "YES"
+                workingDir network
+                commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '-d'
+            }
+        })
+    }
+}
+
+/**
+ * Convenience task for bringing down all docker networks
+ */
+task allNetworksDown(type: Task) {
+    doLast {
+        allNetworks.forEach({network ->
+            exec {
+                environment "ACCEPT_LICENSE", "YES"
+                workingDir network
+                commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+            }
+        })
+    }
+}
+
+/**
+ * Helper that moves a network/nodes deployment to its own build directory
+ * @param source
+ * @param target
+ * @return
+ */
+def mvYamlToTarget(String source, String target) {
+    File srcFile = new File(source)
+    copy {
+        from(source) {
+            include '**/docker-compose.yml'
+        }
+        into(target)
+        filter {
+            // Correction of Dockerform incorrect mnt path generations
+            line -> line.replaceAll(source, target)
+        }
+    }
+    srcFile.deleteDir()
 }
