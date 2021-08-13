@@ -364,7 +364,7 @@ task allNetworksUp(type: Task) {
             exec {
                 environment "ACCEPT_LICENSE", "YES"
                 workingDir network
-                commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '-d'
+                commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
             }
         })
     }
