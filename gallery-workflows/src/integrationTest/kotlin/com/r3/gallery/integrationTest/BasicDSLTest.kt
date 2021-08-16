@@ -12,7 +12,7 @@ import net.corda.testing.driver.NodeHandle
 import net.corda.testing.driver.driver
 import net.corda.testing.driver.internal.incrementalPortAllocation
 import net.corda.testing.node.TestCordapp
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import java.time.Duration
 import java.time.Instant
 
