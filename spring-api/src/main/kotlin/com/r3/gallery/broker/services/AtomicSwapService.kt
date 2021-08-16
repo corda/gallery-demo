@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 const val GALLERY = "gallery"
 
 open class AtomicSwapService(
-    @Autowired val galleryClient: ArtNetworkGalleryClient,
+    @Autowired val  galleryClient: ArtNetworkGalleryClient,
     @Autowired val buyerClient: TokenNetworkBuyerClient,
     @Autowired val sellerClient: TokenNetworkSellerClient,
     @Autowired val identityRegistry: IdentityRegistry

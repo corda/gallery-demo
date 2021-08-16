@@ -1,6 +1,11 @@
 package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.broker.corda.client.api.*
+import net.corda.client.rpc.CordaRPCClient
+import net.corda.client.rpc.CordaRPCConnection
+import net.corda.core.messaging.CordaRPCOps
+import net.corda.core.utilities.NetworkHostAndPort
+
 
 /**
  * Execute flows against Corda nodes running the Art Network application, acting as the gallery
@@ -10,7 +15,15 @@ interface ArtNetworkGalleryClient {
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
+    suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
+        val nodeAddress: NetworkHostAndPort = NetworkHostAndPort.parse(args.get(0))
+        val username: String = args.get(1)
+        val password: String = args.get(2)
+
+        val client: net.corda.client.rpc.CordaRPCClient = net.corda.client.rpc.CordaRPCClient(nodeAddress)
+        val connection: net.corda.client.rpc.CordaRPCConnection = client.start(username, password)
+        val cordaRPCOperations: CordaRPCOps = connection.proxy
+    }
 
     /**
      * List out the artworks still held by the gallery.
