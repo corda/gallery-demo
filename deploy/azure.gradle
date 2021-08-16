@@ -25,9 +25,13 @@ task buildNamespaceAndCreds(type: DeploymentTask) {
  * [Networks Services, Notary, Alice, Bob, Charlie]
  */
 task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
-    def auctionNetworkServices = kdeployment.buildNMSDeployment namespaceName, nmsImageName
-    def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+    def auctionNetworkServices = kdeployment.buildNMSDeployment.call(
             namespaceName,
+            "auctionNMS",
+            nmsImageName
+    )
+    def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName as String,
             "auction-notary",
             "roastario/notary-one:2",
             auctionNetworkServices.getNmsService()
@@ -44,12 +48,12 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
         if ((node.get("networks") as List).contains("auction")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeDeployment (
+            def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
-                    namespaceName,
-                    "auction-$identifier",
-                    node.get("x500"),
-                    gallery_cordapp_docker_image_name,
+                    namespaceName as String,
+                    "auction-$identifier" as String,
+                    node.get("x500") as String,
+                    gallery_cordapp_docker_image_name as String,
                     "1"
             )
             auctionNodeDeployments.add(currentNode)
@@ -65,9 +69,13 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
  * [Networks Services, Notary, Alice, Bob]
  */
 task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
-    def gbpNetworkServices = kdeployment.buildNMSDeployment namespaceName, nmsImageName
-    def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+    def gbpNetworkServices = kdeployment.buildNMSDeployment.call(
             namespaceName,
+            "gbpNMS",
+            nmsImageName
+    )
+    def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName as String,
             "gbp-notary",
             "roastario/notary-one:2",
             gbpNetworkServices.getNmsService()
@@ -84,12 +92,12 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
         if ((node.get("networks") as List).contains("gbp")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeDeployment (
+            def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
-                    namespaceName,
+                    namespaceName as String,
                     "gbp-$identifier",
-                    node.get("x500"),
-                    gallery_cordapp_docker_image_name,
+                    node.get("x500") as String,
+                    gallery_cordapp_docker_image_name as String,
                     "1"
             )
             gbpNodeDeployments.add(currentNode)
@@ -105,9 +113,13 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
  * [Networks Services, Notary, Alice, Charlie]
  */
 task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
-    def cbdcNetworkServices = kdeployment.buildNMSDeployment namespaceName, nmsImageName
-    def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+    def cbdcNetworkServices = kdeployment.buildNMSDeployment.call(
             namespaceName,
+            "cbdcNMS",
+            nmsImageName
+    )
+    def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName as String,
             "auction-notary",
             "roastario/notary-one:2",
             cbdcNetworkServices.getNmsService()
@@ -124,12 +136,12 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
         if ((node.get("networks") as List).contains("cbdc")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeDeployment (
+            def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
-                    namespaceName,
+                    namespaceName as String,
                     "cbdc-$identifier",
-                    node.get("x500"),
-                    gallery_cordapp_docker_image_name,
+                    node.get("x500") as String,
+                    gallery_cordapp_docker_image_name as String,
                     "1"
             )
             cbdcNodeDeployments.add(currentNode)

@@ -197,12 +197,12 @@ class KubernetesDeployment {
         String identifier,
         String x500,
         String imageName,
-        randomSuffix ->
+        String randomSuffix ->
             return NodeDeployment.buildNodeDeployment(regcred, devNamespace, identifier, x500, imageName, randomSuffix)
     }
 
-    def buildNMSDeployment = { String devNamespace, String imageName ->
-        return NetworkServicesDeployment.buildNMSDeployment(devNamespace, imageName)
+    def buildNMSDeployment = { String devNamespace, String networkServiceName, String imageName ->
+        return NetworkServicesDeployment.buildNMSDeployment(devNamespace, networkServiceName, imageName)
     }
 
     def buildWebAppDeployment = {

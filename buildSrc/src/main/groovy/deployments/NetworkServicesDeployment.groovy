@@ -40,7 +40,7 @@ class NetworkServicesDeployment implements Iterable<Object> {
         return backingListForIteration.spliterator()
     }
 
-    static NetworkServicesDeployment buildNMSDeployment(String devNamespace, String imageName) {
+    static NetworkServicesDeployment buildNMSDeployment(String devNamespace, String networkServiceName, String imageName) {
 
 
         V1PersistentVolumeClaim persistencePVC = new V1PersistentVolumeClaimBuilder()
@@ -62,17 +62,17 @@ class NetworkServicesDeployment implements Iterable<Object> {
                 .withKind("Deployment")
                 .withApiVersion("apps/v1")
                 .withNewMetadata()
-                .withName("networkservices")
+                .withName(networkServiceName)
                 .withNamespace(devNamespace)
                 .endMetadata()
                 .withNewSpec()
                 .withNewSelector()
-                .withMatchLabels([run: "networkservices"])
+                .withMatchLabels([run: networkServiceName])
                 .endSelector()
                 .withReplicas(1)
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels([run: "networkservices"])
+                .withLabels([run: networkServiceName])
                 .endMetadata()
                 .withNewSpec()
                 .withVolumes(
@@ -82,7 +82,7 @@ class NetworkServicesDeployment implements Iterable<Object> {
                                 ).build(),
                 )
                 .addNewContainer()
-                .withName("networkservices")
+                .withName(networkServiceName)
                 .withImage(imageName)
                 .withImagePullPolicy("IfNotPresent")
                 .withCommand("/start.sh")
@@ -106,13 +106,13 @@ class NetworkServicesDeployment implements Iterable<Object> {
                 .withApiVersion("v1")
                 .withNewMetadata()
                 .withNamespace(devNamespace)
-                .withName("networkservices")
-                .withLabels([run: "networkservices"])
+                .withName(networkServiceName)
+                .withLabels([run: networkServiceName])
                 .endMetadata()
                 .withNewSpec()
                 .withPorts(
                         new V1ServicePortBuilder().withPort(8080).withProtocol("TCP").withName("networkmapport").build()
-                ).withSelector([run: "networkservices"])
+                ).withSelector([run: networkServiceName])
                 .endSpec()
                 .build()
 
