@@ -1,12 +1,17 @@
+import com.fasterxml.jackson.databind.ObjectMapper
 import deployments.DockerRegistrySecret
+import deployments.NotaryDeployment
 
-String nmsImageName = "roastario/network-services:3"
+import java.util.function.BiConsumer
 
+/**
+ * Creates deployment for K8s namespace isolation and ACR credentials for pulling docker images
+ */
 task buildNamespaceAndCreds(type: DeploymentTask) {
     def namespaceDep = kdeployment.buildNamespace(namespaceName)
     def acrCredentialsDep = new DockerRegistrySecret(
             namespaceName,
-            "paymentsRegCred",
+            ledgerRegCred,
             docker_push_registry,
             rootProject.ext.'docker.push.username',
             rootProject.ext.'docker.push.password'
@@ -15,8 +20,122 @@ task buildNamespaceAndCreds(type: DeploymentTask) {
     fileName = "namespaceAndCredDeployment"
 }
 
+/**
+ * Creates a deployment for Auction Network
+ * [Networks Services, Notary, Alice, Bob, Charlie]
+ */
 task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def auctionNetworkServices = kdeployment.buildNMSDeployment namespaceName, nmsImageName
-    deployments = [auctionNetworkServices]
+    def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName,
+            "auction-notary",
+            "roastario/notary-one:2",
+            auctionNetworkServices.getNmsService()
+    )
+
+    // Node deployment
+    ObjectMapper mapper = new ObjectMapper()
+    def nodesProperties = new Properties()
+    file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
+    List<Iterable<Object>> auctionNodeDeployments = new ArrayList()
+
+    nodesProperties.forEach({identifier, nodeSerialized ->
+        def node = mapper.readValue(nodeSerialized, Map.class)
+        if ((node.get("networks") as List).contains("auction")) {
+            println "Configuring ${node.toString()} for deployment."
+
+            def currentNode = kdeployment.buildNodeDeployment (
+                    ledgerRegCred,
+                    namespaceName,
+                    "auction-$identifier",
+                    node.get("x500"),
+                    gallery_cordapp_docker_image_name,
+                    "1"
+            )
+            auctionNodeDeployments.add(currentNode)
+        }
+    } as BiConsumer<String, String>)
+
+    deployments = [auctionNetworkServices, auctionNotaryDeployment, *auctionNodeDeployments]
     fileName = "auctionNetworkDeployment"
+}
+
+/**
+ * Creates a deployment for GBP Network
+ * [Networks Services, Notary, Alice, Bob]
+ */
+task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
+    def gbpNetworkServices = kdeployment.buildNMSDeployment namespaceName, nmsImageName
+    def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName,
+            "gbp-notary",
+            "roastario/notary-one:2",
+            gbpNetworkServices.getNmsService()
+    )
+
+    // Node deployment
+    ObjectMapper mapper = new ObjectMapper()
+    def nodesProperties = new Properties()
+    file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
+    List<Iterable<Object>> gbpNodeDeployments = new ArrayList()
+
+    nodesProperties.forEach({identifier, nodeSerialized ->
+        def node = mapper.readValue(nodeSerialized, Map.class)
+        if ((node.get("networks") as List).contains("gbp")) {
+            println "Configuring ${node.toString()} for deployment."
+
+            def currentNode = kdeployment.buildNodeDeployment (
+                    ledgerRegCred,
+                    namespaceName,
+                    "gbp-$identifier",
+                    node.get("x500"),
+                    gallery_cordapp_docker_image_name,
+                    "1"
+            )
+            gbpNodeDeployments.add(currentNode)
+        }
+    } as BiConsumer<String, String>)
+
+    deployments = [gbpNetworkServices, gbpNotaryDeployment, *gbpNodeDeployments]
+    fileName = "gbpNetworkDeployment"
+}
+
+/**
+ * Creates a deployment for CBDC Network
+ * [Networks Services, Notary, Alice, Charlie]
+ */
+task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
+    def cbdcNetworkServices = kdeployment.buildNMSDeployment namespaceName, nmsImageName
+    def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName,
+            "auction-notary",
+            "roastario/notary-one:2",
+            cbdcNetworkServices.getNmsService()
+    )
+
+    // Node deployment
+    ObjectMapper mapper = new ObjectMapper()
+    def nodesProperties = new Properties()
+    file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
+    List<Iterable<Object>> cbdcNodeDeployments = new ArrayList()
+
+    nodesProperties.forEach({identifier, nodeSerialized ->
+        def node = mapper.readValue(nodeSerialized, Map.class)
+        if ((node.get("networks") as List).contains("cbdc")) {
+            println "Configuring ${node.toString()} for deployment."
+
+            def currentNode = kdeployment.buildNodeDeployment (
+                    ledgerRegCred,
+                    namespaceName,
+                    "cbdc-$identifier",
+                    node.get("x500"),
+                    gallery_cordapp_docker_image_name,
+                    "1"
+            )
+            cbdcNodeDeployments.add(currentNode)
+        }
+    } as BiConsumer<String, String>)
+
+    deployments = [cbdcNetworkServices, cbdcNotaryDeployment, *cbdcNodeDeployments]
+    fileName = "cbdcNetworkDeployment"
 }
