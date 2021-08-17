@@ -26,14 +26,14 @@ pipeline {
         stage('Create and push docker images') {
             steps {
                 sh "./gradlew createAndPushDockerImages " +
-                "-Pdocker.payments.username=${DOCKER_CREDENTIALS_USR} -Pdocker.payments.password=${DOCKER_CREDENTIALS_PSW}"
+                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
             }
         }
 
         stage('Build Network Deployments') {
             steps {
                 sh "./gradlew buildAllNetworks " +
-                "-Pdocker.payments.username=${DOCKER_CREDENTIALS_USR} -Pdocker.payments.password=${DOCKER_CREDENTIALS_PSW}"
+                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
             }
         }
 
