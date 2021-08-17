@@ -25,55 +25,12 @@ pipeline {
 
     stages {
 
-        stage('Unit Tests') {
-            steps {
-                sh "./gradlew test"
-            }
-         }
-
-        stage('Integration Tests') {
-            steps {
-                sh "./gradlew integrationTest"
-            }
-        }
-
-        stage('Docker image pull for freighter') {
-            steps {
-                timeout(60) {
-                    sh '''
-                        docker pull postgres:9.6
-                        docker pull roastario/freighter-base:latest
-                        docker pull roastario/notary-and-network-map:4.0
-                        '''
-                }
-            }
-        }
-
-        stage('Freighter Tests') {
-            steps {
-                timeout(60) {
-                    sh '''
-                        export ARTIFACTORY_USERNAME=\"\${ARTIFACTORY_CREDENTIALS_USR}\"
-                        export ARTIFACTORY_PASSWORD=\"\${ARTIFACTORY_CREDENTIALS_PSW}\"
-                        ./gradlew --parallel -Pfreighter.forks=2 freighterTest --info --stacktrace --no-daemon
-                        '''
-                }
-            }
-        }
-
-        stage('Create and push docker images') {
-            steps {
-                sh "./gradlew createAndPushDockerImages"
-            }
-        }
-
         stage('Build Network Deployments') {
             steps {
                 sh "./gradlew buildAllNetworks"
             }
         }
 
-        //TODO: kubectl apply -f build/kubernetes/ledgerswaps.yaml
         stage('Deploy to Azure') {
             steps {
                 withCredentials([azureServicePrincipal("payments-deployer-service-principal")]) {
