@@ -13,11 +13,14 @@ cordapp {
 
     targetPlatformVersion(cordaPlatformVersion.toInt())
     minimumPlatformVersion(cordaPlatformVersion.toInt())
-    contract {
+    workflow {
         name("Gallery Workflows")
         vendor("Corda Open Source")
         licence("Apache License, Version 2.0")
         versionId(cordaLedgerReleaseVersion.toInt())
+    }
+    signing {
+        enabled(false)
     }
 }
 
