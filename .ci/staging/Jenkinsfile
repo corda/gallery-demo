@@ -18,6 +18,8 @@ pipeline {
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         DOCKER_CREDENTIALS = credentials('payments-docker-credentials')
         DOCKER_REGISTRY = "r3payments.azurecr.io"
+        DOCKER_PUSH_USERNAME = $DOCKER_CREDENTIALS_USR
+        DOCKER_PUSH_PASSWORD = $DOCKER_CREDENTIALS_PSW
         LOOPBACK_ADDRESS = "172.17.0.1"
     }
 
@@ -35,7 +37,7 @@ pipeline {
             }
         }
 
-        stage('Docker image pull') {
+        stage('Docker image pull for freighter') {
             steps {
                 timeout(60) {
                     sh '''
@@ -59,10 +61,15 @@ pipeline {
             }
         }
 
-        stage('Build Deployment') {
+        stage('Create and push docker images') {
             steps {
-                sh "./gradlew buildDevDeployment -Pdocker.push.registry=\${DOCKER_REGISTRY} " +
-                        "-Pdocker.push.username=\"\${DOCKER_CREDENTIALS_USR}\" -Pdocker.push.password=\"\${DOCKER_CREDENTIALS_PSW}\""
+                sh "./gradlew createAndPushDockerImages"
+            }
+        }
+
+        stage('Build Network Deployments') {
+            steps {
+                sh "./gradlew buildAllNetworks"
             }
         }
 
@@ -74,6 +81,10 @@ pipeline {
                     az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID
                     az account set -s $AZURE_SUBSCRIPTION_ID
                     az aks get-credentials --resource-group payments-dev --name payments-dev-k8s
+                    kubectl apply -f deploy/build/kubernetes/namespaceAndCredDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/auctionNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/gbpNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/cbdcNetworkDeployment.yaml
                   '''
                 }
             }
