@@ -52,6 +52,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
             def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
                     namespaceName as String,
+                    auctionNetworkServices.nmsService.metadata.name,
                     "auction-$identifier" as String,
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
@@ -112,6 +113,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
             def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
                     namespaceName as String,
+                    gbpNetworkServices.nmsService.metadata.name,
                     "gbp-$identifier",
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
@@ -172,6 +174,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
             def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
                     namespaceName as String,
+                    cbdcNetworkServices.nmsService.metadata.name,
                     "cbdc-$identifier",
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,

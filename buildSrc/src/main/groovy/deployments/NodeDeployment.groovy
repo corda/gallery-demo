@@ -71,10 +71,11 @@ class NodeDeployment implements Iterable<Object> {
 
     static NodeDeployment buildNodeDeployment(String regcred,
                                               String devNamespace,
+                                              String targetNetworkService,
                                               String identifier,
                                               String x500,
                                               String imageName,
-                                              randomSuffix) {
+                                              String randomSuffix) {
         def dnsSafeIdentifier = identifier.toLowerCase()
 
         def nodeComponents = NodeResources.createNodeComponents(devNamespace, dnsSafeIdentifier, x500, imageName)
@@ -140,7 +141,7 @@ class NodeDeployment implements Iterable<Object> {
                 .withImage("curlimages/curl:latest")
                 .withImagePullPolicy("IfNotPresent")
                 .withCommand("curl")
-                .withArgs("-o", "/opt/corda/certificates/network-root-truststore.jks", "http://networkservices:8080/trustStore")
+                .withArgs("-o", "/opt/corda/certificates/network-root-truststore.jks", "http://$targetNetworkService:8080/trustStore")
                 .withVolumeMounts(
                         new V1VolumeMountBuilder().withName("$dnsSafeIdentifier-config-storage").withMountPath("/etc/corda").build(),
                         new V1VolumeMountBuilder().withName("$dnsSafeIdentifier-certificates-storage").withMountPath("/opt/corda/certificates").build(),
@@ -163,8 +164,8 @@ class NodeDeployment implements Iterable<Object> {
                 .withEnv(
                         new V1EnvVarBuilder().withName("MY_LEGAL_NAME").withValue(x500).build(),
                         new V1EnvVarBuilder().withName("MY_PUBLIC_ADDRESS").withValue("$dnsSafeIdentifier-node").build(),
-                        new V1EnvVarBuilder().withName("NETWORKMAP_URL").withValue("http://networkservices:8080").build(),
-                        new V1EnvVarBuilder().withName("DOORMAN_URL").withValue("http://networkservices:8080").build(),
+                        new V1EnvVarBuilder().withName("NETWORKMAP_URL").withValue("http://$targetNetworkService:8080").build(),
+                        new V1EnvVarBuilder().withName("DOORMAN_URL").withValue("http://$targetNetworkService:8080").build(),
                         new V1EnvVarBuilder().withName("NETWORK_TRUST_PASSWORD").withValue("trustpass").build(),
                         new V1EnvVarBuilder().withName("MY_EMAIL_ADDRESS").withValue("$dnsSafeIdentifier@rtree.com").build(),
                         new V1EnvVarBuilder().withName("RPC_PASSWORD").withValue(RPC_PASSWORD).build(),

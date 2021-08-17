@@ -194,11 +194,20 @@ class KubernetesDeployment {
     def buildNodeDeployment = {
         String regcred,
         String devNamespace,
+        String targetNetworkService,
         String identifier,
         String x500,
         String imageName,
         String randomSuffix ->
-            return NodeDeployment.buildNodeDeployment(regcred, devNamespace, identifier, x500, imageName, randomSuffix)
+            return NodeDeployment.buildNodeDeployment(
+                    regcred,
+                    devNamespace,
+                    targetNetworkService,
+                    identifier,
+                    x500,
+                    imageName,
+                    randomSuffix
+            )
     }
 
     def buildNMSDeployment = { String devNamespace, String networkServiceName, String imageName ->
