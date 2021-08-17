@@ -1,9 +1,9 @@
 import com.fasterxml.jackson.databind.ObjectMapper
 import deployments.DockerRegistrySecret
+import deployments.IngressRule
 import deployments.NotaryDeployment
 
 import java.util.function.BiConsumer
-
 /**
  * Creates deployment for K8s namespace isolation and ACR credentials for pulling docker images
  */
@@ -42,6 +42,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
     def nodesProperties = new Properties()
     file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
     List<Iterable<Object>> auctionNodeDeployments = new ArrayList()
+    List<IngressRule> ingressRules = new ArrayList()
 
     nodesProperties.forEach({identifier, nodeSerialized ->
         def node = mapper.readValue(nodeSerialized, Map.class)
@@ -57,10 +58,25 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
                     "1"
             )
             auctionNodeDeployments.add(currentNode)
+
+            // add an ingress rule for routing to service
+          ingressRules.add(
+                    new IngressRule(
+                            currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
+                            10201,
+                            currentNode.nodeService
+                    )
+          )
         }
     } as BiConsumer<String, String>)
 
-    deployments = [auctionNetworkServices, auctionNotaryDeployment, *auctionNodeDeployments]
+    def auctionIngress = kdeployment.buildIngressDeployment.call(
+            namespaceName as String,
+            "auction",
+            ingressRules
+    )
+
+    deployments = [auctionNetworkServices, auctionIngress, auctionNotaryDeployment, *auctionNodeDeployments]
     fileName = "auctionNetworkDeployment"
 }
 
@@ -86,6 +102,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
     def nodesProperties = new Properties()
     file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
     List<Iterable<Object>> gbpNodeDeployments = new ArrayList()
+    List<IngressRule> ingressRules = new ArrayList()
 
     nodesProperties.forEach({identifier, nodeSerialized ->
         def node = mapper.readValue(nodeSerialized, Map.class)
@@ -101,10 +118,25 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
                     "1"
             )
             gbpNodeDeployments.add(currentNode)
+
+            // add an ingress rule for routing to service
+            ingressRules.add(
+                    new IngressRule(
+                            currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
+                            10201,
+                            currentNode.nodeService
+                    )
+            )
         }
     } as BiConsumer<String, String>)
 
-    deployments = [gbpNetworkServices, gbpNotaryDeployment, *gbpNodeDeployments]
+    def gbpIngress = kdeployment.buildIngressDeployment.call(
+            namespaceName as String,
+            "gbp",
+            ingressRules
+    )
+
+    deployments = [gbpNetworkServices, gbpIngress, gbpNotaryDeployment, *gbpNodeDeployments]
     fileName = "gbpNetworkDeployment"
 }
 
@@ -130,6 +162,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
     def nodesProperties = new Properties()
     file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
     List<Iterable<Object>> cbdcNodeDeployments = new ArrayList()
+    List<IngressRule> ingressRules = new ArrayList()
 
     nodesProperties.forEach({identifier, nodeSerialized ->
         def node = mapper.readValue(nodeSerialized, Map.class)
@@ -145,9 +178,36 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
                     "1"
             )
             cbdcNodeDeployments.add(currentNode)
+
+            // add an ingress rule for routing to service
+            ingressRules.add(
+                    new IngressRule(
+                            currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
+                            10201,
+                            currentNode.nodeService
+                    )
+            )
         }
     } as BiConsumer<String, String>)
 
-    deployments = [cbdcNetworkServices, cbdcNotaryDeployment, *cbdcNodeDeployments]
+    def cbdcIngress = kdeployment.buildIngressDeployment.call(
+            namespaceName as String,
+            "cbdc",
+            ingressRules
+    )
+
+    deployments = [cbdcNetworkServices, cbdcIngress, cbdcNotaryDeployment, *cbdcNodeDeployments]
     fileName = "cbdcNetworkDeployment"
+}
+
+/**
+ * Builds all networks in single task
+ */
+task buildAllNetworks(type: Task, dependsOn: [
+        'buildNamespaceAndCreds',
+        'buildAuctionNetwork',
+        'buildGbpNetwork',
+        'buildCbdcNetwork'
+]) {
+    group = "deploymentk8s"
 }
