@@ -75,7 +75,7 @@ class NodeDeployment implements Iterable<Object> {
                                               String identifier,
                                               String x500,
                                               String imageName,
-                                              String randomSuffix) {
+                                              String imageVersion) {
         def dnsSafeIdentifier = identifier.toLowerCase()
 
         def nodeComponents = NodeResources.createNodeComponents(devNamespace, dnsSafeIdentifier, x500, imageName)
@@ -151,7 +151,7 @@ class NodeDeployment implements Iterable<Object> {
                 .endInitContainer()
                 .addNewInitContainer()
                 .withName("initial-registration")
-                .withImage("${imageName}:${randomSuffix}")
+                .withImage("${imageName}:${imageVersion}")
                 .withImagePullPolicy("IfNotPresent")
                 .withCommand("config-generator")
                 .withArgs("--generic", "--exit-on-generate")
@@ -178,7 +178,7 @@ class NodeDeployment implements Iterable<Object> {
                 .endInitContainer()
                 .addNewInitContainer()
                 .withName("run-migration")
-                .withImage("${imageName}:${randomSuffix}")
+                .withImage("${imageName}:${imageVersion}")
                 .withImagePullPolicy("IfNotPresent")
                 .withCommand("bash")
                 .withArgs("run-dbmigration.sh")
@@ -194,7 +194,7 @@ class NodeDeployment implements Iterable<Object> {
                 .withImagePullSecrets(new V1LocalObjectReferenceBuilder().withName(regcred).build())
                 .addNewContainer()
                 .withName("$dnsSafeIdentifier-node")
-                .withImage("${imageName}:${randomSuffix}")
+                .withImage("${imageName}:${imageVersion}")
                 .withImagePullPolicy("IfNotPresent")
                 .withPorts(
                         new V1ContainerPortBuilder().withName("p2pport").withContainerPort(P2P_PORT).build(),

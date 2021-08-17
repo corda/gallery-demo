@@ -56,7 +56,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
                     "auction-$identifier" as String,
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
-                    "1"
+                    project.version as String
             )
             auctionNodeDeployments.add(currentNode)
 
@@ -117,7 +117,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
                     "gbp-$identifier",
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
-                    "1"
+                    project.version as String
             )
             gbpNodeDeployments.add(currentNode)
 
@@ -178,7 +178,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
                     "cbdc-$identifier",
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
-                    "1"
+                    project.version as String
             )
             cbdcNodeDeployments.add(currentNode)
 

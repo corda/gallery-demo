@@ -198,7 +198,7 @@ class KubernetesDeployment {
         String identifier,
         String x500,
         String imageName,
-        String randomSuffix ->
+        String imageVersion ->
             return NodeDeployment.buildNodeDeployment(
                     regcred,
                     devNamespace,
@@ -206,7 +206,7 @@ class KubernetesDeployment {
                     identifier,
                     x500,
                     imageName,
-                    randomSuffix
+                    imageVersion
             )
     }
 
