@@ -154,7 +154,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
     )
     def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
             namespaceName as String,
-            "auction-notary",
+            "cbdc-notary",
             "roastario/notary-one:2",
             cbdcNetworkServices.getNmsService()
     )
