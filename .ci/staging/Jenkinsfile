@@ -18,8 +18,8 @@ pipeline {
         ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
         DOCKER_CREDENTIALS = credentials('payments-docker-credentials')
         DOCKER_REGISTRY = "r3payments.azurecr.io"
-        DOCKER_PUSH_USERNAME = $DOCKER_CREDENTIALS_USR
-        DOCKER_PUSH_PASSWORD = $DOCKER_CREDENTIALS_PSW
+        DOCKER_PUSH_USERNAME = ${DOCKER_CREDENTIALS_USR}
+        DOCKER_PUSH_PASSWORD = ${DOCKER_CREDENTIALS_PSW}
         LOOPBACK_ADDRESS = "172.17.0.1"
     }
 
