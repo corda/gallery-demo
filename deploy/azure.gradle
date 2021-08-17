@@ -27,7 +27,7 @@ task buildNamespaceAndCreds(type: DeploymentTask) {
 task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def auctionNetworkServices = kdeployment.buildNMSDeployment.call(
             namespaceName,
-            "auctionNMS",
+            "auction-nms",
             nmsImageName
     )
     def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
@@ -87,7 +87,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
 task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def gbpNetworkServices = kdeployment.buildNMSDeployment.call(
             namespaceName,
-            "gbpNMS",
+            "gbp-nms",
             nmsImageName
     )
     def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
@@ -147,7 +147,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
 task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def cbdcNetworkServices = kdeployment.buildNMSDeployment.call(
             namespaceName,
-            "cbdcNMS",
+            "cbdc-nms",
             nmsImageName
     )
     def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
