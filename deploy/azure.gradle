@@ -49,7 +49,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
         if ((node.get("networks") as List).contains("auction")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeDeployment.call(
+            def currentNode = kdeployment.buildNodeStatefulSet.call(
                     ledgerRegCred,
                     namespaceName as String,
                     auctionNetworkServices.nmsService.metadata.name,
@@ -63,7 +63,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
             // add an ingress rule for routing to service
           ingressRules.add(
                     new IngressRule(
-                            currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
+                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -110,7 +110,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
         if ((node.get("networks") as List).contains("gbp")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeDeployment.call(
+            def currentNode = kdeployment.buildNodeStatefulSet.call(
                     ledgerRegCred,
                     namespaceName as String,
                     gbpNetworkServices.nmsService.metadata.name,
@@ -124,7 +124,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
             // add an ingress rule for routing to service
             ingressRules.add(
                     new IngressRule(
-                            currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
+                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -171,7 +171,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
         if ((node.get("networks") as List).contains("cbdc")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeDeployment.call(
+            def currentNode = kdeployment.buildNodeStatefulSet.call(
                     ledgerRegCred,
                     namespaceName as String,
                     cbdcNetworkServices.nmsService.metadata.name,
@@ -185,7 +185,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
             // add an ingress rule for routing to service
             ingressRules.add(
                     new IngressRule(
-                            currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
+                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )

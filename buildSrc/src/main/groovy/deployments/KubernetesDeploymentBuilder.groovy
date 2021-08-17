@@ -184,11 +184,13 @@ class KubernetesDeployment {
     def buildNodeStatefulSet = {
         String regcred,
         String devNamespace,
+        String targetNetworkService,
         String identifier,
         String x500,
-        String imageName
+        String imageName,
+        String imageVersion
             ->
-            return NodeStatefulSet.buildNodeStatefulSet(regcred, identifier, x500, devNamespace, imageName)
+            return NodeStatefulSet.buildNodeStatefulSet(regcred, devNamespace, targetNetworkService, identifier, x500, imageName, imageVersion)
     }
 
     def buildNodeDeployment = {
