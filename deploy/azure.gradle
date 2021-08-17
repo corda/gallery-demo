@@ -33,7 +33,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
     def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
             namespaceName as String,
             "auction-notary",
-            "roastario/notary-one:2",
+            "roastario/notary-one:5",
             auctionNetworkServices.getNmsService()
     )
 
@@ -94,7 +94,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
     def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
             namespaceName as String,
             "gbp-notary",
-            "roastario/notary-one:2",
+            "roastario/notary-two:5",
             gbpNetworkServices.getNmsService()
     )
 
@@ -155,7 +155,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
     def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
             namespaceName as String,
             "cbdc-notary",
-            "roastario/notary-one:2",
+            "roastario/notary-three:5",
             cbdcNetworkServices.getNmsService()
     )
 
