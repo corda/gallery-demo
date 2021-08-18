@@ -3,6 +3,11 @@ package com.r3.gallery.broker.corda.client.api
 import java.util.*
 
 /**
+ * A connection id for indexing CordaRPCConnection between multiple nodes
+ */
+typealias RPCConnectionId = String
+
+/**
  * A unique reference for something in the Corda system, usually a transaction or state id.
  */
 typealias CordaReference = UUID

@@ -4,7 +4,11 @@ plugins {
     kotlin("plugin.spring") version "1.4.20"
 }
 
+val cordaCoreReleaseGroup : String by project
+val cordaCoreVersion : String by project
+
 dependencies {
+    implementation(cordaCoreReleaseGroup, "corda-rpc", cordaCoreVersion)
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
