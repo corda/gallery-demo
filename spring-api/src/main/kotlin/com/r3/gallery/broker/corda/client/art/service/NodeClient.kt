@@ -1,8 +1,10 @@
 package com.r3.gallery.broker.corda.client.art.service
 
+import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
 import com.r3.gallery.broker.corda.client.api.RPCConnectionId
 import com.r3.gallery.broker.corda.client.config.ClientProperties
 import net.corda.client.rpc.*
+import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
 
@@ -17,7 +19,9 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         const val TIMEOUT = 30L
     }
 
-    // Generate clients mapped from configurations
+    /**
+     * Generate clients mapped from configurations
+     */
     private val clients: Map<RPCConnectionId, CordaRPCClient> by lazy {
         clientProperties.clients.associate {
             val currentClient = CordaRPCClient(
@@ -28,12 +32,24 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         }
     }
 
-    // Store connections via client id
+    /**
+     * Store connections via client id
+     */
     private val connections: MutableMap<RPCConnectionId, CordaRPCConnection?> by lazy {
         clientProperties.clients.associate {
             Pair(it.id, null)
         }.toMutableMap()
     }
+
+    /**
+     * Returns RPCConnectionId based on Corda Network membership
+     */
+    private fun rpcIdsByNetwork(network: CordaRPCNetwork) : List<RPCConnectionId> =
+        clientProperties.clients.filter { it.network == network }
+            .map { it.id }
+    // OVERLOAD for multiple networks
+    private fun  rpcIdsByNetwork(network: List<CordaRPCNetwork>) : List<RPCConnectionId> =
+        network.flatMap { currentNetwork -> rpcIdsByNetwork(currentNetwork) }
 
     /**
      * Returns a target connection to node or creates if not existing
@@ -50,7 +66,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      * CordaRPCConnection logic with post-initialization logic
      */
     private fun RPCConnectionId.connect() {
-        val nodeProperties = clientProperties.getById(this)!!
+        val nodeProperties = clientProperties.getConfigById(this)!!
         connections[this] = clients[this]?.start(
             nodeProperties.nodeUsername,
             nodeProperties.nodePassword,
@@ -67,6 +83,35 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         val id = this + network
         require(clients.containsKey(id))
         return id.toLowerCase()
+    }
+
+    /**
+     * Returns NodeInfos for all configured nodes.
+     *
+     * @param networks optional list of networks to filter on
+     * @param dev default = false; rather than utilizing network map fetches across
+     * individual connections (useful for test).
+     */
+    fun getNodes(networks: List<CordaRPCNetwork>? = null, dev: Boolean = false) : List<NodeInfo> {
+        // filter to networks if necessary
+        val targetRpcIds = if (!networks.isNullOrEmpty()) {
+            rpcIdsByNetwork(networks)
+        } else {
+            clients.keys
+        }
+
+        // dev-mode per connection fetch (tests connections at same time)
+        return if (dev) {
+            targetRpcIds.map {
+                execute(it) { connection ->
+                    connection.proxy.nodeInfo()
+                }
+            }
+        } else { // single connection via network map
+            execute(clients.keys.first()) { connection ->
+                connection.proxy.networkMapSnapshot()
+            }
+        }
     }
 
     /**

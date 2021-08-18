@@ -1,5 +1,6 @@
 package com.r3.gallery.broker.corda.client.config
 
+import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 
@@ -13,22 +14,22 @@ class ArtNetworkBidderProperties : ClientProperties {
         listOf(
             object : NetworkClientConfig() {
                 override var nodeName: String = "bob"
-                override var networkName: String = "auction"
-                @Value("auction.bob.rpc.url")
+                override var network: CordaRPCNetwork = CordaRPCNetwork.AUCTION
+                @Value("\${auction.bob.rpc.url}")
                 override lateinit var nodeUrl: String
-                @Value("auction.bob.rpc.username")
+                @Value("\${auction.bob.rpc.username}")
                 override lateinit var nodeUsername: String
-                @Value("auction.bob.rpc.password")
+                @Value("\${auction.bob.rpc.password}")
                 override lateinit var nodePassword: String
             },
             object : NetworkClientConfig() {
                 override var nodeName: String = "charlie"
-                override var networkName: String = "auction"
-                @Value("auction.charlie.rpc.url")
+                override var network: CordaRPCNetwork = CordaRPCNetwork.AUCTION
+                @Value("\${auction.charlie.rpc.url}")
                 override lateinit var nodeUrl: String
-                @Value("auction.charlie.rpc.username")
+                @Value("\${auction.charlie.rpc.username}")
                 override lateinit var nodeUsername: String
-                @Value("auction.charlie.rpc.password")
+                @Value("\${auction.charlie.rpc.password}")
                 override lateinit var nodePassword: String
             }
         )
@@ -40,22 +41,22 @@ class TokenNetworkBidderProperties : ClientProperties {
         listOf(
             object : NetworkClientConfig() {
                 override val nodeName: String = "bob"
-                override val networkName: String = "gbp"
-                @Value("gbp.bob.rpc.url")
+                override var network: CordaRPCNetwork = CordaRPCNetwork.GBP
+                @Value("\${gbp.bob.rpc.url}")
                 override lateinit var nodeUrl: String
-                @Value("gbp.bob.rpc.username")
+                @Value("\${gbp.bob.rpc.username}")
                 override lateinit var nodeUsername: String
-                @Value("gbp.bob.rpc.password")
+                @Value("\${gbp.bob.rpc.password}")
                 override lateinit var nodePassword: String
             },
             object : NetworkClientConfig() {
                 override val nodeName: String = "charlie"
-                override val networkName: String = "cbdc"
-                @Value("cbdc.charlie.rpc.url")
+                override var network: CordaRPCNetwork = CordaRPCNetwork.CBDC
+                @Value("\${cbdc.charlie.rpc.url}")
                 override lateinit var nodeUrl: String
-                @Value("cbdc.charlie.rpc.username")
+                @Value("\${cbdc.charlie.rpc.username}")
                 override lateinit var nodeUsername: String
-                @Value("cbdc.charlie.rpc.password")
+                @Value("\${cbdc.charlie.rpc.password}")
                 override lateinit var nodePassword: String
             }
         )

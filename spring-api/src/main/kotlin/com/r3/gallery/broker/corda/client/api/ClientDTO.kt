@@ -67,3 +67,9 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
 }
 
 typealias EncumberedTokens = CordaReference
+
+enum class CordaRPCNetwork(val netName: String) {
+    AUCTION("auction"),
+    GBP("gbp"),
+    CBDC("cbdc")
+}
