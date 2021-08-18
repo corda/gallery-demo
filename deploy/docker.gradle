@@ -5,7 +5,7 @@ rootProject.ext.'docker.push.username' = project.findProperty("docker.push.usern
         ?: System.getenv("DOCKER_PUSH_USERNAME") ?: "r3payments"
 
 rootProject.ext.'docker.push.password' = project.findProperty("docker.push.password")
-        ?: System.getenv("DOCKER_PUSH_PASSWORD")
+        ?: System.getenv("DOCKER_PUSH_PASSWORD") ?: ""
 
 // Local scope props
 project.ext {
@@ -50,9 +50,9 @@ task copyImageSources(type: Copy) {
     }
 }
 
-task buildAndPushGalleryImages(type: ImageTask, dependsOn: 'copyImageSources') {
+task createAndPushDockerImages(type: ImageTask, dependsOn: 'copyImageSources') {
     description = "Pushes gallery docker images to ACR"
-    group = "deployment"
+    group = "deploymentk8s"
     resourceAndImage = [
             new Pair(new File(project.buildDir, "dockerBuild/frontend"),frontend_docker_image_name),
             new Pair(new File(project.buildDir, "dockerBuild/galleryCordapp"), gallery_cordapp_docker_image_name),

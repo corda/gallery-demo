@@ -37,7 +37,7 @@ A demo of swaps in an auction scenario with three distinct Corda Networks
 
 **buildSrc** - Docker and K8s deployment builder classes
 
-**deploy** - Local Cordformation configuration/tasks
+**deploy** - Local Cordformation configuration/tasks, Azure K8s configuration and Dockerfiles
 
 **frontend** - Frontend sources and associated proxies
 

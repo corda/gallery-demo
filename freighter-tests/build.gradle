@@ -20,7 +20,7 @@ task freighterTest(type: Test, dependsOn: [project(":gallery-workflows").jar]) {
     testClassesDirs = sourceSets.freighterTest.output.classesDirs
     classpath = sourceSets.freighterTest.runtimeClasspath
 
-    maxParallelForks Integer.parseInt(project.findProperty("freighter.forks") ?: "1")
+    maxParallelForks Integer.parseInt(project.findProperty("freighter.forks") as String ?: "1")
     systemProperty "java.util.concurrent.ForkJoinPool.common.parallelism", "128"
 
     useJUnitPlatform {
