@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 apply plugin: "net.corda.plugins.cordapp"
 apply plugin: "net.corda.plugins.cordformation"
 apply plugin: 'net.corda.plugins.quasar-utils'
@@ -395,6 +397,7 @@ task allNetworksDown(type: Task) {
  */
 def mvYamlToTarget(String source, String target) {
     File srcFile = new File(source)
+    Pattern pattern = Pattern.compile("-\\s(\\d{5})")
     copy {
         from(source) {
             include '**/docker-compose.yml'
@@ -403,6 +406,17 @@ def mvYamlToTarget(String source, String target) {
         filter {
             // Correction of Dockerform incorrect mnt path generations
             line -> line.replaceAll(source, target)
+        }
+        filter {
+            line ->
+                def matcher =  pattern.matcher(line as String)
+                if (matcher.find()) {
+                    def port =  matcher.group(1)
+                    line.replace(
+                        port,
+                        "\"${port}:${port}\""
+                    )
+                } else line
         }
     }
     srcFile.deleteDir()
