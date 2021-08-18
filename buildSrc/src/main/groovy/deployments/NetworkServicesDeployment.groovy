@@ -48,7 +48,7 @@ class NetworkServicesDeployment implements Iterable<Object> {
                 .withApiVersion("v1")
                 .withNewMetadata()
                 .withNamespace(devNamespace)
-                .withName("nms-persistence-pvc")
+                .withName("${networkServiceName}-persistence-pvc")
                 .endMetadata()
                 .withNewSpec()
                 .withAccessModes("ReadWriteOnce")
@@ -76,7 +76,7 @@ class NetworkServicesDeployment implements Iterable<Object> {
                 .endMetadata()
                 .withNewSpec()
                 .withVolumes(
-                        new V1VolumeBuilder().withName("nms-persistence-storage")
+                        new V1VolumeBuilder().withName("${networkServiceName}-persistence-storage")
                                 .withPersistentVolumeClaim(
                                         new V1PersistentVolumeClaimVolumeSource().claimName(persistencePVC.metadata.name)
                                 ).build(),
@@ -93,7 +93,7 @@ class NetworkServicesDeployment implements Iterable<Object> {
                 .withRequests("memory": new Quantity("512Mi"), "cpu": new Quantity("0.2"))
                 .endResources()
                 .withVolumeMounts(
-                        new V1VolumeMountBuilder().withName("nms-persistence-storage").withMountPath("/opt/node-storage").build(),
+                        new V1VolumeMountBuilder().withName("${networkServiceName}-persistence-storage").withMountPath("/opt/node-storage").build(),
                 )
                 .endContainer()
                 .endSpec()
