@@ -4,7 +4,6 @@ import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.art.service.NodeClient
-import net.corda.core.node.NodeInfo
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -34,13 +33,16 @@ class NetworkToolsController(
             }
         }
 
+    /**
+     * TODO: add jackson model for NodeInfo rather than string
+     */
     @GetMapping("/nodes")
     fun nodes(
         @RequestParam("networks", required = false) networks: List<String>?
-    ): ResponseEntity<List<NodeInfo>> {
+    ): ResponseEntity<String> {
         val nodes = networkClients.flatMap {
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
         }
-        return ResponseEntity.status(HttpStatus.OK).body(nodes)
+        return ResponseEntity.status(HttpStatus.OK).body(nodes.toString())
     }
 }
