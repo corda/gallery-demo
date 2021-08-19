@@ -1,9 +1,11 @@
 package com.r3.gallery.broker.corda.client.api
 
 import java.util.*
+import com.r3.gallery.broker.corda.client.config.NetworkClientConfig
 
 /**
- * A connection id for indexing CordaRPCConnection between multiple nodes
+ * A connection id for indexing CordaRPCConnection between multiple nodes.
+ * Assigned via [NetworkClientConfig]
  */
 typealias RPCConnectionId = String
 
