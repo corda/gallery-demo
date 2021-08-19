@@ -23,6 +23,9 @@ cordapp {
 
 dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
+    cordaCompile(cordaCoreReleaseGroup,"corda-finance-contracts", cordaCoreVersion)
+    cordaCompile(cordaCoreReleaseGroup,"corda-finance-workflows", cordaCoreVersion)
+
     cordaRuntime(cordaCoreReleaseGroup, "corda", cordaCoreVersion)
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
 

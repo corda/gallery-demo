@@ -8,12 +8,16 @@ rootProject.ext.corda_release_version = cordaCoreVersion // required for cordfor
 dependencies {
     cordaRuntime "$cordaCoreReleaseGroup:corda:$cordaCoreVersion"
     cordaCompile "$cordaCoreReleaseGroup:corda-node-api:$cordaCoreVersion"
+    cordaCompile "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
+    cordaCompile "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
 
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
     cordaCompile "org.slf4j:jul-to-slf4j:$slf4jVersion"
 
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
+    cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
+    cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
     project(":spring-api")
 }
 
@@ -45,6 +49,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
+        cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
     }
     signing {
         enabled false
@@ -115,8 +121,10 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
+        cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        //runSchemaMigration = true
     }
 
     node {
@@ -209,8 +217,10 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
+        cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        //runSchemaMigration = true
     }
 
     node {
@@ -284,8 +294,10 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
+        cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        //runSchemaMigration = true
     }
 
     node {
