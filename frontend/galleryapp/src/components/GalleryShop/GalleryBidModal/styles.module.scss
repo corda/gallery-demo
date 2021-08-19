@@ -1,0 +1,10 @@
+.input {
+  margin-top: var(--p-4);
+}
+
+.ctas {
+  margin-top: var(--p-8);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: var(--p-4);
+}
