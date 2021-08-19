@@ -354,11 +354,89 @@ task prepareAllDockerNodes(type: Task, dependsOn: ['prepareAuctionDockerNodes','
 
 // RUNNERS
 
+task auctionNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task auctionNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task gbpNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task gbpNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task cbdcNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task cbdcNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
 /**
  * Convenience task for bringing up all docker networks
  */
 task allNetworksUp(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({ network ->
@@ -375,7 +453,7 @@ task allNetworksUp(type: Task) {
  * Convenience task for bringing down all docker networks
  */
 task allNetworksDown(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({network ->

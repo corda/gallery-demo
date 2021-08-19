@@ -212,5 +212,5 @@ task buildAllNetworks(type: Task, dependsOn: [
         'buildGbpNetwork',
         'buildCbdcNetwork'
 ]) {
-    group = "deploymentk8s"
+    group = "deployment k8s"
 }
