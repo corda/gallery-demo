@@ -16,8 +16,15 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     runtimeOnly("com.h2database:h2")
+
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
+    testImplementation( "org.mockito:mockito-inline:2.21.0")
+    testImplementation("com.nhaarman:mockito-kotlin:1.6.0") {
+        exclude( "org.jetbrains.kotlin")
+        exclude ("org.mockito")
+    }
 }
 
 task<JavaExec>("runSpringApp") {
@@ -28,4 +35,8 @@ task<JavaExec>("runSpringApp") {
 
 tasks.bootJar {
     archiveBaseName.set("spring-api")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }

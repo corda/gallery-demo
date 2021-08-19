@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import java.util.*
 
 @Component
 class ArtNetworkGalleryClientImpl(
@@ -24,7 +25,7 @@ class ArtNetworkGalleryClientImpl(
     }
 
     override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
-        TODO("Not yet implemented")
+        return listOf(UUID.randomUUID())
     }
 
     override suspend fun createArtworkTransferTx(galleryPart: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {

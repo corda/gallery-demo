@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.*
 
 @CrossOrigin
 @RestController
-@RequestMapping("/art-gallery")
+@RequestMapping("/gallery")
 class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetworkGalleryClient) {
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryController::class.java)
         const val TIMEOUT = NodeClient.TIMEOUT
     }
 
-    @GetMapping("/list-avail-artwork")
+    @GetMapping("/list-available-artworks")
     suspend fun listAvailableArtworks(
         @RequestParam("galleryParty") galleryParty: ArtworkParty
     ) : ResponseEntity<List<ArtworkId>> {
