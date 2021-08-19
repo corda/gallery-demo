@@ -17,7 +17,6 @@ dependencies {
 
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
-    project(":spring-api")
 }
 
 sourceSets {

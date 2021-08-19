@@ -20,6 +20,12 @@ dependencies {
     testImplementation("io.projectreactor:reactor-test")
 }
 
+task<JavaExec>("runSpringApp") {
+    group = "deployment"
+    classpath = sourceSets.main.get().runtimeClasspath
+    main = "com.r3.gallery.broker.GalleryBrokerApplicationKt"
+}
+
 tasks.bootJar {
     archiveBaseName.set("spring-api")
 }
