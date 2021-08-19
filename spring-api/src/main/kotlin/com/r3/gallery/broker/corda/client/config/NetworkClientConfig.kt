@@ -26,6 +26,9 @@ data class NetworkClientConfig(
 @ConstructorBinding
 @ConfigurationProperties("rpc")
 data class RpcProperties(
+    var aliceX500: String,
+    var bobX500: String,
+    var charlieX500: String,
     var username: String,
     var password: String,
     val auction: AuctionNet,

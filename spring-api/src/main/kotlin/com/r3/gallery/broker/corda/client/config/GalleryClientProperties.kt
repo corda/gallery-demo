@@ -14,7 +14,7 @@ class ArtNetworkGalleryProperties(properties: RpcProperties) : ClientProperties 
     override var clients: List<NetworkClientConfig> =
         listOf(
             NetworkClientConfig(
-                "alice",
+                properties.aliceX500,
                 CordaRPCNetwork.AUCTION,
                 properties.auction.url.alice,
                 properties.username,
@@ -28,14 +28,14 @@ class TokenNetworkGalleryProperties(properties: RpcProperties) : ClientPropertie
     override var clients: List<NetworkClientConfig> =
         listOf(
             NetworkClientConfig(
-                "alice",
+                properties.aliceX500,
                 CordaRPCNetwork.GBP,
                 properties.gbp.url.alice,
                 properties.username,
                 properties.password
             ),
             NetworkClientConfig(
-                "alice",
+                properties.aliceX500,
                 CordaRPCNetwork.CBDC,
                 properties.cbdc.url.alice,
                 properties.username,

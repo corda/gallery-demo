@@ -12,14 +12,14 @@ class ArtNetworkBidderProperties(properties: RpcProperties) : ClientProperties {
     override var clients: List<NetworkClientConfig> =
         listOf(
             NetworkClientConfig(
-                "bob",
+                properties.bobX500,
                 CordaRPCNetwork.AUCTION,
                 properties.auction.url.bob,
                 properties.username,
                 properties.password
             ),
             NetworkClientConfig(
-                "charlie",
+                properties.charlieX500,
                 CordaRPCNetwork.AUCTION,
                 properties.auction.url.charlie,
                 properties.username,
@@ -33,14 +33,14 @@ class TokenNetworkBidderProperties(properties: RpcProperties) : ClientProperties
     override var clients: List<NetworkClientConfig> =
         listOf(
             NetworkClientConfig(
-                "bob",
+                properties.bobX500,
                 CordaRPCNetwork.GBP,
                 properties.gbp.url.bob,
                 properties.username,
                 properties.password
             ),
             NetworkClientConfig(
-                "charlie",
+                properties.charlieX500,
                 CordaRPCNetwork.CBDC,
                 properties.cbdc.url.charlie,
                 properties.username,

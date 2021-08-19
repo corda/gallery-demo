@@ -19,10 +19,12 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         const val TIMEOUT = 30L
     }
 
+    lateinit var rpcIdToX500AliasMap: Map<RPCConnectionId, String>
+
     /**
      * Generate clients mapped from configurations
      */
-    private val rpcIdToClientsMap: Map<RPCConnectionId, CordaRPCClient> by lazy {
+    private val rpcIdToCordaRPCClientsMap: Map<RPCConnectionId, CordaRPCClient> by lazy {
         clientProperties.clients.associate {
             val currentClient = CordaRPCClient(
                 NetworkHostAndPort.parse(it.nodeUrl),
@@ -57,7 +59,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      */
     private fun RPCConnectionId.connect() {
         val nodeProperties = clientProperties.getConfigById(this)!!
-        connections[this] = rpcIdToClientsMap[this]?.start(
+        connections[this] = rpcIdToCordaRPCClientsMap[this]?.start(
             nodeProperties.nodeUsername,
             nodeProperties.nodePassword,
             GracefulReconnect(onDisconnect = { connections[this] = null })
@@ -71,7 +73,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      */
     protected infix fun String.idOn(network: String) : RPCConnectionId {
         val id = this + network
-        require(rpcIdToClientsMap.containsKey(id))
+        require(rpcIdToCordaRPCClientsMap.containsKey(id))
         return id.toLowerCase()
     }
 
@@ -85,9 +87,9 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     fun getNodes(networks: List<CordaRPCNetwork>? = null, dev: Boolean = false) : List<NodeInfo> {
         // filter to networks if necessary
         val targetRpcIds = if (!networks.isNullOrEmpty()) {
-            rpcIdsByNetwork(clientProperties.clients, networks)
+            clientProperties.clients.rpcIdsByNetwork(networks)
         } else {
-            rpcIdToClientsMap.keys
+            rpcIdToCordaRPCClientsMap.keys
         }
 
         // dev-mode per connection fetch (tests connections at same time)
@@ -98,7 +100,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
                 }
             }
         } else { // single connection via network map
-            execute(rpcIdToClientsMap.keys.first()) { connection ->
+            execute(rpcIdToCordaRPCClientsMap.keys.first()) { connection ->
                 connection.proxy.networkMapSnapshot()
             }
         }
