@@ -21,6 +21,8 @@ typealias ArtworkId = UUID
 
 /**
  * Identity of the party on the art network.
+ * String X500 name
+ * TODO: helpers to validate and parse various forms
  */
 typealias ArtworkParty = String
 

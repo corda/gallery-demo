@@ -1,9 +1,13 @@
 package com.r3.gallery.broker
 
+import com.nhaarman.mockito_kotlin.mock
 import com.r3.gallery.broker.corda.client.api.ArtworkId
+import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
 import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkGalleryController
 import com.r3.gallery.broker.corda.client.art.service.ArtNetworkGalleryClientImpl
 import com.r3.gallery.broker.corda.client.config.ClientProperties
+import com.r3.gallery.states.ArtworkState
+import net.corda.core.contracts.UniqueIdentifier
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,7 +16,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import java.util.*
 
-
+/**
+ * CordaRPCOps mock based e2e - controller, service, mock
+ */
 @ExtendWith(SpringExtension::class)
 @WebFluxTest(controllers = [
     ArtNetworkGalleryController::class,
@@ -25,16 +31,24 @@ class TestArtNetworkGalleryController {
     lateinit var galleryClientImpl: ArtNetworkGalleryClientImpl
 
     @Autowired
-    lateinit var galleryController: ArtNetworkGalleryController
-
-    @Autowired
     lateinit var webTestClient: WebTestClient
 
     @Test
-    fun `test live auctions`() {
+    fun `list available artwork`() {
+        ArtworkState(listOf(mock()), UniqueIdentifier())
+        val states = mutableListOf(
+            ArtworkState(listOf(mock()), UniqueIdentifier()),
+            ArtworkState(listOf(mock()), UniqueIdentifier())
+        )
+        val connection = createConnection()
+        val rpcConnectionId = "O=Alice,L=London,C=GB"+CordaRPCNetwork.AUCTION.toString()
+
+        injectStates(connection, states) // 2 art states
+        injectConnections(mapOf(rpcConnectionId to connection), galleryClientImpl)
+
         val result = webTestClient.get().uri {
             it.path("/gallery/list-available-artworks")
-                .queryParam("galleryParty","test")
+                .queryParam("galleryParty","O=Alice,L=London,C=GB")
                 .build()
         }.exchange()
             .expectStatus().isOk
@@ -42,5 +56,6 @@ class TestArtNetworkGalleryController {
             .returnResult()
 
         assert(result.responseBody?.first() is UUID)
+        assert(result.responseBody?.size == 2)
     }
 }

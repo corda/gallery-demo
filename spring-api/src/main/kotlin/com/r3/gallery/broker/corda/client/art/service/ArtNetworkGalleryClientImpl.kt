@@ -3,11 +3,11 @@ package com.r3.gallery.broker.corda.client.art.service
 import com.r3.gallery.broker.corda.client.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.config.ClientProperties
+import com.r3.gallery.states.ArtworkState
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import java.util.*
 
 @Component
 class ArtNetworkGalleryClientImpl(
@@ -24,8 +24,15 @@ class ArtNetworkGalleryClientImpl(
         TODO("Not yet implemented")
     }
 
+    /**
+     * Returns a list of available artworks for bidding
+     * TODO: currently any UNCONSUMED ArtworkState is 'available' but arts can be issued but not for sale
+     *  switch to returning ArtworkIds linked to an Auction/Sale State
+     */
     override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
-        return listOf(UUID.randomUUID())
+        return  execute(galleryParty idOn CordaRPCNetwork.AUCTION.toString()) { connection ->
+            connection.proxy.vaultQuery(ArtworkState::class.java)
+        }.states.map { it.state.data.linearId.id }
     }
 
     override suspend fun createArtworkTransferTx(galleryPart: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {

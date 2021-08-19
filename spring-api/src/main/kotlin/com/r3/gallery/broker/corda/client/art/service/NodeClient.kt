@@ -19,26 +19,25 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         const val TIMEOUT = 30L
     }
 
-    lateinit var rpcIdToX500AliasMap: Map<RPCConnectionId, String>
+    /**
+     * Clients mapped from configurations
+     */
+    private var rpcIdToCordaRPCClientsMap: Map<RPCConnectionId, CordaRPCClient>? = null
 
     /**
-     * Generate clients mapped from configurations
+     * Store connections via client id
      */
-    private val rpcIdToCordaRPCClientsMap: Map<RPCConnectionId, CordaRPCClient> by lazy {
-        clientProperties.clients.associate {
+    private var connections: MutableMap<RPCConnectionId, CordaRPCConnection?>? = null
+
+    init {
+        rpcIdToCordaRPCClientsMap = clientProperties.clients.associate {
             val currentClient = CordaRPCClient(
                 NetworkHostAndPort.parse(it.nodeUrl),
                 CordaRPCClientConfiguration.DEFAULT.copy(minimumServerProtocolVersion = MINIMUM_SERVER_PROTOCOL_VERSION)
             )
             Pair(it.id, currentClient)
         }
-    }
-
-    /**
-     * Store connections via client id
-     */
-    private val connections: MutableMap<RPCConnectionId, CordaRPCConnection?> by lazy {
-        clientProperties.clients.associate {
+        connections = clientProperties.clients.associate {
             Pair(it.id, null)
         }.toMutableMap()
     }
@@ -47,11 +46,11 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      * Returns a target connection to node or creates if not existing
      */
     private fun RPCConnectionId.connection(): CordaRPCConnection {
-        if (connections[this] == null) {
+        if (connections!![this] == null) {
             this.connect()
         }
 
-        return connections[this]!!
+        return connections!![this]!!
     }
 
     /**
@@ -59,10 +58,10 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      */
     private fun RPCConnectionId.connect() {
         val nodeProperties = clientProperties.getConfigById(this)!!
-        connections[this] = rpcIdToCordaRPCClientsMap[this]?.start(
+        connections!![this] = rpcIdToCordaRPCClientsMap!![this]?.start(
             nodeProperties.nodeUsername,
             nodeProperties.nodePassword,
-            GracefulReconnect(onDisconnect = { connections[this] = null })
+            GracefulReconnect(onDisconnect = { connections!![this] = null })
         )
 
         initializeNodeService(this)
@@ -72,9 +71,9 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      * Simple shorthand for describing connection id in terms of node vs network
      */
     protected infix fun String.idOn(network: String) : RPCConnectionId {
-        val id = this + network
-        require(rpcIdToCordaRPCClientsMap.containsKey(id))
-        return id.toLowerCase()
+        val id = this + network.toUpperCase()
+        require(rpcIdToCordaRPCClientsMap!!.containsKey(id))
+        return id
     }
 
     /**
@@ -89,7 +88,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         val targetRpcIds = if (!networks.isNullOrEmpty()) {
             clientProperties.clients.rpcIdsByNetwork(networks)
         } else {
-            rpcIdToCordaRPCClientsMap.keys
+            rpcIdToCordaRPCClientsMap!!.keys
         }
 
         // dev-mode per connection fetch (tests connections at same time)
@@ -100,7 +99,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
                 }
             }
         } else { // single connection via network map
-            execute(rpcIdToCordaRPCClientsMap.keys.first()) { connection ->
+            execute(rpcIdToCordaRPCClientsMap!!.keys.first()) { connection ->
                 connection.proxy.networkMapSnapshot()
             }
         }
