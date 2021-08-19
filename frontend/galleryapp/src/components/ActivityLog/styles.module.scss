@@ -1,0 +1,29 @@
+.main {
+  background: var(--color-dark-gray);
+  color: var(--color-white);
+  height: 200px;
+  padding: 10px var(--p-10);
+  font-size: 14px;
+
+  header {
+    border-bottom: solid 1px var(--color-dark-gray-400);
+    display: flex;
+  }
+
+  h6 {
+    color: var(--color-white);
+    padding-bottom: 10px;
+    text-transform: uppercase;
+  }
+}
+
+.log {
+  padding: 10px 0;
+  height: calc(100% - 25px);
+  overflow-y: auto;
+}
+
+.small {
+  font-size: 12px;
+  border-radius: 0 0 4px 6px;
+}
