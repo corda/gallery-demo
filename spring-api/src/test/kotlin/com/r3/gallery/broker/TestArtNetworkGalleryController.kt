@@ -6,7 +6,7 @@ import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
 import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkGalleryController
 import com.r3.gallery.broker.corda.client.art.service.ArtNetworkGalleryClientImpl
 import com.r3.gallery.broker.corda.client.config.ClientProperties
-import com.r3.gallery.states.ArtworkState
+import com.r3.gallery.states.AuctionState
 import net.corda.core.contracts.UniqueIdentifier
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -35,10 +35,9 @@ class TestArtNetworkGalleryController {
 
     @Test
     fun `list available artwork`() {
-        ArtworkState(listOf(mock()), UniqueIdentifier())
         val states = mutableListOf(
-            ArtworkState(listOf(mock()), UniqueIdentifier()),
-            ArtworkState(listOf(mock()), UniqueIdentifier())
+            AuctionState(listOf(mock()), UniqueIdentifier(), UUID.randomUUID()),
+            AuctionState(listOf(mock()), UniqueIdentifier(), UUID.randomUUID()),
         )
         val connection = createConnection()
         val rpcConnectionId = "O=Alice,L=London,C=GB"+CordaRPCNetwork.AUCTION.toString()

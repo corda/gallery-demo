@@ -4,7 +4,7 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
 import com.r3.gallery.broker.corda.client.api.RPCConnectionId
 import com.r3.gallery.broker.corda.client.art.service.NodeClient
-import com.r3.gallery.states.ArtworkState
+import com.r3.gallery.states.AuctionState
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.contracts.LinearState
@@ -70,18 +70,18 @@ fun injectConnections(connections: Map<RPCConnectionId, CordaRPCConnection?> , n
  */
 fun injectStates(
     connection: CordaRPCConnection,
-    states: List<ArtworkState>
+    states: List<AuctionState>
 ) {
     whenever(
         connection.proxy.vaultQuery(
-            any<Class<ArtworkState>>()
+            any<Class<AuctionState>>()
         )
     ).thenAnswer {
         mock ->
         val clazz = mock.arguments[0]
         val classes = states.filter { state -> state.javaClass == clazz }
 
-        val list: List<ArtworkState> = classes
+        val list: List<AuctionState> = classes
 
         createVaultPage(list, list.size.toLong())
     }
