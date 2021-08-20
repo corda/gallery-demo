@@ -1,7 +1,7 @@
 package com.r3.gallery.broker.corda.client.config
 
-import com.r3.gallery.api.CordaRPCNetwork
-import com.r3.gallery.api.RPCConnectionId
+import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
+import com.r3.gallery.broker.corda.client.api.RpcConnectionTarget
 
 /**
  * API for logical functional grouping of node configurations
@@ -12,11 +12,11 @@ interface ClientProperties {
 
     /**
      * Returns NetworkClientConfig matching id (unique across networks)
-     * @param id of target node/network config
+     * @param target of target node/network config
      */
-    fun getConfigById(id: RPCConnectionId) : NetworkClientConfig? =
+    fun getConfigById(target: RpcConnectionTarget) : NetworkClientConfig? =
         clients.first {
-            it.id == id
+            it.id == target
         }
 
     /**
