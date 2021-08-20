@@ -52,7 +52,7 @@ task copyImageSources(type: Copy) {
 
 task createAndPushDockerImages(type: ImageTask, dependsOn: 'copyImageSources') {
     description = "Pushes gallery docker images to ACR"
-    group = "deploymentk8s"
+    group = "deployment k8s"
     resourceAndImage = [
             new Pair(new File(project.buildDir, "dockerBuild/frontend"),frontend_docker_image_name),
             new Pair(new File(project.buildDir, "dockerBuild/galleryCordapp"), gallery_cordapp_docker_image_name),

@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 apply plugin: "net.corda.plugins.cordapp"
 apply plugin: "net.corda.plugins.cordformation"
 apply plugin: 'net.corda.plugins.quasar-utils'
@@ -15,7 +17,6 @@ dependencies {
 
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
-    project(":spring-api")
 }
 
 sourceSets {
@@ -353,11 +354,89 @@ task prepareAllDockerNodes(type: Task, dependsOn: ['prepareAuctionDockerNodes','
 
 // RUNNERS
 
+task auctionNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task auctionNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task gbpNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task gbpNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task cbdcNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task cbdcNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
 /**
  * Convenience task for bringing up all docker networks
  */
 task allNetworksUp(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({ network ->
@@ -374,7 +453,7 @@ task allNetworksUp(type: Task) {
  * Convenience task for bringing down all docker networks
  */
 task allNetworksDown(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({network ->
@@ -395,6 +474,7 @@ task allNetworksDown(type: Task) {
  */
 def mvYamlToTarget(String source, String target) {
     File srcFile = new File(source)
+    Pattern pattern = Pattern.compile("-\\s(\\d{5})")
     copy {
         from(source) {
             include '**/docker-compose.yml'
@@ -403,6 +483,17 @@ def mvYamlToTarget(String source, String target) {
         filter {
             // Correction of Dockerform incorrect mnt path generations
             line -> line.replaceAll(source, target)
+        }
+        filter {
+            line ->
+                def matcher =  pattern.matcher(line as String)
+                if (matcher.find()) {
+                    def port =  matcher.group(1)
+                    line.replace(
+                        port,
+                        "\"${port}:${port}\""
+                    )
+                } else line
         }
     }
     srcFile.deleteDir()
