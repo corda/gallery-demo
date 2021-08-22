@@ -2,7 +2,7 @@ package com.r3.gallery.broker
 
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import com.r3.gallery.broker.corda.client.api.RPCConnectionId
+import com.r3.gallery.api.RPCConnectionId
 import com.r3.gallery.broker.corda.client.art.service.NodeClient
 import com.r3.gallery.states.AuctionState
 import net.corda.client.rpc.CordaRPCClient
@@ -38,7 +38,7 @@ fun createConnection(): CordaRPCConnection {
 /**
  * Inject mock connections to <out NodeClient> map
  */
-fun injectConnections(connections: Map<RPCConnectionId, CordaRPCConnection?> , nodeClient: NodeClient) {
+fun injectConnections(connections: Map<RPCConnectionId, CordaRPCConnection?>, nodeClient: NodeClient) {
     val rpcIdToCordaRPCClientsMapField = NodeClient::class.java
         .getDeclaredField("rpcIdToCordaRPCClientsMap")
         .apply { isAccessible = true }

@@ -1,6 +1,6 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
-import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
+import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.art.service.NodeClient

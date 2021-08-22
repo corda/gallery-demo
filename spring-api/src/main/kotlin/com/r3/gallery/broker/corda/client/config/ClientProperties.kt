@@ -1,7 +1,7 @@
 package com.r3.gallery.broker.corda.client.config
 
-import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
-import com.r3.gallery.broker.corda.client.api.RPCConnectionId
+import com.r3.gallery.api.CordaRPCNetwork
+import com.r3.gallery.api.RPCConnectionId
 
 /**
  * API for logical functional grouping of node configurations

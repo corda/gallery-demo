@@ -1,8 +1,8 @@
 package com.r3.gallery.broker
 
 import com.nhaarman.mockito_kotlin.mock
-import com.r3.gallery.broker.corda.client.api.ArtworkId
-import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkGalleryController
 import com.r3.gallery.broker.corda.client.art.service.ArtNetworkGalleryClientImpl
 import com.r3.gallery.broker.corda.client.config.ClientProperties
@@ -40,7 +40,7 @@ class TestArtNetworkGalleryController {
             AuctionState(listOf(mock()), UniqueIdentifier(), UUID.randomUUID()),
         )
         val connection = createConnection()
-        val rpcConnectionId = "O=Alice,L=London,C=GB"+CordaRPCNetwork.AUCTION.toString()
+        val rpcConnectionId = "O=Alice,L=London,C=GB"+ CordaRPCNetwork.AUCTION.toString()
 
         injectStates(connection, states) // 2 art states
         injectConnections(mapOf(rpcConnectionId to connection), galleryClientImpl)

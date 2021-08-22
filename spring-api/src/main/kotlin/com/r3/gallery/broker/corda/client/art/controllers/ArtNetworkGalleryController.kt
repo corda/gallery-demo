@@ -1,7 +1,7 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
-import com.r3.gallery.broker.corda.client.api.ArtworkId
-import com.r3.gallery.broker.corda.client.api.ArtworkParty
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.art.service.NodeClient
 import org.slf4j.LoggerFactory

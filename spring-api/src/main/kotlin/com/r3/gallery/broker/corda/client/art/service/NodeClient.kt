@@ -1,7 +1,7 @@
 package com.r3.gallery.broker.corda.client.art.service
 
-import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
-import com.r3.gallery.broker.corda.client.api.RPCConnectionId
+import com.r3.gallery.api.CordaRPCNetwork
+import com.r3.gallery.api.RPCConnectionId
 import com.r3.gallery.broker.corda.client.config.ClientProperties
 import net.corda.client.rpc.*
 import net.corda.core.node.NodeInfo

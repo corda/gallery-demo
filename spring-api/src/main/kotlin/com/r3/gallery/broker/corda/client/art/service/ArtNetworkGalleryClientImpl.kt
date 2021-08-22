@@ -1,6 +1,6 @@
 package com.r3.gallery.broker.corda.client.art.service
 
-import com.r3.gallery.broker.corda.client.api.*
+import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.config.ClientProperties
 import com.r3.gallery.states.AuctionState

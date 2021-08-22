@@ -1,6 +1,6 @@
 package com.r3.gallery.broker.corda.client.config
 
-import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
+import com.r3.gallery.api.CordaRPCNetwork
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
