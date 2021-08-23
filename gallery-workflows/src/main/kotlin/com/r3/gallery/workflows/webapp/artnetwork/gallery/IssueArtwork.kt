@@ -21,10 +21,10 @@ import net.corda.core.utilities.ProgressTracker
 /**
  * Issues artwork on the Art Network
  *
- * @param galleryParty
+ * @param artworkId unique webapp reference for binding to assets and metadata
  */
 @StartableByRPC
-class IssueArtworkFlow(private val galleryParty: ArtworkParty, private val artworkId: ArtworkId) : FlowLogic<ArtworkOwnership>() {
+class IssueArtworkFlow(private val artworkId: ArtworkId) : FlowLogic<ArtworkOwnership>() {
     companion object {
         object GENERATING_TRANSACTION : ProgressTracker.Step("Generating a issue artwork transaction.")
         object SIGNING_TRANSACTION : ProgressTracker.Step("Signing transaction with our private key.")
