@@ -1,14 +1,17 @@
 package com.r3.gallery.broker.corda.client.art.service
 
-import com.r3.gallery.api.ArtworkId
-import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.RPCConnectionId
 import com.r3.gallery.broker.corda.client.config.ClientProperties
-import net.corda.client.rpc.*
+import net.corda.client.rpc.CordaRPCClient
+import net.corda.client.rpc.CordaRPCClientConfiguration
+import net.corda.client.rpc.CordaRPCConnection
+import net.corda.client.rpc.GracefulReconnect
+import net.corda.core.flows.FlowLogic
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
+import java.util.concurrent.TimeUnit
 
 /**
  * Generic class for handling RPCClient connections and node interactions
@@ -70,13 +73,10 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     }
 
     /**
-     * Simple shorthand for describing connection id in terms of node vs network
+     * Checks if a proposed rpcConnectionId exists based on network configurations
      */
-    protected infix fun ArtworkParty.idOn(network: CordaRPCNetwork) : RPCConnectionId {
-        val id = this + network.toString().toUpperCase()
-        require(rpcIdToCordaRPCClientsMap!!.containsKey(id))
-        return id
-    }
+    protected fun idExists(rpcConnectionId: RPCConnectionId)
+        = require(rpcIdToCordaRPCClientsMap!!.containsKey(rpcConnectionId))
 
     /**
      * Returns NodeInfos for all configured nodes.
@@ -120,5 +120,17 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      */
     protected fun <A> execute(target: RPCConnectionId, block: (CordaRPCConnection) -> A): A {
         return block(target.connection())
+    }
+
+    /**
+     * Starts a flow on the given RPC connection
+     */
+    protected fun <T> RPCConnectionId.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
+        return execute(this) { connections ->
+            connections.proxy.startFlowDynamic(
+                logicType,
+                *args
+            )
+        }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
     }
 }

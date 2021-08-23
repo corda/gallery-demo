@@ -3,12 +3,15 @@ package com.r3.gallery.broker.corda.client.art.service
 import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.config.ClientProperties
+import com.r3.gallery.states.ArtworkState
+import com.r3.gallery.workflows.webapp.artnetwork.gallery.CreateArtworkTransferTx
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.IssueArtworkFlow
+import com.r3.gallery.workflows.webapp.artnetwork.gallery.ListAvailableArtworks
+import com.r3.gallery.workflows.webapp.artnetwork.gallery.utilityflows.ArtworkIdToState
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import java.util.concurrent.TimeUnit
 
 @Component
 class ArtNetworkGalleryClientImpl(
@@ -24,22 +27,14 @@ class ArtNetworkGalleryClientImpl(
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership {
-        return  execute(galleryParty idOn CordaRPCNetwork.AUCTION) { connection ->
-            connection.proxy.startFlowDynamic(
-                IssueArtworkFlow::class.java,
-                galleryParty,
-                artworkId
-            ).returnValue.get(TIMEOUT, TimeUnit.SECONDS)
-        }
-    }
+    override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership
+        = galleryParty.network().startFlow(IssueArtworkFlow::class.java, artworkId)
 
     /**
      * List out the artworks still held by the gallery.
      */
-    override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
+        = galleryParty.network().startFlow(ListAvailableArtworks::class.java, galleryParty)
 
     /**
      * Create an unsigned transaction that would transfer an artwork owned by the gallery,
@@ -47,10 +42,8 @@ class ArtNetworkGalleryClientImpl(
      *
      * @return The unsigned fulfilment transaction
      */
-    override suspend fun createArtworkTransferTx(galleryPart: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
-        TODO("Not yet implemented")
-    }
-
+    override suspend fun createArtworkTransferTx(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
+        = galleryParty.network().startFlow(CreateArtworkTransferTx::class.java, bidderParty, galleryOwnership)
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]
@@ -65,6 +58,28 @@ class ArtNetworkGalleryClientImpl(
      * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
      */
     override suspend fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
-        TODO("Not yet implemented")
+        return galleryParty.artworkIdToState(artworkId).let {
+            ArtworkOwnership(it.linearId.id, it.artworkId, it.owner.nameOrNull().toString())
+        }
+    }
+
+    /**
+     * Simple shorthand for describing connection id in terms of node vs network
+     */
+    internal fun ArtworkParty.network() : RPCConnectionId
+        = this + CordaRPCNetwork.AUCTION.toString()
+            .also { idExists(it) } // check validity
+
+    /**
+     * Returns the ArtworkState associated with the ArtworkId
+     */
+    internal fun ArtworkParty.artworkIdToState(artworkId: ArtworkId): ArtworkState
+        = network().startFlow(ArtworkIdToState::class.java, artworkId)
+
+    /**
+     * Returns the ArtworkState associated with the CordaReference
+     */
+    internal fun ArtworkParty.artworkIdToCordaReference(artworkId: ArtworkId): CordaReference {
+        return artworkIdToState(artworkId).linearId.id
     }
 }

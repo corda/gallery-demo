@@ -3,6 +3,7 @@ package com.r3.gallery.broker.corda.client.art.controllers
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.api.ArtworkOwnership
 import com.r3.gallery.api.ArtworkParty
+import com.r3.gallery.api.UnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.art.service.NodeClient
 import org.slf4j.LoggerFactory
@@ -22,7 +23,7 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
         const val TIMEOUT = NodeClient.TIMEOUT
     }
 
-    @GetMapping("/issue-artwork")
+    @PutMapping("/issue-artwork")
     suspend fun issueArtwork(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: ArtworkId
@@ -37,5 +38,16 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
     ) : ResponseEntity<List<ArtworkId>> {
         val artworkIds = artNetworkGalleryClient.listAvailableArtworks(galleryParty)
         return ResponseEntity.status(HttpStatus.OK).body(artworkIds)
+    }
+
+    @PutMapping("/create-artwork-transfer-tx")
+    suspend fun createArtworkTransferTx(
+        @RequestParam("galleryParty") galleryParty: ArtworkParty,
+        @RequestParam("bidderParty") bidderParty: ArtworkParty,
+        @RequestParam("artworkId") artworkId: ArtworkId,
+    ) : ResponseEntity<UnsignedArtworkTransferTx> {
+        val artworkOwnership = artNetworkGalleryClient.getOwnership(galleryParty, artworkId)
+        val artworkTx = artNetworkGalleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
+        return ResponseEntity.status(HttpStatus.OK).body(artworkTx)
     }
 }
