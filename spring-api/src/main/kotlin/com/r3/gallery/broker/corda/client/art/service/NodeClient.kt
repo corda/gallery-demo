@@ -1,5 +1,7 @@
 package com.r3.gallery.broker.corda.client.art.service
 
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.RPCConnectionId
 import com.r3.gallery.broker.corda.client.config.ClientProperties
@@ -70,8 +72,8 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     /**
      * Simple shorthand for describing connection id in terms of node vs network
      */
-    protected infix fun String.idOn(network: String) : RPCConnectionId {
-        val id = this + network.toUpperCase()
+    protected infix fun ArtworkParty.idOn(network: CordaRPCNetwork) : RPCConnectionId {
+        val id = this + network.toString().toUpperCase()
         require(rpcIdToCordaRPCClientsMap!!.containsKey(id))
         return id
     }

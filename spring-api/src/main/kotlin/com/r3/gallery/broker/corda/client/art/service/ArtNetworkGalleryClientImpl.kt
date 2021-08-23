@@ -21,8 +21,11 @@ class ArtNetworkGalleryClientImpl(
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryClientImpl::class.java)
     }
 
-    override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
-        return  execute(galleryParty idOn CordaRPCNetwork.AUCTION.toString()) { connection ->
+    /**
+     * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
+     */
+    override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership {
+        return  execute(galleryParty idOn CordaRPCNetwork.AUCTION) { connection ->
             connection.proxy.startFlowDynamic(
                 IssueArtworkFlow::class.java,
                 galleryParty,
@@ -32,21 +35,35 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * Returns a list of available artworks for bidding
-     * - artworkIds that are tied to an unconsumed auction state
+     * List out the artworks still held by the gallery.
      */
     override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
         TODO("Not yet implemented")
     }
 
+    /**
+     * Create an unsigned transaction that would transfer an artwork owned by the gallery,
+     * identified by [galleryOwnership], to the given bidder.
+     *
+     * @return The unsigned fulfilment transaction
+     */
     override suspend fun createArtworkTransferTx(galleryPart: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
         TODO("Not yet implemented")
     }
 
+    /**
+     * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
+     * obtaining a [ProofOfTransferOfOwnership]
+     *
+     * @return Proof that ownership of the artwork has been transferred.
+     */
     override suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
         TODO("Not yet implemented")
     }
 
+    /**
+     * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
+     */
     override suspend fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
         TODO("Not yet implemented")
     }

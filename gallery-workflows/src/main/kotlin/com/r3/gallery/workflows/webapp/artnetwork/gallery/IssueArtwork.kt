@@ -1,17 +1,16 @@
 package com.r3.gallery.workflows.webapp.artnetwork.gallery
 
-import com.r3.gallery.workflows.webapp.artworkExists
-import com.r3.gallery.workflows.webapp.artworkPartyToParty
+import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.api.ArtworkOwnership
 import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.contracts.ArtworkContract.Commands
 import com.r3.gallery.states.ArtworkState
-import com.r3.gallery.workflows.webapp.initiateFlowSessions
+import com.r3.gallery.workflows.webapp.artworkExists
+import com.r3.gallery.workflows.webapp.firstNotary
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.contracts.requireThat
-import net.corda.core.flows.CollectSignaturesFlow
 import net.corda.core.flows.FinalityFlow
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
@@ -42,44 +41,36 @@ class IssueArtworkFlow(private val galleryParty: ArtworkParty, private val artwo
 
     override val progressTracker = tracker()
 
+    @Suspendable
     override fun call(): ArtworkOwnership {
-        val ownerGalleryParty = serviceHub.artworkPartyToParty(galleryParty)
-        // todo: explicit notary selection
-        val notary = serviceHub.networkMapCache.notaryIdentities.first()
-
         requireThat { "Artwork must not already exit on network" using serviceHub.artworkExists(artworkId) }
 
         val artState = ArtworkState(
             issuer = ourIdentity,
-            owner = ownerGalleryParty,
+            owner = ourIdentity,
             artworkId = artworkId,
-            participants = listOf(ourIdentity, ownerGalleryParty),
+            participants = listOf(ourIdentity),
             linearId = UniqueIdentifier()
         )
 
         progressTracker.currentStep = GENERATING_TRANSACTION
-        val txBuilder = TransactionBuilder(notary)
+        val txBuilder = TransactionBuilder(firstNotary())
             .addOutputState(artState, ArtworkContract.ID)
             .addCommand(Commands.Issue(), ourIdentity.owningKey)
 
         txBuilder.verify(serviceHub)
 
         progressTracker.currentStep = SIGNING_TRANSACTION
-        val ptx = serviceHub.signInitialTransaction(txBuilder)
-        var stx = ptx
+        val stx = serviceHub.signInitialTransaction(txBuilder)
 
-        val sessions = initiateFlowSessions(txBuilder)
-        sessions?.let {
-            stx = subFlow(CollectSignaturesFlow(ptx, sessions))
-        }
+        serviceHub.recordTransactions(stx)
 
-        return subFlow(FinalityFlow(stx, sessions ?: emptyList())).let {
-            val issuedState = it.coreTransaction.outputsOfType(ArtworkState::class.java).first()
-            ArtworkOwnership(
-                issuedState.linearId.id,
-                issuedState.artworkId,
-                issuedState.owner.nameOrNull()!!.toX500Name().toString()
-            )
-        }
+        val issuedState = stx.coreTransaction.outputsOfType(ArtworkState::class.java).first()
+
+        return ArtworkOwnership(
+            issuedState.linearId.id,
+            issuedState.artworkId,
+            issuedState.owner.nameOrNull()!!.toX500Name().toString()
+        )
     }
 }

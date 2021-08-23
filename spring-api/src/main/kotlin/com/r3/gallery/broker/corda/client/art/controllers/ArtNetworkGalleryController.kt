@@ -1,6 +1,7 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
 import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.ArtworkOwnership
 import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.art.service.NodeClient
@@ -19,6 +20,15 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryController::class.java)
         const val TIMEOUT = NodeClient.TIMEOUT
+    }
+
+    @GetMapping("/issue-artwork")
+    suspend fun issueArtwork(
+        @RequestParam("galleryParty") galleryParty: ArtworkParty,
+        @RequestParam("artworkId") artworkId: ArtworkId
+    ) : ResponseEntity<ArtworkOwnership> {
+        val artworkOwnership = artNetworkGalleryClient.issueArtwork(galleryParty, artworkId)
+        return ResponseEntity.status(HttpStatus.OK).body(artworkOwnership)
     }
 
     @GetMapping("/list-available-artworks")

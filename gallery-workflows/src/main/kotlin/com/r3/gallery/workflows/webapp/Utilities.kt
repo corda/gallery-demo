@@ -9,6 +9,7 @@ import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.FlowSession
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.CordaX500Name
+import net.corda.core.identity.Party
 import net.corda.core.node.ServiceHub
 import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
@@ -35,6 +36,9 @@ fun ServiceHub.artworkExists(artworkId: ArtworkId) : Boolean
         ArtworkState::class.java,
         QueryCriteria.LinearStateQueryCriteria().withUuid(listOf(artworkId))
     ).totalStatesAvailable > 0
+
+fun FlowLogic<*>.firstNotary() : Party =
+    serviceHub.networkMapCache.notaryIdentities.first()
 
 /**
  * Generates set of flow sessions for all parties across a transaction builder
