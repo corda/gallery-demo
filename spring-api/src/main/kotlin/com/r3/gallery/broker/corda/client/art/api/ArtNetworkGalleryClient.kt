@@ -23,7 +23,7 @@ interface ArtNetworkGalleryClient {
      *
      * @return The unsigned fulfilment transaction
      */
-    suspend fun createArtworkTransferTx(galleryPart: ArtworkParty,
+    suspend fun createArtworkTransferTx(galleryParty: ArtworkParty,
                                         bidderParty: ArtworkParty,
                                         galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
 
