@@ -2,6 +2,7 @@ package com.r3.gallery.workflows.webapp
 
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.api.ArtworkParty
+import com.r3.gallery.api.CordaReference
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.workflows.webapp.exceptions.InvalidPartyException
 import net.corda.core.contracts.ContractState
@@ -29,16 +30,35 @@ fun ServiceHub.artworkPartyToParty(artworkParty: ArtworkParty) : AbstractParty {
 }
 
 /**
+ * Returns the state associated with an artworkId
+ */
+fun ServiceHub.artworkIdToState(artworkId: ArtworkId) : ArtworkState? {
+    return vaultService.queryBy(
+        ArtworkState::class.java,
+    ).states.map { it.state.data }
+        .singleOrNull { it.artworkId == artworkId }
+}
+
+/**
+ * Returns the state associated with a CordaReference
+ *
+ * @param cordaReference LinearState id
+ */
+inline fun <reified T: ContractState> ServiceHub.cordaReferenceToState(cordaReference: CordaReference) : T? {
+    return vaultService.queryBy(
+        T::class.java,
+        QueryCriteria.LinearStateQueryCriteria().withUuid(listOf(cordaReference))
+    ).states.singleOrNull()?.state?.data
+}
+
+/**
  * Checks if an artwork identifier exists on network
  */
 fun ServiceHub.artworkExists(artworkId: ArtworkId) : Boolean
-    = vaultService.queryBy(
-        ArtworkState::class.java,
-        QueryCriteria.LinearStateQueryCriteria().withUuid(listOf(artworkId))
-    ).totalStatesAvailable > 0
+    = artworkIdToState(artworkId) != null
 
-fun FlowLogic<*>.firstNotary() : Party =
-    serviceHub.networkMapCache.notaryIdentities.first()
+fun FlowLogic<*>.firstNotary() : Party
+    = serviceHub.networkMapCache.notaryIdentities.first()
 
 /**
  * Generates set of flow sessions for all parties across a transaction builder
