@@ -1,9 +1,6 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
-import com.r3.gallery.api.ArtworkId
-import com.r3.gallery.api.ArtworkOwnership
-import com.r3.gallery.api.ArtworkParty
-import com.r3.gallery.api.UnsignedArtworkTransferTx
+import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.art.service.NodeClient
 import org.slf4j.LoggerFactory
@@ -19,6 +16,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/gallery")
 class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetworkGalleryClient) {
     companion object {
+        // TODO: Add logs to each call
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryController::class.java)
         const val TIMEOUT = NodeClient.TIMEOUT
     }
@@ -49,5 +47,13 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
         val artworkOwnership = artNetworkGalleryClient.getOwnership(galleryParty, artworkId)
         val artworkTx = artNetworkGalleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
         return ResponseEntity.status(HttpStatus.OK).body(artworkTx)
+    }
+
+    @PutMapping("/finalise-artwork-trans")
+    suspend fun finaliseArtworkTransfer(
+        galleryParty: ArtworkParty,
+        unsignedArtworkTransferTx: UnsignedArtworkTransferTx
+    ) : ProofOfTransferOfOwnership {
+        TODO("Not yet implemented")
     }
 }

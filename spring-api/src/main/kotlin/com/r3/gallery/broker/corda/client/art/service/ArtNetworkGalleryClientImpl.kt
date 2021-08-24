@@ -21,6 +21,7 @@ class ArtNetworkGalleryClientImpl(
 ) : NodeClient(clientProperties), ArtNetworkGalleryClient {
 
     companion object {
+        // TODO: Add logs to each call
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryClientImpl::class.java)
     }
 
