@@ -12,7 +12,7 @@ import net.corda.core.transactions.TransactionBuilder
 
 @StartableByRPC
 @InitiatingFlow
-class IssueArtworkFlow(val description: String, val url: String = "https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg") : FlowLogic<UniqueIdentifier>() {
+class IssueArtwork(val description: String, val url: String = "https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg") : FlowLogic<UniqueIdentifier>() {
 
     @Suspendable
     override fun call(): UniqueIdentifier {
