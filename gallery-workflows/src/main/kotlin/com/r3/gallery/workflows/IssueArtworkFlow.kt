@@ -16,6 +16,7 @@ class IssueArtworkFlow(val description: String, val url: String = "https://uploa
 
     @Suspendable
     override fun call(): UniqueIdentifier {
+        // REVIEW: ourIdentity = Party A / CN1
         val state = ArtworkState(description, url, ourIdentity, true)
         val command = Command(ArtworkContract.Commands.Issue(), listOf(ourIdentity.owningKey))
         val builder = TransactionBuilder(notary = serviceHub.networkMapCache.notaryIdentities.first())

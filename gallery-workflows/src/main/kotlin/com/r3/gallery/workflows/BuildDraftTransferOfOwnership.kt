@@ -39,8 +39,9 @@ class BuildDraftTransferOfOwnership(val artworkId: UniqueIdentifier, val bidder:
         val tx = transactionBuilder.toWireTransaction(serviceHub)
 
         // TODO: this is for testing purpose
-        CacheService.instance(serviceHub).cacheWireTransaction(tx, this.ourIdentity)
+        serviceHub.cacheService().cacheWireTransaction(tx, this.ourIdentity)
 
         return tx
     }
 }
+

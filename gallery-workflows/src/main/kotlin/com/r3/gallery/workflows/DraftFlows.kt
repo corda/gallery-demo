@@ -1,10 +1,7 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.gallery.states.ArtworkOwnership
-import net.corda.core.contracts.FungibleAsset
 import net.corda.core.flows.*
-import net.corda.core.identity.Party
 
 data class Asset(val name: String) {
 }
@@ -28,6 +25,5 @@ class DraftFlows(swapProposal: SwapProposal) : FlowLogic<Unit>() {
 }
 
 
-data class TimeLock(val ) {
-
-}
+//data class TimeLock(val ) {
+//}

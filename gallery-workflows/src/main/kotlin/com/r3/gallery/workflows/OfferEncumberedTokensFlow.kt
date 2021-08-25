@@ -306,70 +306,63 @@ class OfferEncumberedTokensFlowHandler(val otherSession: FlowSession) : FlowLogi
                 )
         )
 
-        val inputCriteria: QueryCriteria = QueryCriteria.VaultQueryCriteria().withStatus(Vault.StateStatus.UNCONSUMED)
-        //val cash: List<Cash.State> = serviceHub.vaultService.queryBy(Cash.State::class.java, inputCriteria).states.map { it.state.data }
-
-        val stateAndRef = serviceHub.vaultService.queryBy(LockState::class.java, inputCriteria).states.last()
-        val lockState = stateAndRef.state.data as LockState
-        val transactionState = TransactionState(lockState, stateAndRef.state.contract, stateAndRef.state.notary)
-        val lockStateAndRef = StateAndRef(transactionState, stateAndRef.ref)
-
-        val unsignedSwapTx = CacheService.instance(serviceHub).getWireTransactionById(lockState.txHash.txId, this.ourIdentity)
-
-        if (unsignedSwapTx != null) {
-            unlockEncumberedStates(lockStateAndRef, unsignedSwapTx)
-        }
+//        val inputCriteria: QueryCriteria = QueryCriteria.VaultQueryCriteria().withStatus(Vault.StateStatus.UNCONSUMED)
+//        //val cash: List<Cash.State> = serviceHub.vaultService.queryBy(Cash.State::class.java, inputCriteria).states.map { it.state.data }
+//
+//        val stateAndRef = serviceHub.vaultService.queryBy(LockState::class.java, inputCriteria).states.last()
+//        val lockState = stateAndRef.state.data as LockState
+//        val transactionState = TransactionState(lockState, stateAndRef.state.contract, stateAndRef.state.notary)
+//        val lockStateAndRef = StateAndRef(transactionState, stateAndRef.ref)
+//
+//        val unsignedSwapTx = serviceHub.cacheService().getWireTransactionById(lockState.txHash.txId, this.ourIdentity)
+//
+//        if (unsignedSwapTx != null) {
+//            unlockEncumberedStates(lockStateAndRef, unsignedSwapTx)
+//        }
     }
-
-    /**
-     * Unlock encumbered states in transaction given by [StateAndRef<LockState>.ref]. Sign and finalise
-     * [unsignedSwapTx] and use the [LockState.controllingNotary] signature to unlock the states in the encumbered push
-     * transaction referenced by [lockStateAndRef].
-     * @param lockStateAndRef the lock state [StateAndRef<LockState>] to unlock.
-     * @param unsignedSwapTx transaction to sign and finalise.
-     */
-    @Suspendable
-    fun unlockEncumberedStates(lockStateAndRef: StateAndRef<LockState>, unsignedSwapTx: WireTransaction) {
-        val signedTx = subFlow(SignAndFinaliseTxForPush(lockStateAndRef, unsignedSwapTx))
-
-        logger.info("Signed and finalised swap tx with id: ${signedTx.id}")
-
-        val controllingNotary = lockStateAndRef.state.data.controllingNotary
-        val requiredSignature = signedTx.getTransactionSignatureForParty(controllingNotary)
-
-        subFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature))
-    }
+//
+//    /**
+//     * Unlock encumbered states in transaction given by [StateAndRef<LockState>.ref]. Sign and finalise
+//     * [unsignedSwapTx] and use the [LockState.controllingNotary] signature to unlock the states in the encumbered push
+//     * transaction referenced by [lockStateAndRef].
+//     * @param lockStateAndRef the lock state [StateAndRef<LockState>] to unlock.
+//     * @param unsignedSwapTx transaction to sign and finalise.
+//     */
+//    @Suspendable
+//    fun unlockEncumberedStates(lockStateAndRef: StateAndRef<LockState>, unsignedSwapTx: WireTransaction) {
+//        val signedTx = subFlow(SignAndFinaliseTxForPush(lockStateAndRef, unsignedSwapTx))
+//
+//        logger.info("Signed and finalised swap tx with id: ${signedTx.id}")
+//
+//        val controllingNotary = lockStateAndRef.state.data.controllingNotary
+//        val requiredSignature = signedTx.getTransactionSignatureForParty(controllingNotary)
+//
+//        subFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature))
+//    }
 }
 
 @CordaService
 class CacheService(private val serviceHub: AppServiceHub) : SingletonSerializeAsToken() {
 
     init {
-        // Custom code ran at service creation
-
-        // Optional: Express interest in receiving lifecycle events
-        serviceHub.register { processEvent(it) }
+        //serviceHub.register { processEvent(it) }
     }
+
+//    private fun processEvent(event: ServiceLifecycleEvent) {
+//        when (event) {
+//            ServiceLifecycleEvent.STATE_MACHINE_STARTED -> {
+//            } else -> {
+//            }
+//        }
+//    }
 
     companion object {
-        fun instance(serviceHub: ServiceHub) =
-                serviceHub.cordaService(CacheService::class.java)
+        private val transactions = mutableMapOf<SecureHash, WireTransaction>()
     }
 
-    private fun processEvent(event: ServiceLifecycleEvent) {
-        // Lifecycle event handling code including full use of serviceHub
-        when (event) {
-            ServiceLifecycleEvent.STATE_MACHINE_STARTED -> {
-//                serviceHub.vaultService.queryBy(...)
-//                serviceHub.startFlow(...)
-            }
-            else -> {
-                // Process other types of events
-            }
-        }
+    fun getWireTransactionById(txId: SecureHash): WireTransaction? {
+        return transactions[txId]
     }
-
-    private val transactions = mutableMapOf<SecureHash, WireTransaction>()
 
     fun getWireTransactionById(txId: SecureHash, party: Party): WireTransaction? {
         return transactions[txId]
@@ -379,3 +372,5 @@ class CacheService(private val serviceHub: AppServiceHub) : SingletonSerializeAs
         transactions[tx.id] = tx
     }
 }
+
+fun ServiceHub.cacheService(): CacheService = this.cordaService(CacheService::class.java)
