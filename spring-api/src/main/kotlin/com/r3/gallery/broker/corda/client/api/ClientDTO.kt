@@ -1,6 +1,6 @@
 package com.r3.gallery.broker.corda.client.api
 
-import com.r3.gallery.states.CordaReference
+import com.r3.gallery.other.CordaReference
 
 /**
  * Identity of a party on the tokens network.

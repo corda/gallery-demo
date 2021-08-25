@@ -1,6 +1,9 @@
 package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.broker.corda.client.api.*
+import com.r3.gallery.other.ArtworkId
+import com.r3.gallery.other.ArtworkOwnership
+import com.r3.gallery.other.ArtworkParty
 import net.corda.client.rpc.CordaRPCClient
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.messaging.CordaRPCOps

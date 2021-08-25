@@ -1,4 +1,4 @@
-package com.r3.gallery.states
+package com.r3.gallery.other
 
 import java.util.*
 
