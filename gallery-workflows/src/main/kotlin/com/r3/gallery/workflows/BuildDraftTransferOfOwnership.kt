@@ -20,6 +20,7 @@ import java.time.Instant
 @StartableByRPC
 class BuildDraftTransferOfOwnership(val artworkId: UniqueIdentifier, val bidder: Party) : FlowLogic<WireTransaction>() {
     override val progressTracker = ProgressTracker()
+
     @Suspendable
     override fun call(): WireTransaction {
         val auctionStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
@@ -29,9 +30,9 @@ class BuildDraftTransferOfOwnership(val artworkId: UniqueIdentifier, val bidder:
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
 
         val transactionBuilder = TransactionBuilder(notary = notary)
-                .addCommand(Command(ArtworkContract.Commands.TransferOwnership(), listOf(ourIdentity.owningKey, bidder.owningKey)))
                 .addInputState(inputStateAndRef)
                 .addOutputState(inputState.awardTo(bidder), ArtworkContract.ARTWORK_CONTRACT_ID)
+                .addCommand(ArtworkContract.Commands.TransferOwnership(), ourIdentity.owningKey, bidder.owningKey)
                 .setTimeWindow(TimeWindow.untilOnly(Instant.now().plus(Duration.ofMinutes(5))))
 
         transactionBuilder.verify(serviceHub)
