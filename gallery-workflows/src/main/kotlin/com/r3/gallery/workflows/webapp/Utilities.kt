@@ -12,10 +12,11 @@ import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.node.ServiceHub
-import net.corda.core.node.services.queryBy
 import net.corda.core.node.services.vault.QueryCriteria
+import net.corda.core.transactions.LedgerTransaction
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
-import java.util.*
+import net.corda.core.transactions.WireTransaction
 
 /**
  * Converts a string x500 name to Party
@@ -66,9 +67,17 @@ fun FlowLogic<*>.firstNotary() : Party
  *
  * Returns null if there are no sessions required.
  */
-fun FlowLogic<*>.initiateFlowSessions(txBuilder: TransactionBuilder): Set<FlowSession>? {
-    val participants: List<AbstractParty> = txBuilder.outputStates().flatMap { it.data.participants }
-        .plus(txBuilder.inputStates().flatMap { serviceHub.toStateAndRef<ContractState>(it).state.data.participants })
-    return if (participants.isNotEmpty()) { (participants-ourIdentity).map { initiateFlow(it) }.toSet() }
-        else null
+fun <T> FlowLogic<*>.initiateFlowSessions(tx: T): Set<FlowSession>? {
+    when (tx) {
+        is LedgerTransaction -> { // base case and return logic
+            val participantsFromStates = tx.outputStates.flatMap { it.participants }
+                .plus(tx.inputStates.flatMap { it.participants })
+            val participants = (participantsFromStates-ourIdentity)
+            return if (participants.isNotEmpty()) participants.map { initiateFlow(it) }.toSet() else null
+        }
+        is WireTransaction -> tx.toLedgerTransaction(serviceHub).also { initiateFlowSessions(it) }
+        is TransactionBuilder -> tx.toLedgerTransaction(serviceHub).also { initiateFlowSessions(it) }
+        is SignedTransaction -> tx.toLedgerTransaction(serviceHub).also { initiateFlowSessions(it) }
+    }
+    throw IllegalArgumentException("Unable to generate Flow Sessions for parameter $tx")
 }

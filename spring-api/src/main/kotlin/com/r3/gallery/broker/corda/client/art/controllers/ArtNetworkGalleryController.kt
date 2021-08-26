@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 @CrossOrigin
 @RestController
 @RequestMapping("/gallery")
-class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetworkGalleryClient) {
+class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryClient) {
     companion object {
         // TODO: Add logs to each call
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryController::class.java)
@@ -26,7 +26,7 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: ArtworkId
     ) : ResponseEntity<ArtworkOwnership> {
-        val artworkOwnership = artNetworkGalleryClient.issueArtwork(galleryParty, artworkId)
+        val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId)
         return ResponseEntity.status(HttpStatus.OK).body(artworkOwnership)
     }
 
@@ -34,7 +34,7 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
     suspend fun listAvailableArtworks(
         @RequestParam("galleryParty") galleryParty: ArtworkParty
     ) : ResponseEntity<List<ArtworkId>> {
-        val artworkIds = artNetworkGalleryClient.listAvailableArtworks(galleryParty)
+        val artworkIds = galleryClient.listAvailableArtworks(galleryParty)
         return ResponseEntity.status(HttpStatus.OK).body(artworkIds)
     }
 
@@ -44,8 +44,9 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
         @RequestParam("bidderParty") bidderParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: ArtworkId,
     ) : ResponseEntity<UnsignedArtworkTransferTx> {
-        val artworkOwnership = artNetworkGalleryClient.getOwnership(galleryParty, artworkId)
-        val artworkTx = artNetworkGalleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
+        // TODO: Is the DTO for ownership to be provided in full? or shall artworkId be used as is here?
+        val artworkOwnership = galleryClient.getOwnership(galleryParty, artworkId)
+        val artworkTx = galleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
         return ResponseEntity.status(HttpStatus.OK).body(artworkTx)
     }
 
@@ -53,7 +54,8 @@ class ArtNetworkGalleryController(private val artNetworkGalleryClient: ArtNetwor
     suspend fun finaliseArtworkTransfer(
         galleryParty: ArtworkParty,
         unsignedArtworkTransferTx: UnsignedArtworkTransferTx
-    ) : ProofOfTransferOfOwnership {
-        TODO("Not yet implemented")
+    ) : ResponseEntity<ProofOfTransferOfOwnership> {
+        val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, unsignedArtworkTransferTx)
+        return ResponseEntity.status(HttpStatus.OK).body(proofOfTransfer)
     }
 }

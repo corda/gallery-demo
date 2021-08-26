@@ -48,9 +48,7 @@ class IssueArtworkFlow(private val artworkId: ArtworkId) : FlowLogic<ArtworkOwne
         val artState = ArtworkState(
             issuer = ourIdentity,
             owner = ourIdentity,
-            artworkId = artworkId,
-            participants = listOf(ourIdentity),
-            linearId = UniqueIdentifier()
+            artworkId = artworkId
         )
 
         progressTracker.currentStep = GENERATING_TRANSACTION

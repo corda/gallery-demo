@@ -5,6 +5,7 @@ import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.config.ClientProperties
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.CreateArtworkTransferTx
+import com.r3.gallery.workflows.webapp.artnetwork.gallery.FinaliseArtworkTransferTx
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.IssueArtworkFlow
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.ListAvailableArtworks
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.utilityflows.ArtworkIdToState
@@ -51,9 +52,8 @@ class ArtNetworkGalleryClientImpl(
      *
      * @return Proof that ownership of the artwork has been transferred.
      */
-    override suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
-        TODO("Not yet implemented")
-    }
+    override suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership
+        = galleryParty.network().startFlow(FinaliseArtworkTransferTx::class.java, unsignedArtworkTransferTx)
 
     /**
      * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
