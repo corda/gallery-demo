@@ -25,11 +25,16 @@ dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
     cordaCompile(cordaCoreReleaseGroup,"corda-finance-contracts", cordaCoreVersion)
     cordaCompile(cordaCoreReleaseGroup,"corda-finance-workflows", cordaCoreVersion)
+    cordaCompile("com.r3.corda.lib.tokens:tokens-contracts:1.2.2")
+    cordaCompile("com.r3.corda.lib.tokens:tokens-workflows:1.2.2")
 
     cordaRuntime(cordaCoreReleaseGroup, "corda", cordaCoreVersion)
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
 
     cordapp(project(":gallery-contracts"))
+
+    cordapp("com.r3.corda.lib.tokens:tokens-contracts:1.2.2")
+    cordapp("com.r3.corda.lib.tokens:tokens-workflows:1.2.2")
 }
 
 tasks.jar {

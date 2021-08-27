@@ -10,6 +10,8 @@ dependencies {
     cordaCompile "$cordaCoreReleaseGroup:corda-node-api:$cordaCoreVersion"
     cordaCompile "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
     cordaCompile "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
+    cordaCompile "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
+    cordaCompile "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
 
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
     cordaCompile "org.slf4j:jul-to-slf4j:$slf4jVersion"
@@ -51,6 +53,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         cordapp project(":gallery-workflows")
         cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
         cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
+        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
+        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
     }
     signing {
         enabled false
@@ -123,6 +127,8 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         cordapp project(":gallery-workflows")
         cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
         cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
+        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
+        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
         //runSchemaMigration = true
     }
@@ -219,6 +225,8 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         cordapp project(":gallery-workflows")
         cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
         cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
+        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
+        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
         //runSchemaMigration = true
     }
@@ -296,6 +304,8 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         cordapp project(":gallery-workflows")
         cordapp "$cordaCoreReleaseGroup:corda-finance-contracts:$cordaCoreVersion"
         cordapp "$cordaCoreReleaseGroup:corda-finance-workflows:$cordaCoreVersion"
+        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
+        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
         //runSchemaMigration = true
     }

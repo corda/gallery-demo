@@ -22,6 +22,8 @@ cordapp {
 
 dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
+    cordaCompile("com.r3.corda.lib.tokens:tokens-contracts:1.2.2")
+    cordaCompile("com.r3.corda.lib.tokens:tokens-workflows:1.2.2")
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
 }
 
