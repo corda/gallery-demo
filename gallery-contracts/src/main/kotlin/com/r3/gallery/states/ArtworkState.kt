@@ -18,7 +18,7 @@ data class ArtworkState(
     /**
      * Returns a copy of this ArtworkState which has a new owner and is not listed.
      */
-    fun awardTo(newOwner: Party): ArtworkState { return copy(owner = newOwner, listed = false) }
+    fun transferOwnershipTo(newOwner: Party): ArtworkState { return copy(owner = newOwner, listed = false) }
 
     /**
      * Returns a copy of this ArtworkState which is not listed.

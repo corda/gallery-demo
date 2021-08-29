@@ -9,6 +9,7 @@ import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.getOrThrow
+import net.corda.finance.USD
 import net.corda.finance.contracts.asset.Cash
 import net.corda.finance.workflows.getCashBalance
 import net.corda.testing.internal.chooseIdentity
@@ -226,6 +227,26 @@ class SwapTests {
 
         assert(bBalance.quantity > 0)
         assert(cBalance.quantity <= 0)
+    }
+
+    @Test
+    fun `can place a bid`() {
+        val artworkId = issueArtwork(seller)
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer1.info.chooseIdentity()
+        val usdCurrency = Currency.getInstance("USD")
+
+        val cashState = buyer1.startFlow(SelfIssueCashFlow(Amount(11, usdCurrency))).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artTransferTx = buyer1.startFlow(PlaceBidFlow(sellerParty, artworkId, Amount(10, USD))).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        seller.startFlow(AcceptBidFlow(artTransferTx)).apply {
+            network.runNetwork()
+        }
     }
 
     private fun issueArtwork(node: StartedMockNode): UniqueIdentifier {

@@ -1,23 +1,15 @@
 package com.r3.gallery.workflows
 
-import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.money.USD
 import com.r3.corda.lib.tokens.workflows.utilities.tokenBalance
-import com.r3.corda.lib.tokens.workflows.utilities.tokenBalanceForIssuer
-import com.r3.gallery.states.EmptyState
-import com.r3.gallery.worskflows.IssueTokensFlow
-import net.corda.core.node.services.Vault
-import net.corda.core.node.services.vault.QueryCriteria
-import net.corda.core.transactions.SignedTransaction
+import net.corda.core.utilities.getOrThrow
 import net.corda.testing.internal.chooseIdentity
-import net.corda.testing.node.MockNetwork
-import net.corda.testing.node.MockNetworkParameters
-import net.corda.testing.node.StartedMockNode
-import net.corda.testing.node.TestCordapp
+import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import java.util.concurrent.Future
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 
 class IssueTokenFlowTests {
     private lateinit var network: MockNetwork
@@ -30,7 +22,6 @@ class IssueTokenFlowTests {
             TestCordapp.findCordapp("com.r3.gallery.contracts"),
             TestCordapp.findCordapp("com.r3.gallery.workflows"),
             TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts"),
-            TestCordapp.findCordapp("com.r3.corda.lib.tokens.workflows")
         )))
         a = network.createPartyNode()
         b = network.createPartyNode()
@@ -43,14 +34,26 @@ class IssueTokenFlowTests {
     }
 
     @Test
-    fun `DummyTest`() {
+    fun `can issue tokens to a party`() {
         val aParty = a.info.chooseIdentity()
 
-        val flow = IssueTokensFlow(10, USD.tokenIdentifier, aParty)
-        val future: Future<SignedTransaction> = a.startFlow(flow)
-        network.runNetwork()
+        val issueFlow = IssueTokensFlow(10, USD.tokenIdentifier, aParty)
+        val stx = a.startFlow(issueFlow).also { network.runNetwork() }.getOrThrow()
 
-        val state1 = a.services.vaultService.tokenBalance(USD)
-        val state2 = a.services.vaultService.tokenBalanceForIssuer(USD, aParty)
+        val balance = a.services.vaultService.tokenBalance(USD)
+        assertNotNull(stx)
+        assertEquals(10.USD, balance)
+    }
+
+    @Test
+    fun `can get balance`() {
+        val aParty = a.info.chooseIdentity()
+        val issueFlow = IssueTokensFlow(10, USD.tokenIdentifier, aParty)
+        a.startFlow(issueFlow).also { network.runNetwork() }
+
+        val balanceFlow = GetTokensBalancesFlow(USD)
+        val balance = a.startFlow(balanceFlow).also { network.runNetwork() }.getOrThrow()
+
+        assertEquals(10.USD, balance)
     }
 }

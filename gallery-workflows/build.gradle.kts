@@ -32,9 +32,6 @@ dependencies {
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
 
     cordapp(project(":gallery-contracts"))
-
-    cordapp("com.r3.corda.lib.tokens:tokens-contracts:1.2.2")
-    cordapp("com.r3.corda.lib.tokens:tokens-workflows:1.2.2")
 }
 
 tasks.jar {
