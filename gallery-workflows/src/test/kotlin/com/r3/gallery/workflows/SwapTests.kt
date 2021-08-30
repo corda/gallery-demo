@@ -197,12 +197,12 @@ class SwapTests {
             TransactionState(stateAndRef.state.data, stateAndRef.state.contract, stateAndRef.state.notary)
         val lockStateAndRef = StateAndRef(transactionState, stateAndRef.ref)
 
-        val stx = seller.startFlow(SignAndFinaliseTxForPush(lockStateAndRef, artTransferTx)).apply {
+        val signedArtTransferTx = seller.startFlow(SignAndFinaliseTxForPush(lockStateAndRef, artTransferTx)).apply {
             network.runNetwork()
         }.getOrThrow()
 
         val controllingNotary = lockStateAndRef.state.data.controllingNotary
-        val requiredSignature = stx.getTransactionSignatureForParty(controllingNotary)
+        val requiredSignature = signedArtTransferTx.getTransactionSignatureForParty(controllingNotary)
 
         seller.startFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature)).apply {
             network.runNetwork()

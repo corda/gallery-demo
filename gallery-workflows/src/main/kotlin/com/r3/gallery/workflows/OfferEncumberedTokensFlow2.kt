@@ -7,12 +7,13 @@ import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.selection.TokenQueryBy
 import com.r3.corda.lib.tokens.selection.database.selector.DatabaseTokenSelection
+import com.r3.corda.lib.tokens.workflows.flows.move.addMoveFungibleTokens
+import com.r3.corda.lib.tokens.workflows.flows.move.addMoveTokens
 import com.r3.corda.lib.tokens.workflows.types.toPairs
 import com.r3.corda.lib.tokens.workflows.utilities.addTokenTypeJar
 import com.r3.gallery.contracts.LockContract
 import com.r3.gallery.states.LockState
 import net.corda.core.contracts.*
-import net.corda.core.contracts.Amount.Companion.sumOrThrow
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.crypto.SignableData
 import net.corda.core.crypto.SignatureMetadata
@@ -20,7 +21,6 @@ import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
-import net.corda.core.identity.PartyAndCertificate
 import net.corda.core.internal.requiredContractClassName
 import net.corda.core.node.ServiceHub
 import net.corda.core.node.StatesToRecord
@@ -29,11 +29,7 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
-import net.corda.finance.contracts.asset.Cash
-import net.corda.finance.contracts.asset.PartyAndAmount
-import net.corda.finance.workflows.asset.selection.AbstractCashSelection
 import java.security.PublicKey
-import java.util.*
 import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 
 // assumptions:
@@ -58,10 +54,9 @@ class OfferEncumberedTokensFlow2(
         serviceHub.identityService.registerKey(compositeKey, ourIdentity)
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
 
-
         val txBuilder = try {
             with(TransactionBuilder(notary = notary)) {
-                addMoveFungibleTokens(
+                addMoveEncumberedTokens(
                     this,
                     serviceHub,
                     listOf(PartyAndAmount1(compositeParty, amount)),
@@ -74,7 +69,7 @@ class OfferEncumberedTokensFlow2(
         } catch (e: InsufficientBalanceException) {
             throw FlowException("Offered amount ($amount) exceeds balance", e)
         }
-
+addMoveFungibleTokens()
         try {
             txBuilder.verify(serviceHub)
         } catch (e: Exception) {
@@ -90,7 +85,7 @@ class OfferEncumberedTokensFlow2(
 
 
     @Suspendable
-    fun addMoveFungibleTokens(
+    fun addMoveEncumberedTokens(
         transactionBuilder: TransactionBuilder,
         serviceHub: ServiceHub,
         partiesAndAmounts: List<PartyAndAmount1<TokenType>>,
@@ -106,7 +101,7 @@ class OfferEncumberedTokensFlow2(
             TokenQueryBy(queryCriteria = queryCriteria),
             transactionBuilder.lockId
         )
-        return addMoveTokens(
+        return addMoveEncumberedTokens(
             transactionBuilder = transactionBuilder,
             inputs = inputs,
             outputs = outputs,
@@ -116,7 +111,7 @@ class OfferEncumberedTokensFlow2(
     }
 
     @Suspendable
-    fun addMoveTokens(
+    fun addMoveEncumberedTokens(
         transactionBuilder: TransactionBuilder,
         inputs: List<StateAndRef<AbstractToken>>,
         outputs: List<AbstractToken>,

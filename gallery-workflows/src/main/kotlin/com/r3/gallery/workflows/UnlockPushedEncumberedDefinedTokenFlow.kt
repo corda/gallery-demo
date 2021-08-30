@@ -1,22 +1,24 @@
 package com.r3.corda.lib.tokens.workflows.swaps
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.corda.lib.tokens.contracts.commands.MoveTokenCommand
+import com.r3.corda.lib.tokens.contracts.states.AbstractToken
+import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
+import com.r3.corda.lib.tokens.workflows.utilities.addTokenTypeJar
 import com.r3.gallery.contracts.LockContract
 import com.r3.gallery.states.LockState
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndRef
-import net.corda.core.contracts.TimeWindow
+import net.corda.core.crypto.CompositeKey
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
-import net.corda.finance.contracts.asset.Cash
 import java.lang.IllegalArgumentException
+import java.security.PublicKey
 import java.time.Duration
-import java.time.Instant
-import java.util.*
 
 /**
  * Unlock the token states encumbered by [lockStateAndRef].
@@ -39,7 +41,7 @@ class UnlockPushedEncumberedDefinedTokenFlow(
 
         val enrichedStateAndRef: StateAndRef<LockState> = encumberedTx.coreTransaction.outRef(lockStateAndRef.ref.index)
         val inputStateAndRefs = getOurEncumberedTokenStates(encumberedTx)
-        val outputStates = inputStateAndRefs.map { it.state.data.copy(owner = ourIdentity) }
+        val outputStates = inputStateAndRefs.map { it.state.data.withNewHolder(ourIdentity) }
 
         val tx = getTransactionBuilder(encumberedTx.notary!!, enrichedStateAndRef, inputStateAndRefs, outputStates)
 
@@ -59,11 +61,11 @@ class UnlockPushedEncumberedDefinedTokenFlow(
      * @return list of filtered [StateAndRef<CBDCToken>].
      */
     @Suspendable
-    private fun getOurEncumberedTokenStates(signedTransaction: SignedTransaction): List<StateAndRef<Cash.State>> {
-        val tokenStates = signedTransaction.coreTransaction.outRefsOfType<Cash.State>()
+    private fun getOurEncumberedTokenStates(signedTransaction: SignedTransaction): List<StateAndRef<AbstractToken>> {
+        val tokenStates = signedTransaction.coreTransaction.outRefsOfType<AbstractToken>()
 
         return tokenStates.filter {
-            val party = serviceHub.identityService.requireWellKnownPartyFromAnonymous(it.state.data.owner)
+            val party = serviceHub.identityService.requireWellKnownPartyFromAnonymous(it.state.data.holder)
             party == ourIdentity && it.state.encumbrance != null
         }
     }
@@ -71,20 +73,17 @@ class UnlockPushedEncumberedDefinedTokenFlow(
     private fun getTransactionBuilder(
         notary: Party,
         lockStateRef: StateAndRef<LockState>,
-        inputStateAndRefs: List<StateAndRef<Cash.State>>,
-        outputStates: List<Cash.State>): TransactionBuilder {
+        inputStateAndRefs: List<StateAndRef<AbstractToken>>,
+        outputStates: List<AbstractToken>): TransactionBuilder {
 
-        val transactionBuilder = TransactionBuilder(notary = notary)
-        val additionalKeys = inputStateAndRefs.first().state.data.owner.owningKey
-        val keys = inputStateAndRefs.map { it.state.data.owner.owningKey }.distinct()
-        inputStateAndRefs.map { transactionBuilder.addInputState(it) }
-        outputStates.map { transactionBuilder.addOutputState(it) }
-        transactionBuilder.addCommand(Cash.Commands.Move(), keys + additionalKeys)
+        val txBuilder = TransactionBuilder(notary = notary)
+        val compositeKey = inputStateAndRefs.first().state.data.holder.owningKey
+        addMoveTokens(txBuilder, inputStateAndRefs, outputStates, listOf(compositeKey))
 
-        transactionBuilder.addInputState(lockStateRef)
-        transactionBuilder.addCommand(Command(LockContract.Release(requiredSignature), ourIdentity.owningKey))
+        txBuilder.addInputState(lockStateRef)
+        txBuilder.addCommand(Command(LockContract.Release(requiredSignature), ourIdentity.owningKey))
 
-        return transactionBuilder
+        return txBuilder
     }
 
 //    @Suspendable
@@ -102,6 +101,53 @@ class UnlockPushedEncumberedDefinedTokenFlow(
 //            this.addReferenceState(ourKycStateAndRef.referenced())
 //        }
 //    }
+
+    @Suspendable
+    fun addMoveTokens(
+        transactionBuilder: TransactionBuilder,
+        inputs: List<StateAndRef<AbstractToken>>,
+        outputs: List<AbstractToken>,
+        additionalKeys: List<PublicKey>
+    ): TransactionBuilder {
+        val outputGroups: Map<IssuedTokenType, List<AbstractToken>> = outputs.groupBy { it.issuedTokenType }
+        val inputGroups: Map<IssuedTokenType, List<StateAndRef<AbstractToken>>> = inputs.groupBy {
+            it.state.data.issuedTokenType
+        }
+
+        check(outputGroups.keys == inputGroups.keys) {
+            "Input and output token types must correspond to each other when moving tokensToIssue"
+        }
+
+        transactionBuilder.apply {
+            // Add a notary to the transaction.
+            // TODO: Deal with notary change.
+            notary = inputs.map { it.state.notary }.toSet().single()
+            outputGroups.forEach { issuedTokenType: IssuedTokenType, outputStates: List<AbstractToken> ->
+                val inputGroup = inputGroups[issuedTokenType]
+                    ?: throw IllegalArgumentException("No corresponding inputs for the outputs issued token type: $issuedTokenType")
+                val keys = inputGroup.map { it.state.data.holder.owningKey }
+
+                var inputStartingIdx = inputStates().size
+                var outputStartingIdx = outputStates().size
+
+                val inputIdx = inputGroup.map {
+                    addInputState(it)
+                    inputStartingIdx++
+                }
+
+                val outputIdx = outputStates.map {
+                    addOutputState(it)
+                    outputStartingIdx++
+                }
+
+                addCommand(MoveTokenCommand(issuedTokenType, inputs = inputIdx, outputs = outputIdx), keys + additionalKeys)
+            }
+        }
+
+        addTokenTypeJar(inputs.map { it.state.data } + outputs, transactionBuilder)
+
+        return transactionBuilder
+    }
 }
 
 /**
