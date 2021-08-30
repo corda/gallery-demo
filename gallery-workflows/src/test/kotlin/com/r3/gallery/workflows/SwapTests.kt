@@ -1,5 +1,6 @@
 package com.r3.gallery.workflows
 
+import com.r3.corda.lib.tokens.money.USD
 import com.r3.gallery.states.ArtworkState
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
@@ -38,7 +39,8 @@ class SwapTests {
                 TestCordapp.findCordapp("com.r3.gallery.contracts"),
                 TestCordapp.findCordapp("com.r3.gallery.workflows"),
                 TestCordapp.findCordapp("net.corda.finance.schemas"),
-                TestCordapp.findCordapp("net.corda.finance.contracts.asset")
+                TestCordapp.findCordapp("net.corda.finance.contracts.asset"),
+                TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts")
         )))
         seller = network.createPartyNode()
         buyer1 = network.createPartyNode()
@@ -229,6 +231,7 @@ class SwapTests {
         assert(cBalance.quantity <= 0)
     }
 
+    // flow 1 (first half)
     @Test
     fun `can place a bid`() {
         val artworkId = issueArtwork(seller)
@@ -237,6 +240,27 @@ class SwapTests {
         val usdCurrency = Currency.getInstance("USD")
 
         val cashState = buyer1.startFlow(SelfIssueCashFlow(Amount(11, usdCurrency))).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artTransferTx = buyer1.startFlow(PlaceBidFlow(sellerParty, artworkId, Amount(10, USD))).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        seller.startFlow(AcceptBidFlow(artTransferTx)).apply {
+            network.runNetwork()
+        }
+    }
+
+    // flow 1 (second half)
+    @Test
+    fun `can offer encumbered tokens`() {
+        val artworkId = issueArtwork(seller)
+        val sellerParty = seller.info.chooseIdentity()
+        val buyer1Party = buyer1.info.chooseIdentity()
+        val usdCurrency = Currency.getInstance("USD")
+
+        val cashState = buyer1.startFlow(IssueTokensFlow(20.USD, buyer1Party)).apply {
             network.runNetwork()
         }.getOrThrow()
 

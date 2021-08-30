@@ -13,17 +13,16 @@ import java.util.*
 
 @StartableByRPC
 @InitiatingFlow
-class AcceptBidFlow(val serializedTx: ByteArray) : FlowLogic<Unit>() {
+class AcceptBidFlow(val wireTx: WireTransaction) : FlowLogic<Unit>() {
 
     @Suspendable
     override fun call(): Unit {
-
-        val wtx = SerializedBytes<WireTransaction>(serializedTx).deserialize()
+        val gallery = wireTx.
     }
 }
 
 @StartableByRPC
-@InitiatedBy(PlaceBidFlow::class)
+@InitiatedBy(AcceptBidFlow::class)
 class AcceptBidFlowHandler(val session: FlowSession) : FlowLogic<Unit>() {
 
     @Suspendable

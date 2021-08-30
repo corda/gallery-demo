@@ -1,10 +1,13 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.corda.lib.tokens.contracts.types.TokenType
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
+import net.corda.core.serialization.CordaSerializable
+import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.unwrap
 import java.util.*
 
@@ -13,16 +16,18 @@ import java.util.*
 class PlaceBidFlow(
     val seller: Party,
     val artworkId: UniqueIdentifier,
-    val amount: Amount<Currency>,
-) : FlowLogic<ByteArray>() {
+    val amount: Amount<TokenType>,
+) : FlowLogic<WireTransaction>() {
 
-    data class Bid(val bidder: Party, val artworkId: UniqueIdentifier, val amount: Amount<Currency>)
+    @CordaSerializable
+    data class Bid(val bidder: Party, val artworkId: UniqueIdentifier, val amount: Amount<TokenType>)
 
     @Suspendable
-    override fun call(): ByteArray {
+    override fun call(): WireTransaction {
 
         val session = initiateFlow(seller)
-        return session.sendAndReceive<ByteArray>(Bid(ourIdentity, artworkId, amount)).unwrap { it }
+        val wireTransaction = session.sendAndReceive<WireTransaction>(Bid(ourIdentity, artworkId, amount)).unwrap { it }
+        return wireTransaction
     }
 }
 

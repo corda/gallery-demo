@@ -26,7 +26,7 @@ class IssueTokensFlow(val amount: Long,
                       val currency: String,
                       var receiver: Party? = null) : FlowLogic<SignedTransaction>() {
 
-    constructor(amount: Amount<Currency>, receiver: Party? = null): this(amount.quantity, amount.token.symbol, receiver)
+    constructor(amount: Amount<TokenType>, receiver: Party? = null): this(amount.quantity, amount.token.tokenIdentifier, receiver)
 
     init {
         receiver = receiver ?: ourIdentity

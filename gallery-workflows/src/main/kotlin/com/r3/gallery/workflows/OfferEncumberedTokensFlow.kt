@@ -1,8 +1,6 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.corda.lib.tokens.workflows.swaps.SignAndFinaliseTxForPush
-import com.r3.corda.lib.tokens.workflows.swaps.UnlockPushedEncumberedDefinedTokenFlow
 import com.r3.gallery.contracts.LockContract
 import com.r3.gallery.states.LockState
 import net.corda.core.contracts.*
@@ -20,9 +18,6 @@ import net.corda.core.node.AppServiceHub
 import net.corda.core.node.ServiceHub
 import net.corda.core.node.StatesToRecord
 import net.corda.core.node.services.CordaService
-import net.corda.core.node.services.ServiceLifecycleEvent
-import net.corda.core.node.services.Vault
-import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.serialization.SingletonSerializeAsToken
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
@@ -48,30 +43,29 @@ class OfferEncumberedTokensFlow(val proposedSwapTx: WireTransaction, val partyTo
         val compositeKey = lockState.getCompositeKey()
         val anonymousParty = AnonymousParty(compositeKey)
 
-        // TODO: hackery - this is required to resolve wellKnownParty from AnonymousParty(compositeKey) - which is a valid solution?
         serviceHub.identityService.registerKey(compositeKey, ourIdentity)
 //        val wellKnownReceivingParty = serviceHub.identityService.wellKnownPartyFromAnonymous(anonymousParty)
 //                ?: throw FlowException("Could not find well known party for $partyToMoveTo")
 
-        val notary = serviceHub.networkMapCache.notaryIdentities.first() // TODO: or token compliant one?
-        val tb = TransactionBuilder(notary = notary)
+        val notary = serviceHub.networkMapCache.notaryIdentities.first()
+        val txBuilder = TransactionBuilder(notary = notary)
 
         try {
-            generateSpend(serviceHub, tb, listOf(PartyAndAmount(anonymousParty, amount)), ourIdentityAndCert)
+            generateSpend(serviceHub, txBuilder, listOf(PartyAndAmount(anonymousParty, amount)), ourIdentityAndCert)
         } catch (e: InsufficientBalanceException) {
             throw FlowException("Offered amount ($amount) exceeds balance (${serviceHub.getCashBalance(amount.token)})", e)
         }
 
-        tb.addOutputState(state = lockState!!, contract = LockContract.contractId, notary = notary!!, encumbrance = 0)
-        tb.addCommand(LockContract.Encumber(), compositeKey)
-        tb.setTimeWindow(proposedSwapTx.timeWindow!!)
+        txBuilder.addOutputState(state = lockState!!, contract = LockContract.contractId, notary = notary!!, encumbrance = 0)
+        txBuilder.addCommand(LockContract.Encumber(), compositeKey)
+        txBuilder.setTimeWindow(proposedSwapTx.timeWindow!!)
 
         try {
-            tb.verify(serviceHub)
+            txBuilder.verify(serviceHub)
         } catch(e: Exception) {
             logger.error("$e")
         }
-        var signedTx = serviceHub.signInitialTransaction(tb, listOf(ourIdentity.owningKey))
+        var signedTx = serviceHub.signInitialTransaction(txBuilder, listOf(ourIdentity.owningKey))
 
         // TODO: discuss wht "will not be needed for X-Network, as no additional signers! - DELETE"
         signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(partyToMoveTo) /*additionalSigners */ /* plain receiving party because one side of cash is issuer */))

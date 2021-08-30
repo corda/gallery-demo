@@ -22,12 +22,12 @@ class SendDraftTransferOfOwnershipFlow(
     val artworkId: UniqueIdentifier,
     val partyToTransferTo: Party,
     val validityInMinutes: Long = 5
-) : FlowLogic<ByteArray>() {
+) : FlowLogic<WireTransaction>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): ByteArray {
+    override fun call(): WireTransaction {
 
         val artworkStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
         val artworkStateAndRef =
@@ -56,7 +56,7 @@ class SendDraftTransferOfOwnershipFlow(
             }
             subFlow(SendTransactionFlow(session, validatedTxDependency!!))
         }
-        return session.receive<ByteArray>().unwrap { it }
+        return session.receive<WireTransaction>().unwrap { it }
     }
 }
 
@@ -79,7 +79,7 @@ class SendDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : F
             FlowException("Failed to validate drat transfer of ownership for tx id: ${wireTx.id}")
         }
 
-        otherSession.send(wireTx.serialize())
+        otherSession.send(wireTx)
     }
 
     @Suspendable
