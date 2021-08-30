@@ -66,7 +66,7 @@ open class IssueTokensResponderFlow(private val otherPartySession: FlowSession) 
 
 @InitiatingFlow
 @StartableByRPC
-class GetTokensBalancesFlow(val currency: String) : FlowLogic<Amount<TokenType>>() {
+class GetTokensBalanceFlow(val currency: String) : FlowLogic<Amount<TokenType>>() {
 
     constructor(currencyTokenType: TokenType): this(currencyTokenType.tokenIdentifier)
 

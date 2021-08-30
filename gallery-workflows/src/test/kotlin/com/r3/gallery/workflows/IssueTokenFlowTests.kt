@@ -51,7 +51,7 @@ class IssueTokenFlowTests {
         val issueFlow = IssueTokensFlow(10, USD.tokenIdentifier, aParty)
         a.startFlow(issueFlow).also { network.runNetwork() }
 
-        val balanceFlow = GetTokensBalancesFlow(USD)
+        val balanceFlow = GetTokensBalanceFlow(USD)
         val balance = a.startFlow(balanceFlow).also { network.runNetwork() }.getOrThrow()
 
         assertEquals(10.USD, balance)

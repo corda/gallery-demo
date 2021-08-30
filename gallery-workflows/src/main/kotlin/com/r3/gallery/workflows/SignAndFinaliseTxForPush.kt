@@ -45,7 +45,7 @@ class SignAndFinaliseTxForPush(
         val signedTx = subFlow(CollectSignaturesInitiatingFlow(locallySignedTx, otherSigners))
 
         val sessions = otherParticipants.filter { it != ourIdentity }.map { initiateFlow(it) }
-        return subFlow(ObserverAwareFinalityFlow(signedTx, sessions))
+        return subFlow(FinalityFlow(signedTx, sessions))
     }
 
     /**
@@ -76,7 +76,8 @@ class SignAndFinaliseTxForPushHandler(private val otherSession: FlowSession) : F
     @Suspendable
     override fun call() {
         if (!serviceHub.myInfo.isLegalIdentity(otherSession.counterparty)) {
-            subFlow(ObserverAwareFinalityFlowHandler(otherSession))
+            //subFlow(ObserverAwareFinalityFlowHandler(otherSession))
+            subFlow(ReceiveFinalityFlow(otherSession))
         }
     }
 }

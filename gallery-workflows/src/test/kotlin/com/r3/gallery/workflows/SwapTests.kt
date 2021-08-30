@@ -1,16 +1,17 @@
 package com.r3.gallery.workflows
 
 import com.r3.corda.lib.tokens.money.USD
+import com.r3.corda.lib.tokens.workflows.swaps.SignAndFinaliseTxForPush
+import com.r3.corda.lib.tokens.workflows.swaps.UnlockPushedEncumberedDefinedTokenFlow
 import com.r3.gallery.states.ArtworkState
-import net.corda.core.contracts.Amount
-import net.corda.core.contracts.UniqueIdentifier
+import com.r3.gallery.states.LockState
+import net.corda.core.contracts.*
 import net.corda.core.flows.FlowException
 import net.corda.core.identity.Party
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.getOrThrow
-import net.corda.finance.USD
 import net.corda.finance.contracts.asset.Cash
 import net.corda.finance.workflows.getCashBalance
 import net.corda.testing.internal.chooseIdentity
@@ -35,13 +36,17 @@ class SwapTests {
 
     @Before
     fun setup() {
-        network = MockNetwork(MockNetworkParameters(cordappsForAllNodes = listOf(
-                TestCordapp.findCordapp("com.r3.gallery.contracts"),
-                TestCordapp.findCordapp("com.r3.gallery.workflows"),
-                TestCordapp.findCordapp("net.corda.finance.schemas"),
-                TestCordapp.findCordapp("net.corda.finance.contracts.asset"),
-                TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts")
-        )))
+        network = MockNetwork(
+            MockNetworkParameters(
+                cordappsForAllNodes = listOf(
+                    TestCordapp.findCordapp("com.r3.gallery.contracts"),
+                    TestCordapp.findCordapp("com.r3.gallery.workflows"),
+                    TestCordapp.findCordapp("net.corda.finance.schemas"),
+                    TestCordapp.findCordapp("net.corda.finance.contracts.asset"),
+                    TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts")
+                )
+            )
+        )
         seller = network.createPartyNode()
         buyer1 = network.createPartyNode()
         buyer2 = network.createPartyNode()
@@ -84,7 +89,7 @@ class SwapTests {
         val artworkId = future.getOrThrow()
         val inputCriteria: QueryCriteria = QueryCriteria.VaultQueryCriteria().withStatus(Vault.StateStatus.UNCONSUMED)
         val state = seller.services.vaultService.queryBy(ArtworkState::class.java, inputCriteria)
-                .states.singleOrNull { x -> x.state.data.linearId == artworkId }.let { x -> x!!.state.data }
+            .states.singleOrNull { x -> x.state.data.linearId == artworkId }.let { x -> x!!.state.data }
 
         assertNotNull(state)
         assertEquals("test artwork", state.description)
@@ -145,7 +150,8 @@ class SwapTests {
         network.runNetwork()
 
         val queryArtworkState = { party: StartedMockNode, all: Boolean ->
-            val qc = QueryCriteria.VaultQueryCriteria().withStatus(if (all) Vault.StateStatus.ALL else Vault.StateStatus.UNCONSUMED)
+            val qc = QueryCriteria.VaultQueryCriteria()
+                .withStatus(if (all) Vault.StateStatus.ALL else Vault.StateStatus.UNCONSUMED)
             party.services.vaultService.queryBy(ArtworkState::class.java, qc).states.singleOrNull()?.state?.data
         }
 
@@ -165,6 +171,65 @@ class SwapTests {
 
         val bBalance = buyer1.services.getCashBalance(usdCurrency)
         assert(bBalance.quantity > 0)
+    }
+
+    @Test
+    fun `share offer of encumbered tokens fungible tokens`() {
+        val artworkId = issueArtwork(seller)
+        val sellerParty = seller.info.chooseIdentity()
+        val buyer1Party = buyer1.info.chooseIdentity()
+
+        buyer1.startFlow(IssueTokensFlow(20.USD, buyer1Party)).apply {
+            network.runNetwork()
+        }
+
+        val artTransferTx = seller.startFlow(BuildDraftTransferOfOwnership(artworkId, buyer1Party)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val encumberedTokensTx =
+            buyer1.startFlow(OfferEncumberedTokensFlow2(artTransferTx, sellerParty, 10.USD)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val stateAndRef: StateAndRef<LockState> = encumberedTokensTx.tx.outRefsOfType(LockState::class.java).single()
+        val transactionState =
+            TransactionState(stateAndRef.state.data, stateAndRef.state.contract, stateAndRef.state.notary)
+        val lockStateAndRef = StateAndRef(transactionState, stateAndRef.ref)
+
+        val stx = seller.startFlow(SignAndFinaliseTxForPush(lockStateAndRef, artTransferTx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val controllingNotary = lockStateAndRef.state.data.controllingNotary
+        val requiredSignature = stx.getTransactionSignatureForParty(controllingNotary)
+
+        seller.startFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val queryArtworkState = { party: StartedMockNode, all: Boolean ->
+            val qc = QueryCriteria.VaultQueryCriteria()
+                .withStatus(if (all) Vault.StateStatus.ALL else Vault.StateStatus.UNCONSUMED)
+            party.services.vaultService.queryBy(ArtworkState::class.java, qc).states.singleOrNull()?.state?.data
+        }
+
+        val artworkItemA = queryArtworkState(seller, false)
+        assertNull(artworkItemA)
+
+        val artworkItemB = queryArtworkState(buyer1, false)
+        assertNotNull(artworkItemB)
+        assertEquals(buyer1Party, buyer1.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
+
+
+//        val notarisedArtworkItem = queryArtworkState(network.defaultNotaryNode, true)
+//        assertNotNull(notarisedArtworkItem)
+//        assertEquals(network.defaultNotaryNode.info.legalIdentities.first(),
+//            network.defaultNotaryNode.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
+
+
+        val aBalance = seller.startFlow(GetTokensBalanceFlow(USD))
+        val bBalance = buyer1.startFlow(GetTokensBalanceFlow(USD))
     }
 
     @Test
@@ -197,14 +262,27 @@ class SwapTests {
             network.runNetwork()
         }.getOrThrow()
 
-        buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx1, sellerParty, Amount(10, Currency.getInstance("USD"))))
+        buyer1.startFlow(
+            OfferEncumberedTokensFlow(
+                artTransferTx1,
+                sellerParty,
+                Amount(10, Currency.getInstance("USD"))
+            )
+        )
         network.runNetwork()
 
-        buyer2.startFlow(OfferEncumberedTokensFlow(artTransferTx2, sellerParty, Amount(10, Currency.getInstance("USD"))))
+        buyer2.startFlow(
+            OfferEncumberedTokensFlow(
+                artTransferTx2,
+                sellerParty,
+                Amount(10, Currency.getInstance("USD"))
+            )
+        )
         network.runNetwork()
 
         val queryArtworkState = { party: StartedMockNode, all: Boolean ->
-            val qc = QueryCriteria.VaultQueryCriteria().withStatus(if (all) Vault.StateStatus.ALL else Vault.StateStatus.UNCONSUMED)
+            val qc = QueryCriteria.VaultQueryCriteria()
+                .withStatus(if (all) Vault.StateStatus.ALL else Vault.StateStatus.UNCONSUMED)
             party.services.vaultService.queryBy(ArtworkState::class.java, qc).states.singleOrNull()?.state?.data
         }
 
@@ -283,10 +361,10 @@ class SwapTests {
 
     private fun verifyDraftTransferOfOwnership(wtx: WireTransaction, artworkId: UniqueIdentifier, buyer: Party) {
         val artworkState = wtx.outputStates
-                .filter { it::class.java == ArtworkState::class.java }
-                .map { it as ArtworkState }
-                .singleOrNull { it.linearId == artworkId }
-                ?: throw FlowException("Shared tx contains no artwork matching the artwork identifier $artworkId")
+            .filter { it::class.java == ArtworkState::class.java }
+            .map { it as ArtworkState }
+            .singleOrNull { it.linearId == artworkId }
+            ?: throw FlowException("Shared tx contains no artwork matching the artwork identifier $artworkId")
 
         if (artworkState.owner != buyer) {
             throw FlowException("Shared tx owner ${artworkState.owner} does not match the expected owner $buyer")

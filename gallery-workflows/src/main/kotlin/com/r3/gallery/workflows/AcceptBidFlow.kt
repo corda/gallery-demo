@@ -17,7 +17,7 @@ class AcceptBidFlow(val wireTx: WireTransaction) : FlowLogic<Unit>() {
 
     @Suspendable
     override fun call(): Unit {
-        val gallery = wireTx.
+
     }
 }
 
