@@ -3,6 +3,7 @@ package com.r3.corda.lib.tokens.workflows.swaps
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.commands.MoveTokenCommand
 import com.r3.corda.lib.tokens.contracts.states.AbstractToken
+import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
 import com.r3.corda.lib.tokens.workflows.utilities.addTokenTypeJar
 import com.r3.gallery.contracts.LockContract
@@ -56,13 +57,13 @@ class UnlockPushedEncumberedDefinedTokenFlow(
     }
 
     /**
-     * Return a list of our encumbered [StateAndRef<CBDCToken>] states from [SignedTransaction].
+     * Return a list of our encumbered [StateAndRef<AbstractToken>] states from [SignedTransaction].
      * @param signedTransaction filter outputs of this transaction.
-     * @return list of filtered [StateAndRef<CBDCToken>].
+     * @return list of filtered [StateAndRef<AbstractToken>].
      */
     @Suspendable
-    private fun getOurEncumberedTokenStates(signedTransaction: SignedTransaction): List<StateAndRef<AbstractToken>> {
-        val tokenStates = signedTransaction.coreTransaction.outRefsOfType<AbstractToken>()
+    private fun getOurEncumberedTokenStates(signedTransaction: SignedTransaction): List<StateAndRef<FungibleToken>> {
+        val tokenStates = signedTransaction.coreTransaction.outRefsOfType<FungibleToken>()
 
         return tokenStates.filter {
             val party = serviceHub.identityService.requireWellKnownPartyFromAnonymous(it.state.data.holder)

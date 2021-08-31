@@ -187,15 +187,14 @@ class SwapTests {
             network.runNetwork()
         }.getOrThrow()
 
-        val encumberedTokensTx =
+        val encumberedTx =
             buyer1.startFlow(OfferEncumberedTokensFlow2(artTransferTx, sellerParty, 10.USD)).apply {
                 network.runNetwork()
             }.getOrThrow()
 
-        val stateAndRef: StateAndRef<LockState> = encumberedTokensTx.tx.outRefsOfType(LockState::class.java).single()
-        val transactionState =
-            TransactionState(stateAndRef.state.data, stateAndRef.state.contract, stateAndRef.state.notary)
-        val lockStateAndRef = StateAndRef(transactionState, stateAndRef.ref)
+        val lockStateAndRef = with(encumberedTx.tx.outRefsOfType(LockState::class.java).single()) {
+            StateAndRef(TransactionState(state.data, state.contract, state.notary), ref)
+        }
 
         val signedArtTransferTx = seller.startFlow(SignAndFinaliseTxForPush(lockStateAndRef, artTransferTx)).apply {
             network.runNetwork()

@@ -69,12 +69,8 @@ class OfferEncumberedTokensFlow2(
         } catch (e: InsufficientBalanceException) {
             throw FlowException("Offered amount ($amount) exceeds balance", e)
         }
-addMoveFungibleTokens()
-        try {
-            txBuilder.verify(serviceHub)
-        } catch (e: Exception) {
-            logger.error("$e")
-        }
+
+        txBuilder.verify(serviceHub)
         var signedTx = serviceHub.signInitialTransaction(txBuilder, listOf(ourIdentity.owningKey))
 
         // TODO: discuss wht "will not be needed for X-Network, as no additional signers! - DELETE"

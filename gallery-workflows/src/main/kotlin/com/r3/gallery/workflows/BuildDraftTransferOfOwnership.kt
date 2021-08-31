@@ -20,7 +20,7 @@ import java.time.Instant
 class BuildDraftTransferOfOwnership(
     val artworkId: UniqueIdentifier,
     val partyToTransferTo: Party,
-    val validityInMinutes: Long = 5
+    val validityInMinutes: Long = 10
 ) : FlowLogic<WireTransaction>() {
 
     override val progressTracker = ProgressTracker()
