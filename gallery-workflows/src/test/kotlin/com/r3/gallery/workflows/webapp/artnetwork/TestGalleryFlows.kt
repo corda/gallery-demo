@@ -76,22 +76,22 @@ class TestGalleryFlows {
         }
     }
 
-//    @Test
-//    fun `list available artwork returns correctly`() {
-//        // issue three additional artworks
-//        (1..3).forEach {
-//            gallery.startFlow(IssueArtworkFlow(UUID.randomUUID())).getOrThrow()
-//        }
-//
-//        val galleryParty = gallery.info.legalIdentities.first().name.toString()
-//        gallery.startFlow(ListAvailableArtworks(galleryParty = galleryParty))
-//            .getOrThrow()
-//            .also {
-//                requireThat {
-//                    "There must be 4 pieces of art in the list of the gallery party" using (it.size == 4)
-//                    "Contains a target expected artworkId" using (it.contains(testArtworkId))
-//                }
-//            }
-//    }
+    @Test
+    fun `list available artwork returns correctly`() {
+        // issue three additional artworks
+        (1..3).forEach {
+            gallery.startFlow(IssueArtworkFlow(UUID.randomUUID())).getOrThrow()
+        }
+
+        val galleryParty = gallery.info.legalIdentities.first().name.toString()
+        gallery.startFlow(ListAvailableArtworks(galleryParty = galleryParty))
+            .getOrThrow()
+            .also {
+                requireThat {
+                    "There must be 4 pieces of art in the list of the gallery party" using (it.size == 4)
+                    "Contains a target expected artworkId" using (it.contains(testArtworkId))
+                }
+            }
+    }
 
 }

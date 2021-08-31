@@ -3,13 +3,11 @@ package com.r3.gallery.workflows.webapp.artnetwork.gallery
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.api.ArtworkOwnership
-import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.contracts.ArtworkContract.Commands
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.workflows.webapp.artworkExists
 import com.r3.gallery.workflows.webapp.firstNotary
-import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.contracts.requireThat
 import net.corda.core.flows.FinalityFlow
 import net.corda.core.flows.FlowLogic
