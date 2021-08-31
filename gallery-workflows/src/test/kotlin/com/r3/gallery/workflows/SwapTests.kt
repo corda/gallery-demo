@@ -2,14 +2,11 @@ package com.r3.gallery.workflows
 
 import com.r3.corda.lib.tokens.money.USD
 import com.r3.gallery.states.ArtworkState
-import com.r3.gallery.states.LockState
 import com.r3.gallery.utils.getTransactionSignatureForParty
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.Amount
-import net.corda.core.contracts.StateAndRef
-import net.corda.core.contracts.TransactionState
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowException
 import net.corda.core.identity.Party
@@ -99,19 +96,14 @@ class SwapTests {
             network.runNetwork()
         }
 
-        // gallery (seller) drafts a transfer of ownership for bidder party (buyer1Party)
         val artTransferTx = seller.startFlow(BuildDraftTransferOfOwnership(artworkId, buyer1Party)).apply {
             network.runNetwork()
         }.getOrThrow()
 
-        val encumberedTx =
+        val lockStateAndRef =
             buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10.USD)).apply {
                 network.runNetwork()
             }.getOrThrow()
-
-        val lockStateAndRef = with(encumberedTx.tx.outRefsOfType(LockState::class.java).single()) {
-            StateAndRef(TransactionState(state.data, state.contract, state.notary), ref)
-        }
 
         val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(lockStateAndRef, artTransferTx)).apply {
             network.runNetwork()
@@ -131,14 +123,59 @@ class SwapTests {
         assertNotNull(artworkItemB)
         assertEquals(buyer1Party, buyer1.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
 
-
-//        val notarisedArtworkItem = queryArtworkState(network.defaultNotaryNode, true)
-//        assertNotNull(notarisedArtworkItem)
-//        assertEquals(network.defaultNotaryNode.info.legalIdentities.first(),
-//            network.defaultNotaryNode.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
-
         val aBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
         val bBalance = buyer1.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+    }
+
+    @Test
+    fun `can perform swap`() {
+        val artworkId = issueArtwork(seller)
+        val sellerParty = seller.info.chooseIdentity()
+        val buyer1Party = buyer1.info.chooseIdentity()
+
+        buyer1.startFlow(IssueTokensFlow(20.USD, buyer1Party)).apply {
+            network.runNetwork()
+        }
+
+        // ControllerService::PlaceBid [
+
+        val artTransferTx = buyer1.startFlow(PlaceBidFlow(sellerParty, artworkId, 10.USD)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val lockStateAndRef =
+            buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10.USD)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        // ] ControllerService::PlaceBid
+
+        //
+
+        // ControllerService::AcceptBid [
+
+        val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(lockStateAndRef, artTransferTx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val controllingNotary = lockStateAndRef.state.data.controllingNotary
+        val requiredSignature = signedArtTransferTx.getTransactionSignatureForParty(controllingNotary)
+
+        seller.startFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        // ] ControllerService::PlaceBid
+
+        val artworkItemA = queryArtworkState(seller, false)
+        val artworkItemB = queryArtworkState(buyer1, false)
+
+        assertNull(artworkItemA)
+        assertNotNull(artworkItemB)
+        assertEquals(buyer1Party, buyer1.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
+
+        val sellerBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+        val buery1Balance = buyer1.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
     }
 
     @Ignore

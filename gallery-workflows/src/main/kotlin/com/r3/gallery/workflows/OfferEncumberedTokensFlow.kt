@@ -2,11 +2,14 @@ package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.TokenType
+import com.r3.gallery.states.LockState
 import com.r3.gallery.utils.addMoveTokens
 import com.r3.gallery.utils.getLockState
 import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.InsufficientBalanceException
+import net.corda.core.contracts.StateAndRef
+import net.corda.core.contracts.TransactionState
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.flows.*
 import net.corda.core.identity.AnonymousParty
@@ -14,7 +17,6 @@ import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.serialize
-import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
@@ -30,11 +32,11 @@ class OfferEncumberedTokensFlow(
     val proposedSwapTx: WireTransaction,
     val proposingParty: Party,
     val encumberedAmount: Amount<TokenType>
-) : FlowLogic<SignedTransaction>() {
+) : FlowLogic<StateAndRef<LockState>>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): SignedTransaction {
+    override fun call(): StateAndRef<LockState> {
         val lockState = proposedSwapTx.getLockState(serviceHub, ourIdentity, proposingParty)
         val compositeKey = lockState.getCompositeKey() //  (a @ CN1 + b @ CN2) => (a @ CN1 + b' @ CN1)
         val compositeParty = AnonymousParty(compositeKey)
@@ -63,7 +65,11 @@ class OfferEncumberedTokensFlow(
         // TODO: discuss wht "will not be needed for X-Network, as no additional signers! - DELETE"
         signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(proposingParty)))
 
-        return subFlow(FinalityFlow(signedTx, initiateFlow(proposingParty)))
+        val stx = subFlow(FinalityFlow(signedTx, initiateFlow(proposingParty)))
+
+        return with(stx.tx.outRefsOfType(LockState::class.java).single()) {
+            StateAndRef(TransactionState(state.data, state.contract, state.notary), ref)
+        }
     }
 }
 
