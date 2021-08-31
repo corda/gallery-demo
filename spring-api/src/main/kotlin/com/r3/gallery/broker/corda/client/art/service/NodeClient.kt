@@ -118,7 +118,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     /**
      * Executes the RPC command against a target connection
      */
-    protected fun <A> execute(target: RPCConnectionId, block: (CordaRPCConnection) -> A): A {
+    private fun <A> execute(target: RPCConnectionId, block: (CordaRPCConnection) -> A): A {
         return block(target.connection())
     }
 

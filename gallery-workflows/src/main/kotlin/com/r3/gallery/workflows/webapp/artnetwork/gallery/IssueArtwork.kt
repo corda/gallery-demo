@@ -43,7 +43,7 @@ class IssueArtworkFlow(private val artworkId: ArtworkId) : FlowLogic<ArtworkOwne
 
     @Suspendable
     override fun call(): ArtworkOwnership {
-        requireThat { "Artwork must not already exit on network" using serviceHub.artworkExists(artworkId) }
+        requireThat { "Artwork must not already exist on network" using !serviceHub.artworkExists(artworkId) }
 
         val artState = ArtworkState(
             issuer = ourIdentity,
