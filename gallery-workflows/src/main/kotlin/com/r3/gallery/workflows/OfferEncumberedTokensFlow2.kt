@@ -142,12 +142,12 @@ class OfferEncumberedTokensFlow2(
                 }
 
                 val outputIdx = outputStates.map {
-                    //if (it.holder == partyToMoveTo) {
+                    if (it.holder.owningKey is CompositeKey) {
                         addOutputState(it, it.requiredContractClassName!!, notary!!, previousEncumbrance)
                         previousEncumbrance = outputStartingIdx
-//                    } else {
-//                        addOutputState(it)
-//                    }
+                    } else {
+                        addOutputState(it)
+                    }
                     outputStartingIdx++
                 }
 

@@ -227,8 +227,8 @@ class SwapTests {
 //            network.defaultNotaryNode.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
 
 
-        val aBalance = seller.startFlow(GetTokensBalanceFlow(USD))
-        val bBalance = buyer1.startFlow(GetTokensBalanceFlow(USD))
+        val aBalance = seller.startFlow(GetTokensBalanceFlow(USD)).apply { network.runNetwork() }.getOrThrow()
+        val bBalance = buyer1.startFlow(GetTokensBalanceFlow(USD)).apply { network.runNetwork() }.getOrThrow()
     }
 
     @Test
