@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/gallery")
 class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryClient) {
     companion object {
-        // TODO: Add logs to each call
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryController::class.java)
         const val TIMEOUT = NodeClient.TIMEOUT
     }
@@ -26,6 +25,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: ArtworkId
     ) : ResponseEntity<ArtworkOwnership> {
+        logger.info("Request by $galleryParty to issue artwork of id $artworkId")
         val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId)
         return ResponseEntity.status(HttpStatus.OK).body(artworkOwnership)
     }
@@ -34,6 +34,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     suspend fun listAvailableArtworks(
         @RequestParam("galleryParty") galleryParty: ArtworkParty
     ) : ResponseEntity<List<ArtworkId>> {
+        logger.info("Request of artwork listing of $galleryParty")
         val artworkIds = galleryClient.listAvailableArtworks(galleryParty)
         return ResponseEntity.status(HttpStatus.OK).body(artworkIds)
     }
@@ -45,6 +46,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         @RequestParam("artworkId") artworkId: ArtworkId,
     ) : ResponseEntity<UnsignedArtworkTransferTx> {
         // TODO: Is the DTO for ownership to be provided in full? or shall artworkId be used as is here?
+        logger.info("Request to create artwork transfer transaction seller: $galleryParty, bidder: $bidderParty, art: $artworkId")
         val artworkOwnership = galleryClient.getOwnership(galleryParty, artworkId)
         val artworkTx = galleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
         return ResponseEntity.status(HttpStatus.OK).body(artworkTx)
@@ -55,6 +57,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         galleryParty: ArtworkParty,
         unsignedArtworkTransferTx: UnsignedArtworkTransferTx
     ) : ResponseEntity<ProofOfTransferOfOwnership> {
+        logger.info("Request to finalise artwork transfer by $galleryParty for tx: $unsignedArtworkTransferTx")
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, unsignedArtworkTransferTx)
         return ResponseEntity.status(HttpStatus.OK).body(proofOfTransfer)
     }

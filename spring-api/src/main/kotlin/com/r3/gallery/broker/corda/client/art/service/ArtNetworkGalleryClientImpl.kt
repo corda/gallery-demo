@@ -22,21 +22,24 @@ class ArtNetworkGalleryClientImpl(
 ) : NodeClient(clientProperties), ArtNetworkGalleryClient {
 
     companion object {
-        // TODO: Add logs to each call
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryClientImpl::class.java)
     }
 
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership
-        = galleryParty.network().startFlow(IssueArtworkFlow::class.java, artworkId)
+    override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership {
+        logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
+        return galleryParty.network().startFlow(IssueArtworkFlow::class.java, artworkId)
+    }
 
     /**
      * List out the artworks still held by the gallery.
      */
-    override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
-        = galleryParty.network().startFlow(ListAvailableArtworks::class.java, galleryParty)
+    override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
+        logger.info("Starting ListAvailableArtworks flow via $galleryParty")
+        return galleryParty.network().startFlow(ListAvailableArtworks::class.java, galleryParty)
+    }
 
     /**
      * Create an unsigned transaction that would transfer an artwork owned by the gallery,
@@ -44,21 +47,26 @@ class ArtNetworkGalleryClientImpl(
      *
      * @return The unsigned fulfilment transaction
      */
-    override suspend fun createArtworkTransferTx(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
-        = galleryParty.network().startFlow(CreateArtworkTransferTx::class.java, bidderParty, galleryOwnership)
+    override suspend fun createArtworkTransferTx(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
+        logger.info("Starting CreateArtworkTransferTx flow via $galleryParty with bidder: $bidderParty for ownership $galleryOwnership")
+        return galleryParty.network().startFlow(CreateArtworkTransferTx::class.java, bidderParty, galleryOwnership)
+    }
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]
      *
      * @return Proof that ownership of the artwork has been transferred.
      */
-    override suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership
-        = galleryParty.network().startFlow(FinaliseArtworkTransferTx::class.java, unsignedArtworkTransferTx)
+    override suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
+        logger.info("Starting FinaliseArtworkTransferTx flow via $galleryParty for $unsignedArtworkTransferTx")
+        return galleryParty.network().startFlow(FinaliseArtworkTransferTx::class.java, unsignedArtworkTransferTx)
+    }
 
     /**
      * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
      */
     override suspend fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
+        logger.info("Fetching ownership record for $galleryParty with artworkId: $artworkId")
         return galleryParty.artworkIdToState(artworkId).let {
             ArtworkOwnership(it.linearId.id, it.artworkId, it.owner.nameOrNull().toString())
         }
@@ -74,8 +82,10 @@ class ArtNetworkGalleryClientImpl(
     /**
      * Returns the ArtworkState associated with the ArtworkId
      */
-    internal fun ArtworkParty.artworkIdToState(artworkId: ArtworkId): ArtworkState
-        = network().startFlow(ArtworkIdToState::class.java, artworkId)
+    internal fun ArtworkParty.artworkIdToState(artworkId: ArtworkId): ArtworkState {
+        logger.info("Fetching ArtworkState for artworkId $artworkId")
+        return network().startFlow(ArtworkIdToState::class.java, artworkId)
+    }
 
     /**
      * Returns the ArtworkState associated with the CordaReference
