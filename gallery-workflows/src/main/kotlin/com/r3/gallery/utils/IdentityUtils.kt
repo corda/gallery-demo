@@ -1,4 +1,4 @@
-package com.r3.gallery.workflows
+package com.r3.gallery.utils
 
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.flows.FlowSession
