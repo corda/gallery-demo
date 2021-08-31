@@ -5,8 +5,8 @@ import net.corda.core.transactions.SignedTransaction
 
 @InitiatingFlow
 class CollectSignaturesInitiatingFlow(
-        private val transaction: SignedTransaction,
-        private val signers: List<Party>
+    private val transaction: SignedTransaction,
+    private val signers: List<Party>
 ) : FlowLogic<SignedTransaction>() {
     @Suspendable
     override fun call(): SignedTransaction {

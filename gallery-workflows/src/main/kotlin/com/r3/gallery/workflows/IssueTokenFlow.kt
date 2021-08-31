@@ -22,11 +22,17 @@ import java.util.*
 
 @InitiatingFlow
 @StartableByRPC
-class IssueTokensFlow(val amount: Long,
-                      val currency: String,
-                      var receiver: Party? = null) : FlowLogic<SignedTransaction>() {
+class IssueTokensFlow(
+    val amount: Long,
+    val currency: String,
+    var receiver: Party? = null
+) : FlowLogic<SignedTransaction>() {
 
-    constructor(amount: Amount<TokenType>, receiver: Party? = null): this(amount.quantity, amount.token.tokenIdentifier, receiver)
+    constructor(amount: Amount<TokenType>, receiver: Party? = null) : this(
+        amount.quantity,
+        amount.token.tokenIdentifier,
+        receiver
+    )
 
     init {
         receiver = receiver ?: ourIdentity
@@ -56,6 +62,7 @@ class IssueTokensFlow(val amount: Long,
     }
 
 }
+
 @InitiatedBy(IssueTokensFlow::class)
 open class IssueTokensResponderFlow(private val otherPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
     @Suspendable
@@ -68,7 +75,7 @@ open class IssueTokensResponderFlow(private val otherPartySession: FlowSession) 
 @StartableByRPC
 class GetTokensBalanceFlow(val currency: String) : FlowLogic<Amount<TokenType>>() {
 
-    constructor(currencyTokenType: TokenType): this(currencyTokenType.tokenIdentifier)
+    constructor(currencyTokenType: TokenType) : this(currencyTokenType.tokenIdentifier)
 
     @Suspendable
     override fun call(): Amount<TokenType> {

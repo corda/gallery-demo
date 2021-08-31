@@ -2,8 +2,6 @@ package com.r3.corda.lib.tokens.workflows.swaps
 
 import CollectSignaturesInitiatingFlow
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.corda.lib.tokens.workflows.internal.flows.finality.ObserverAwareFinalityFlow
-import com.r3.corda.lib.tokens.workflows.internal.flows.finality.ObserverAwareFinalityFlowHandler
 import com.r3.gallery.states.LockState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*

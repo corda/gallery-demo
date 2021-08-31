@@ -130,3 +130,6 @@ fun LedgerTransaction.ourSigningKeys(services: ServiceHub): List<PublicKey> {
     val signingKeys = commands.flatMap(CommandWithParties<*>::signers)
     return services.keyManagementService.filterMyKeys(signingKeys).toList()
 }
+
+
+

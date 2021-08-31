@@ -2,20 +2,17 @@ package com.r3.corda.lib.tokens.workflows.internal.flows.finality
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.workflows.*
+import net.corda.core.flows.FinalityFlow
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.FlowSession
 import net.corda.core.flows.ReceiveFinalityFlow
-import net.corda.core.node.StatesToRecord
-import net.corda.core.transactions.SignedTransaction
-import net.corda.core.utilities.unwrap
-import net.corda.core.contracts.CommandWithParties
-import net.corda.core.flows.FinalityFlow
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
+import net.corda.core.node.StatesToRecord
 import net.corda.core.transactions.LedgerTransaction
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
-import net.corda.finance.contracts.asset.Cash
-import net.corda.finance.contracts.asset.OnLedgerAsset
+import net.corda.core.utilities.unwrap
 
 /**
  * This flow is a wrapper around [FinalityFlow] and properly handles broadcasting transactions to observers (those which
@@ -34,9 +31,9 @@ import net.corda.finance.contracts.asset.OnLedgerAsset
  * @property allSessions a set of sessions for, at least, all the transaction participants and maybe observers
  */
 class ObserverAwareFinalityFlow private constructor(
-        val allSessions: List<FlowSession>,
-        val signedTransaction: SignedTransaction? = null,
-        val transactionBuilder: TransactionBuilder? = null
+    val allSessions: List<FlowSession>,
+    val signedTransaction: SignedTransaction? = null,
+    val transactionBuilder: TransactionBuilder? = null
 ) : FlowLogic<SignedTransaction>() {
 
     constructor(transactionBuilder: TransactionBuilder, allSessions: List<FlowSession>)
@@ -49,7 +46,7 @@ class ObserverAwareFinalityFlow private constructor(
     override fun call(): SignedTransaction {
         // Check there is a session for each participant, apart from the node itself.
         val ledgerTransaction: LedgerTransaction = transactionBuilder?.toLedgerTransaction(serviceHub)
-                ?: signedTransaction!!.toLedgerTransaction(serviceHub, false)
+            ?: signedTransaction!!.toLedgerTransaction(serviceHub, false)
         val participants: List<AbstractParty> = ledgerTransaction.participants
         // TODO: review
 //        val issuers: Set<Party> = ledgerTransaction.commands
@@ -57,7 +54,8 @@ class ObserverAwareFinalityFlow private constructor(
 //                .filterIsInstance<RedeemTokenCommand>()
 //                .map { it.token.issuer }
 //                .toSet()
-        val wellKnownParticipantsAndIssuers: Set<Party> = participants.toWellKnownParties(serviceHub).toSet() //+ issuers
+        val wellKnownParticipantsAndIssuers: Set<Party> =
+            participants.toWellKnownParties(serviceHub).toSet() //+ issuers
         val wellKnownParticipantsApartFromUs: Set<Party> = wellKnownParticipantsAndIssuers - ourIdentity
         // We need participantSessions for all participants apart from us.
         requireSessionsForParticipants(wellKnownParticipantsApartFromUs, allSessions)

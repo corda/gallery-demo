@@ -12,7 +12,10 @@ import net.corda.core.transactions.TransactionBuilder
 
 @StartableByRPC
 @InitiatingFlow
-class IssueArtworkFlow(val description: String, val url: String = "https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg") : FlowLogic<UniqueIdentifier>() {
+class IssueArtworkFlow(
+    val description: String,
+    val url: String = "https://upload.wikimedia.org/wikipedia/en/e/e5/Magritte_TheSonOfMan.jpg"
+) : FlowLogic<UniqueIdentifier>() {
 
     @Suspendable
     override fun call(): UniqueIdentifier {
@@ -20,7 +23,7 @@ class IssueArtworkFlow(val description: String, val url: String = "https://uploa
         val state = ArtworkState(description, url, ourIdentity, true)
         val command = Command(ArtworkContract.Commands.Issue(), listOf(ourIdentity.owningKey))
         val builder = TransactionBuilder(notary = serviceHub.networkMapCache.notaryIdentities.first())
-                .withItems(StateAndContract(state, ARTWORK_CONTRACT_ID), command)
+            .withItems(StateAndContract(state, ARTWORK_CONTRACT_ID), command)
 
         builder.verify(serviceHub)
 

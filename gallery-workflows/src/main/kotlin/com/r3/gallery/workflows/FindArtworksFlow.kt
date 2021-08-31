@@ -12,19 +12,21 @@ import net.corda.core.node.services.vault.QueryCriteria
 
 @StartableByRPC
 @InitiatingFlow
-class FindArtworksFlow private constructor(private val criteria: QueryCriteria) : FlowLogic<List<StateAndRef<ArtworkState>>>() {
+class FindArtworksFlow private constructor(private val criteria: QueryCriteria) :
+    FlowLogic<List<StateAndRef<ArtworkState>>>() {
 
     constructor() : this(
-            QueryCriteria.LinearStateQueryCriteria(
-                    status = Vault.StateStatus.UNCONSUMED,
-                    contractStateTypes = setOf(ArtworkState::class.java))
+        QueryCriteria.LinearStateQueryCriteria(
+            status = Vault.StateStatus.UNCONSUMED,
+            contractStateTypes = setOf(ArtworkState::class.java)
+        )
     )
 
     @Suspendable
     override fun call(): List<StateAndRef<ArtworkState>> {
         return serviceHub
-                .vaultService
-                .queryBy<ArtworkState>(criteria)
-                .states
+            .vaultService
+            .queryBy<ArtworkState>(criteria)
+            .states
     }
 }

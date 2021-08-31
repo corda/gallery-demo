@@ -19,20 +19,20 @@ import net.corda.core.utilities.unwrap
  */
 @InitiatingFlow
 class CollectSignaturesForComposites(
-        private val stx: SignedTransaction,
-        private val signers: List<Party>
+    private val stx: SignedTransaction,
+    private val signers: List<Party>
 ) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {
         // create new sessions to signers and trigger the signing responder flow
-        val sessions =signers.map { initiateFlow(it) }
+        val sessions = signers.map { initiateFlow(it) }
 
         // We filter out any responses that are not
         // `TransactionSignature`s (i.e. refusals to sign).
         val signatures = sessions
-                .map { it.sendAndReceive<Any>(stx).unwrap { data -> data } }
-                .filter { it is TransactionSignature }
+            .map { it.sendAndReceive<Any>(stx).unwrap { data -> data } }
+            .filter { it is TransactionSignature }
                 as List<TransactionSignature>
         return stx.withAdditionalSignatures(signatures)
     }
