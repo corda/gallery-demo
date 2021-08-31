@@ -1,6 +1,9 @@
-package com.r3.corda.lib.tokens.workflows.internal.flows.finality
+package com.r3.gallery.workflows.internal
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.corda.lib.tokens.workflows.internal.flows.finality.TransactionRole
+import com.r3.corda.lib.tokens.workflows.utilities.ourSigningKeys
+import com.r3.corda.lib.tokens.workflows.utilities.participants
 import com.r3.gallery.workflows.*
 import net.corda.core.flows.FinalityFlow
 import net.corda.core.flows.FlowLogic

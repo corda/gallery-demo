@@ -1,4 +1,4 @@
-package com.r3.gallery.workflows
+package com.r3.gallery.workflows.internal
 
 import co.paralleluniverse.fibers.Suspendable
 import net.corda.core.crypto.TransactionSignature
@@ -18,13 +18,14 @@ import net.corda.core.utilities.unwrap
  * @param signers - the list of signing [Party]s
  */
 @InitiatingFlow
-class CollectSignaturesForComposites(
+internal class CollectSignaturesForComposites(
     private val stx: SignedTransaction,
     private val signers: List<Party>
 ) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {
+
         // create new sessions to signers and trigger the signing responder flow
         val sessions = signers.map { initiateFlow(it) }
 
@@ -32,17 +33,17 @@ class CollectSignaturesForComposites(
         // `TransactionSignature`s (i.e. refusals to sign).
         val signatures = sessions
             .map { it.sendAndReceive<Any>(stx).unwrap { data -> data } }
-            .filter { it is TransactionSignature }
-                as List<TransactionSignature>
+            .filterIsInstance<TransactionSignature>()
         return stx.withAdditionalSignatures(signatures)
     }
 }
 
 @InitiatedBy(CollectSignaturesForComposites::class)
-class CollectSignaturesForCompositesResponder(private val otherPartySession: FlowSession) : FlowLogic<Unit>() {
+internal class CollectSignaturesForCompositesResponder(private val otherPartySession: FlowSession) : FlowLogic<Unit>() {
 
     @Suspendable
     override fun call() {
+
         otherPartySession.receive<SignedTransaction>().unwrap { partStx ->
             // TODO: add conditions where we might not sign
 

@@ -1,24 +1,19 @@
-package com.r3.corda.lib.tokens.workflows.swaps
+package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.corda.lib.tokens.contracts.commands.MoveTokenCommand
 import com.r3.corda.lib.tokens.contracts.states.AbstractToken
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
-import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
-import com.r3.corda.lib.tokens.workflows.utilities.addTokenTypeJar
 import com.r3.gallery.contracts.LockContract
 import com.r3.gallery.states.LockState
+import com.r3.gallery.utils.addMoveTokens
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndRef
-import net.corda.core.crypto.CompositeKey
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
-import java.lang.IllegalArgumentException
-import java.security.PublicKey
 import java.time.Duration
 
 /**
@@ -85,69 +80,6 @@ class UnlockPushedEncumberedDefinedTokenFlow(
         txBuilder.addCommand(Command(LockContract.Release(requiredSignature), ourIdentity.owningKey))
 
         return txBuilder
-    }
-
-//    @Suspendable
-//    private fun TransactionBuilder.attachComplianceReferences(tokenIdentifier: UUID) {
-//        val tokenComplianceRef = getTokenComplianceRef(tokenIdentifier)
-//        this.addReferenceState(tokenComplianceRef.referenced())
-//
-//        this.setTimeWindow(TimeWindow.untilOnly(Instant.now().plus(txTimeWindowTol)))
-//
-//        if (tokenComplianceRef.state.data.requiresMemberAccessChecks()) {
-//            val ourKycStateAndRef = serviceHub.vaultService.getSingleKYCReferenceState(ourIdentity, tokenIdentifier)
-//                ?: throw FlowException("KYC reference state not found for identity: $ourIdentity, " +
-//                        "tokenIdentifier: $tokenIdentifier")
-//
-//            this.addReferenceState(ourKycStateAndRef.referenced())
-//        }
-//    }
-
-    @Suspendable
-    fun addMoveTokens(
-        transactionBuilder: TransactionBuilder,
-        inputs: List<StateAndRef<AbstractToken>>,
-        outputs: List<AbstractToken>,
-        additionalKeys: List<PublicKey>
-    ): TransactionBuilder {
-        val outputGroups: Map<IssuedTokenType, List<AbstractToken>> = outputs.groupBy { it.issuedTokenType }
-        val inputGroups: Map<IssuedTokenType, List<StateAndRef<AbstractToken>>> = inputs.groupBy {
-            it.state.data.issuedTokenType
-        }
-
-        check(outputGroups.keys == inputGroups.keys) {
-            "Input and output token types must correspond to each other when moving tokensToIssue"
-        }
-
-        transactionBuilder.apply {
-            // Add a notary to the transaction.
-            // TODO: Deal with notary change.
-            notary = inputs.map { it.state.notary }.toSet().single()
-            outputGroups.forEach { issuedTokenType: IssuedTokenType, outputStates: List<AbstractToken> ->
-                val inputGroup = inputGroups[issuedTokenType]
-                    ?: throw IllegalArgumentException("No corresponding inputs for the outputs issued token type: $issuedTokenType")
-                val keys = inputGroup.map { it.state.data.holder.owningKey }
-
-                var inputStartingIdx = inputStates().size
-                var outputStartingIdx = outputStates().size
-
-                val inputIdx = inputGroup.map {
-                    addInputState(it)
-                    inputStartingIdx++
-                }
-
-                val outputIdx = outputStates.map {
-                    addOutputState(it)
-                    outputStartingIdx++
-                }
-
-                addCommand(MoveTokenCommand(issuedTokenType, inputs = inputIdx, outputs = outputIdx), keys + additionalKeys)
-            }
-        }
-
-        addTokenTypeJar(inputs.map { it.state.data } + outputs, transactionBuilder)
-
-        return transactionBuilder
     }
 }
 

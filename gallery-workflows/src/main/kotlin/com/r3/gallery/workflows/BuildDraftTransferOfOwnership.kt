@@ -27,6 +27,7 @@ class BuildDraftTransferOfOwnership(
 
     @Suspendable
     override fun call(): WireTransaction {
+
         val artworkStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
         val artworkStateAndRef =
             requireNotNull(artworkStates.states.singleOrNull { it.state.data.linearId == artworkId })
@@ -42,9 +43,7 @@ class BuildDraftTransferOfOwnership(
         }
 
         txBuilder.verify(serviceHub)
-        val wtx = txBuilder.toWireTransaction(serviceHub)
-        serviceHub.cacheService().cacheWireTransaction(wtx, this.ourIdentity)
-        return wtx
+        return txBuilder.toWireTransaction(serviceHub)
     }
 }
 

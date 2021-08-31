@@ -1,4 +1,4 @@
-package com.r3.gallery.workflows
+package com.r3.gallery.workflows.artwork
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.contracts.ArtworkContract
@@ -7,7 +7,10 @@ import com.r3.gallery.states.ArtworkState
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndContract
 import net.corda.core.contracts.UniqueIdentifier
-import net.corda.core.flows.*
+import net.corda.core.flows.FinalityFlow
+import net.corda.core.flows.FlowLogic
+import net.corda.core.flows.InitiatingFlow
+import net.corda.core.flows.StartableByRPC
 import net.corda.core.transactions.TransactionBuilder
 
 @StartableByRPC

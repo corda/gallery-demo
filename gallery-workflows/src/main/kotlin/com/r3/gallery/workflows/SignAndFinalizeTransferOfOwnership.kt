@@ -1,8 +1,8 @@
-package com.r3.corda.lib.tokens.workflows.swaps
+package com.r3.gallery.workflows
 
-import CollectSignaturesInitiatingFlow
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.states.LockState
+import com.r3.gallery.workflows.internal.CollectSignaturesInitiatingFlow
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
@@ -17,7 +17,7 @@ import net.corda.core.transactions.WireTransaction
  */
 @StartableByService
 @InitiatingFlow
-class SignAndFinaliseTxForPush(
+class SignAndFinalizeTransferOfOwnership(
         private val lockStateAndRef: StateAndRef<LockState>,
         private val wireTransaction: WireTransaction) : FlowLogic<SignedTransaction>() {
 
@@ -66,10 +66,10 @@ class SignAndFinaliseTxForPush(
 }
 
 /**
- * Responder flow for [SignAndFinaliseTxForPush].
+ * Responder flow for [SignAndFinalizeTransferOfOwnership].
  * Sign and finalise the swap push transaction.
  */
-@InitiatedBy(SignAndFinaliseTxForPush::class)
+@InitiatedBy(SignAndFinalizeTransferOfOwnership::class)
 class SignAndFinaliseTxForPushHandler(private val otherSession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {

@@ -2,9 +2,14 @@ package com.r3.gallery.workflows
 
 import com.r3.corda.lib.tokens.money.USD
 import com.r3.corda.lib.tokens.workflows.utilities.tokenBalance
+import com.r3.gallery.workflows.token.GetBalanceFlow
+import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.internal.chooseIdentity
-import net.corda.testing.node.*
+import net.corda.testing.node.MockNetwork
+import net.corda.testing.node.MockNetworkParameters
+import net.corda.testing.node.StartedMockNode
+import net.corda.testing.node.TestCordapp
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -51,7 +56,7 @@ class IssueTokenFlowTests {
         val issueFlow = IssueTokensFlow(10, USD.tokenIdentifier, aParty)
         a.startFlow(issueFlow).also { network.runNetwork() }
 
-        val balanceFlow = GetTokensBalanceFlow(USD)
+        val balanceFlow = GetBalanceFlow(USD)
         val balance = a.startFlow(balanceFlow).also { network.runNetwork() }.getOrThrow()
 
         assertEquals(10.USD, balance)

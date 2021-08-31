@@ -3,12 +3,13 @@ package com.r3.gallery.workflows
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.states.ArtworkState
+import com.r3.gallery.utils.generateWireTransactionMerkleTree
+import com.r3.gallery.utils.getDependencies
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.crypto.MerkleTree
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
-import net.corda.core.serialization.serialize
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
@@ -43,8 +44,6 @@ class SendDraftTransferOfOwnershipFlow(
             setTimeWindow(TimeWindow.untilOnly(Instant.now().plus(Duration.ofMinutes(validityInMinutes))))
         }.also { it.verify(serviceHub) }.toWireTransaction(serviceHub)
 
-        serviceHub.cacheService().cacheWireTransaction(wireTx, this.ourIdentity)
-
         val session = initiateFlow(partyToTransferTo)
         session.send(wireTx)
 
@@ -56,7 +55,13 @@ class SendDraftTransferOfOwnershipFlow(
             }
             subFlow(SendTransactionFlow(session, validatedTxDependency!!))
         }
-        return session.receive<WireTransaction>().unwrap { it }
+
+        val txOk = session.receive<Boolean>().unwrap { it }
+        if (!txOk) {
+            FlowException("$partyToTransferTo Failed to validate draft transfer of ownership for tx id: ${wireTx.id}")
+        }
+
+        return wireTx
     }
 }
 
@@ -69,17 +74,13 @@ class SendDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : F
     override fun call(): Unit {
 
         val wireTx = otherSession.receive<WireTransaction>().unwrap { it }
-        val draftTxMerkleTree = wireTx.generateWireTransactionMerkleTree()
+        val txMerkleTree = wireTx.generateWireTransactionMerkleTree()
         val txOk = receiveAndVerifyTxDependencies(wireTx) && verifyShareConditions(
             wireTx,
-            draftTxMerkleTree
-        ) && verifySharedTx(wireTx) && persistTxDetails(wireTx)
+            txMerkleTree
+        ) && verifySharedTx(wireTx) //&& persistTxDetails(wireTx)
 
-        if (!txOk) {
-            FlowException("Failed to validate drat transfer of ownership for tx id: ${wireTx.id}")
-        }
-
-        otherSession.send(wireTx)
+        otherSession.send(txOk)
     }
 
     @Suspendable
@@ -128,17 +129,6 @@ class SendDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : F
             true
         } catch (e: Exception) {
             logger.warn("Failed to resolve transaction: ${e.message}")
-            false
-        }
-    }
-
-    @Suspendable
-    private fun persistTxDetails(wireTx: WireTransaction): Boolean {
-        return try {
-            serviceHub.cacheService().cacheWireTransaction(wireTx, this.ourIdentity)
-            true
-        } catch (e: Exception) {
-            logger.warn("Failed to store transaction: ${e.message}")
             false
         }
     }

@@ -1,36 +1,26 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.corda.lib.tokens.contracts.commands.MoveTokenCommand
-import com.r3.corda.lib.tokens.contracts.states.AbstractToken
-import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
 import com.r3.corda.lib.tokens.contracts.types.TokenType
-import com.r3.corda.lib.tokens.selection.TokenQueryBy
-import com.r3.corda.lib.tokens.selection.database.selector.DatabaseTokenSelection
-import com.r3.corda.lib.tokens.workflows.types.toPairs
-import com.r3.corda.lib.tokens.workflows.utilities.addTokenTypeJar
-import com.r3.gallery.contracts.LockContract
-import com.r3.gallery.states.LockState
+import com.r3.gallery.utils.addMoveTokens
+import com.r3.gallery.utils.getLockState
+import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.InsufficientBalanceException
-import net.corda.core.contracts.StateAndRef
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.flows.*
-import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
-import net.corda.core.internal.requiredContractClassName
-import net.corda.core.node.ServiceHub
 import net.corda.core.node.StatesToRecord
-import net.corda.core.node.services.vault.QueryCriteria
+import net.corda.core.serialization.SerializedBytes
+import net.corda.core.serialization.serialize
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
-import java.security.PublicKey
 import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 
-// assumptions:
+// Some assumptions:
 // - all tokens in this transaction are self issued
 // - all inputs in this transaction are from the same party
 
@@ -53,7 +43,7 @@ class OfferEncumberedTokensFlow(
 
         val txBuilder = try {
             with(TransactionBuilder(notary = notary)) {
-                addMoveEncumberedTokens(
+                addMoveTokens(
                     this,
                     serviceHub,
                     listOf(PartyAndAmount1(compositeParty, encumberedAmount)),
@@ -69,107 +59,11 @@ class OfferEncumberedTokensFlow(
 
         txBuilder.verify(serviceHub)
         var signedTx = serviceHub.signInitialTransaction(txBuilder, listOf(ourIdentity.owningKey))
-
+        SerializedBytes<WireTransaction>(signedTx.tx.serialize().bytes)
         // TODO: discuss wht "will not be needed for X-Network, as no additional signers! - DELETE"
         signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(proposingParty)))
 
         return subFlow(FinalityFlow(signedTx, initiateFlow(proposingParty)))
-    }
-
-
-    @Suspendable
-    fun addMoveEncumberedTokens(
-        transactionBuilder: TransactionBuilder,
-        serviceHub: ServiceHub,
-        partiesAndAmounts: List<PartyAndAmount1<TokenType>>,
-        changeHolder: AbstractParty,
-        additionalKeys: List<PublicKey>,
-        lockState: LockState,
-        queryCriteria: QueryCriteria? = null,
-    ): TransactionBuilder {
-        val selector = DatabaseTokenSelection(serviceHub)
-        val (inputs, outputs) = selector.generateMove(
-            partiesAndAmounts.toPairs(),
-            changeHolder,
-            TokenQueryBy(queryCriteria = queryCriteria),
-            transactionBuilder.lockId
-        )
-        return addMoveEncumberedTokens(
-            transactionBuilder = transactionBuilder,
-            inputs = inputs,
-            outputs = outputs,
-            additionalKeys,
-            lockState
-        )
-    }
-
-    @Suspendable
-    fun addMoveEncumberedTokens(
-        transactionBuilder: TransactionBuilder,
-        inputs: List<StateAndRef<AbstractToken>>,
-        outputs: List<AbstractToken>,
-        additionalKeys: List<PublicKey>,
-        lockState: LockState
-    ): TransactionBuilder {
-        val outputGroups: Map<IssuedTokenType, List<AbstractToken>> = outputs.groupBy { it.issuedTokenType }
-        val inputGroups: Map<IssuedTokenType, List<StateAndRef<AbstractToken>>> = inputs.groupBy {
-            it.state.data.issuedTokenType
-        }
-
-        check(outputGroups.keys == inputGroups.keys) {
-            "Input and output token types must correspond to each other when moving tokensToIssue"
-        }
-
-        var previousEncumbrance = outputs.size
-
-        transactionBuilder.apply {
-            // Add a notary to the transaction.
-            notary = inputs.map { it.state.notary }.toSet().single()
-            outputGroups.forEach { issuedTokenType: IssuedTokenType, outputStates: List<AbstractToken> ->
-                val inputGroup = inputGroups[issuedTokenType]
-                    ?: throw IllegalArgumentException("No corresponding inputs for the outputs issued token type: $issuedTokenType")
-                val keys = inputGroup.map { it.state.data.holder.owningKey }.distinct()
-
-                var inputStartingIdx = inputStates().size
-                var outputStartingIdx = outputStates().size
-
-                val inputIdx = inputGroup.map {
-                    addInputState(it)
-                    inputStartingIdx++
-                }
-
-                val outputIdx = outputStates.map {
-                    if (it.holder.owningKey is CompositeKey) {
-                        addOutputState(it, it.requiredContractClassName!!, notary!!, previousEncumbrance)
-                        previousEncumbrance = outputStartingIdx
-                    } else {
-                        addOutputState(it)
-                    }
-                    outputStartingIdx++
-                }
-
-                addCommand(
-                    MoveTokenCommand(issuedTokenType, inputs = inputIdx, outputs = outputIdx),
-                    keys + additionalKeys
-                )
-            }
-
-            addOutputState(
-                state = lockState!!,
-                contract = LockContract.contractId,
-                notary = notary!!,
-                encumbrance = previousEncumbrance
-            )
-
-            addCommand(
-                LockContract.Encumber(),
-                lockState.getCompositeKey()
-            )
-        }
-
-        addTokenTypeJar(inputs.map { it.state.data } + outputs, transactionBuilder)
-
-        return transactionBuilder
     }
 }
 

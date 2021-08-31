@@ -10,7 +10,6 @@ import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import java.security.PublicKey
 
-
 @BelongsToContract(LockContract::class)
 data class LockState(
     val txHash: SignableData,
@@ -33,7 +32,7 @@ data class LockState(
         return true
     }
 
-    fun getCompositeKey() : PublicKey {
+    fun getCompositeKey(): PublicKey {
         return CompositeKey.Builder()
             .addKeys(participants.map { it.owningKey })
             .build(1)
