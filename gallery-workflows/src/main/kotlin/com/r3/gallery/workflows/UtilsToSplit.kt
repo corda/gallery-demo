@@ -1,6 +1,7 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.gallery.states.LockState
 import net.corda.core.contracts.CommandWithParties
 import net.corda.core.contracts.ContractState
 import net.corda.core.crypto.*
@@ -16,7 +17,7 @@ import net.corda.core.transactions.WireTransaction
 import java.security.PublicKey
 
 
-fun WireTransaction.getDependencies () : Set<SecureHash> {
+fun WireTransaction.getDependencies(): Set<SecureHash> {
     return this.inputs.map { it.txhash }.toSet() + this.references.map { it.txhash }.toSet()
 }
 
@@ -28,16 +29,17 @@ fun WireTransaction.getDependencies () : Set<SecureHash> {
 @Suspendable
 fun WireTransaction.generateWireTransactionMerkleTree(): MerkleTree {
     val availableComponentNonces: Map<Int, List<SecureHash>> by lazy {
-        this.componentGroups.map { Pair(it.groupIndex, it.components.mapIndexed {
-            internalIndex, internalIt ->
-            componentHash(internalIt, this.privacySalt, it.groupIndex, internalIndex) })
+        this.componentGroups.map {
+            Pair(it.groupIndex, it.components.mapIndexed { internalIndex, internalIt ->
+                componentHash(internalIt, this.privacySalt, it.groupIndex, internalIndex)
+            })
         }.toMap()
     }
 
     val availableComponentHashes = this.componentGroups.map {
-        Pair(it.groupIndex, it.components.mapIndexed {
-            internalIndex, internalIt ->
-            componentHash(availableComponentNonces[it.groupIndex]!![internalIndex], internalIt) })
+        Pair(it.groupIndex, it.components.mapIndexed { internalIndex, internalIt ->
+            componentHash(availableComponentNonces[it.groupIndex]!![internalIndex], internalIt)
+        })
     }.toMap()
 
     val groupsMerkleRoots: Map<Int, SecureHash> by lazy {
@@ -58,21 +60,21 @@ fun WireTransaction.generateWireTransactionMerkleTree(): MerkleTree {
     return MerkleTree.getMerkleTree(groupHashes)
 }
 
-/**
- * Return a [SignatureMetadata] instance for the notary on this [WireTransaction].
- * @param serviceHub Corda node services.
- * @return [SignatureMetadata] for the transaction's notary.
- * @throws [IllegalArgumentException] if the notary info cannot be retrieved from the network map cache.
- */
-@Suspendable
-fun WireTransaction.getSignatureMetadataForNotary(serviceHub: ServiceHub) : SignatureMetadata {
-    val notary = this.notary!!
-    val notaryInfo = serviceHub.networkMapCache.getNodeByLegalIdentity(notary)
-            ?: throw IllegalArgumentException("Unable to retrieve notaryInfo for notary: $notary")
-
-    return SignatureMetadata(
-            notaryInfo.platformVersion,
-            Crypto.findSignatureScheme(notary.owningKey).schemeNumberID
+fun WireTransaction.getLockState(serviceHub: ServiceHub, creator: Party, receiver: Party): LockState {
+    val notaryIdentity = serviceHub.identityService.partyFromKey(notary!!.owningKey)
+        ?: throw IllegalArgumentException("Unable to retrieve party for notary key: ${notary!!.owningKey}")
+    val notaryInfo = serviceHub.networkMapCache.getNodeByLegalIdentity(notary!!)
+        ?: throw IllegalArgumentException("Unable to retrieve notaryInfo for notary: $notary")
+    val signatureMetadata =
+        SignatureMetadata(notaryInfo.platformVersion, Crypto.findSignatureScheme(notary!!.owningKey).schemeNumberID)
+    // TODO: should this have same window or not? If there's an expiry on this
+    return LockState(
+        SignableData(id, signatureMetadata),
+        creator,
+        receiver,
+        notaryIdentity!!,
+        timeWindow!!,
+        listOf(receiver, creator)
     )
 }
 
@@ -105,8 +107,10 @@ fun List<AbstractParty>.toWellKnownParties(services: ServiceHub): List<Party> {
 @Suspendable
 fun IdentityService.requireKnownConfidentialIdentity(party: AbstractParty): Party {
     return wellKnownPartyFromAnonymous(party)
-            ?: throw IllegalArgumentException("Called flow with anonymous party that node doesn't know about. " +
-                    "Make sure that RequestConfidentialIdentity flow is called before.")
+        ?: throw IllegalArgumentException(
+            "Called flow with anonymous party that node doesn't know about. " +
+                    "Make sure that RequestConfidentialIdentity flow is called before."
+        )
 }
 
 

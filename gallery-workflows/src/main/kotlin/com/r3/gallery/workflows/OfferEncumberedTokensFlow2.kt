@@ -7,16 +7,12 @@ import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.selection.TokenQueryBy
 import com.r3.corda.lib.tokens.selection.database.selector.DatabaseTokenSelection
-import com.r3.corda.lib.tokens.workflows.flows.move.addMoveFungibleTokens
-import com.r3.corda.lib.tokens.workflows.flows.move.addMoveTokens
 import com.r3.corda.lib.tokens.workflows.types.toPairs
 import com.r3.corda.lib.tokens.workflows.utilities.addTokenTypeJar
 import com.r3.gallery.contracts.LockContract
 import com.r3.gallery.states.LockState
 import net.corda.core.contracts.*
 import net.corda.core.crypto.CompositeKey
-import net.corda.core.crypto.SignableData
-import net.corda.core.crypto.SignatureMetadata
 import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.AnonymousParty
@@ -40,15 +36,14 @@ import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 @StartableByRPC
 class OfferEncumberedTokensFlow2(
     val proposedSwapTx: WireTransaction,
-    val partyToMoveTo: Party,
-    val amount: Amount<TokenType>
+    val proposingParty: Party,
+    val encumberedAmount: Amount<TokenType>
 ) : FlowLogic<SignedTransaction>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
     override fun call(): SignedTransaction {
-        val signatureMetadata = proposedSwapTx.getSignatureMetadataForNotary(serviceHub)
-        val lockState = getLockState(signatureMetadata)
+        val lockState = proposedSwapTx.getLockState(serviceHub)
         val compositeKey = lockState.getCompositeKey() //  (a @ CN1 + b @ CN2) => (a @ CN1 + b' @ CN1)
         val compositeParty = AnonymousParty(compositeKey)
         serviceHub.identityService.registerKey(compositeKey, ourIdentity)
@@ -59,24 +54,24 @@ class OfferEncumberedTokensFlow2(
                 addMoveEncumberedTokens(
                     this,
                     serviceHub,
-                    listOf(PartyAndAmount1(compositeParty, amount)),
+                    listOf(PartyAndAmount1(compositeParty, encumberedAmount)),
                     ourIdentity,
-                    listOf(partyToMoveTo).map { it.owningKey },
+                    listOf(proposingParty).map { it.owningKey },
                     lockState
                 )
                 setTimeWindow(proposedSwapTx.timeWindow!!)
             }
         } catch (e: InsufficientBalanceException) {
-            throw FlowException("Offered amount ($amount) exceeds balance", e)
+            throw FlowException("Offered amount ($encumberedAmount) exceeds balance", e)
         }
 
         txBuilder.verify(serviceHub)
         var signedTx = serviceHub.signInitialTransaction(txBuilder, listOf(ourIdentity.owningKey))
 
         // TODO: discuss wht "will not be needed for X-Network, as no additional signers! - DELETE"
-        signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(partyToMoveTo)))
+        signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(proposingParty)))
 
-        return subFlow(FinalityFlow(signedTx, initiateFlow(partyToMoveTo)))
+        return subFlow(FinalityFlow(signedTx, initiateFlow(proposingParty)))
     }
 
 
@@ -173,27 +168,6 @@ class OfferEncumberedTokensFlow2(
         addTokenTypeJar(inputs.map { it.state.data } + outputs, transactionBuilder)
 
         return transactionBuilder
-    }
-
-    //
-    // TODO: rework - will need to use FungibleTokens instead
-    //
-    private fun getLockState(signatureMetadata: SignatureMetadata): LockState {
-        val notaryIdentity = serviceHub.identityService.partyFromKey(proposedSwapTx.notary!!.owningKey)
-        require(notaryIdentity != null) {
-            "Unknown notary (key: ${proposedSwapTx.notary!!.owningKey})"
-        }
-
-        val lockState = LockState(
-            SignableData(proposedSwapTx.id, signatureMetadata),
-            ourIdentity,
-            partyToMoveTo,
-            notaryIdentity!!,
-            // TODO: should this be the same window or not? If there's an expiry on this
-            proposedSwapTx.timeWindow!!,
-            listOf(partyToMoveTo, ourIdentity)
-        )
-        return lockState
     }
 }
 
