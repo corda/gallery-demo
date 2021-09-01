@@ -3,8 +3,11 @@ package com.r3.gallery.broker.corda.client.art.service
 import com.r3.gallery.broker.corda.client.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.config.ClientProperties
+import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.states.AuctionState
+import com.r3.gallery.workflows.artwork.FindArtworksForSaleFlow
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
+import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
@@ -36,9 +39,10 @@ class ArtNetworkGalleryClientImpl(
      * - artworkIds that are tied to an unconsumed auction state
      */
     override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
-        return  execute(galleryParty idOn CordaRPCNetwork.AUCTION.toString()) { connection ->
-            connection.proxy.vaultQuery(AuctionState::class.java)
-        }.states.map { it.state.data.artworkId }.distinct()
+        val artworksForSale: List<StateAndRef<ArtworkState>> = execute(galleryParty idOn CordaRPCNetwork.AUCTION.toString()) { connection ->
+            connection.proxy.startFlowDynamic(FindArtworksForSaleFlow::class.java)
+        }.returnValue.getOrThrow().map { it.state.data.linearId }
+
     }
 
     override suspend fun createArtworkTransferTx(galleryPart: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
