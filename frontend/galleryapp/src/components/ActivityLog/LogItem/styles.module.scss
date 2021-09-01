@@ -1,0 +1,19 @@
+.main {
+  align-items: center;
+  display: flex;
+  font-family: "Monaco", "Courier New", Courier, monospace;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.colourCode {
+  height: 22px;
+  width: 5px;
+  background: var(--color-medium-dark-gray-100);
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.timestamp {
+  margin-right: 20px;
+}

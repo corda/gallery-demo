@@ -18,7 +18,7 @@ interface ArtNetworkGalleryClient {
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
+    suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership /*{
         val nodeAddress: NetworkHostAndPort = NetworkHostAndPort.parse(args.get(0))
         val username: String = args.get(1)
         val password: String = args.get(2)
@@ -26,7 +26,7 @@ interface ArtNetworkGalleryClient {
         val client: net.corda.client.rpc.CordaRPCClient = net.corda.client.rpc.CordaRPCClient(nodeAddress)
         val connection: net.corda.client.rpc.CordaRPCConnection = client.start(username, password)
         val cordaRPCOperations: CordaRPCOps = connection.proxy
-    }
+    }*/
 
     /**
      * List out the artworks still held by the gallery.

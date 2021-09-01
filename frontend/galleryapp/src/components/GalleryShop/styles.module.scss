@@ -1,0 +1,45 @@
+.main {
+  h2 {
+    text-align: left;
+    margin-bottom: var(--p-4);
+  }
+}
+
+.lotList {
+  background: var(--color-medium-light-gray-100);
+  border-radius: 6px 6px 0 0;
+  padding: var(--p-4);
+  list-style: none;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-gap: var(--p-4);
+}
+
+.lotItem {
+  padding: var(--p-4);
+  background: var(--color-white);
+  list-style: none;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.07);
+  }
+
+  h6 {
+    font-size: 14px;
+    flex-grow: 1;
+    line-height: 1.2em;
+    margin: var(--p-1) 0;
+  }
+}
+
+.itemImagePlaceholder {
+  width: 64px;
+  fill: var(--color-medium-light-gray-200);
+}

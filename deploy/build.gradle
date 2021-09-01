@@ -1,22 +1,24 @@
+import java.util.regex.Pattern
+
 apply plugin: "net.corda.plugins.cordapp"
 apply plugin: "net.corda.plugins.cordformation"
 apply plugin: 'net.corda.plugins.quasar-utils'
 apply from: "./docker.gradle"
+apply from: "./azure.gradle"
 
 rootProject.ext.corda_release_version = cordaCoreVersion // required for cordform
 
 dependencies {
     cordaRuntime "$cordaCoreReleaseGroup:corda:$cordaCoreVersion"
     cordaCompile "$cordaCoreReleaseGroup:corda-node-api:$cordaCoreVersion"
-    cordaCompile "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
-    cordaCompile "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
+    cordaCompile "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+    cordaCompile "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
 
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
     cordaCompile "org.slf4j:jul-to-slf4j:$slf4jVersion"
 
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
-    project(":spring-api")
 }
 
 sourceSets {
@@ -47,8 +49,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
-        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
-        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
     }
     signing {
         enabled false
@@ -119,8 +121,8 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
-        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
-        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
         //runSchemaMigration = true
     }
@@ -215,8 +217,8 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
-        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
-        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
         //runSchemaMigration = true
     }
@@ -292,8 +294,8 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
-        cordapp "com.r3.corda.lib.tokens:tokens-contracts:1.2.2"
-        cordapp "com.r3.corda.lib.tokens:tokens-workflows:1.2.2"
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
         //runSchemaMigration = true
     }
@@ -362,11 +364,89 @@ task prepareAllDockerNodes(type: Task, dependsOn: ['prepareAuctionDockerNodes','
 
 // RUNNERS
 
+task auctionNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task auctionNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task gbpNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task gbpNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task cbdcNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task cbdcNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
 /**
  * Convenience task for bringing up all docker networks
  */
 task allNetworksUp(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({ network ->
@@ -383,7 +463,7 @@ task allNetworksUp(type: Task) {
  * Convenience task for bringing down all docker networks
  */
 task allNetworksDown(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({network ->
@@ -404,6 +484,7 @@ task allNetworksDown(type: Task) {
  */
 def mvYamlToTarget(String source, String target) {
     File srcFile = new File(source)
+    Pattern pattern = Pattern.compile("-\\s(\\d{5})")
     copy {
         from(source) {
             include '**/docker-compose.yml'
@@ -412,6 +493,17 @@ def mvYamlToTarget(String source, String target) {
         filter {
             // Correction of Dockerform incorrect mnt path generations
             line -> line.replaceAll(source, target)
+        }
+        filter {
+            line ->
+                def matcher =  pattern.matcher(line as String)
+                if (matcher.find()) {
+                    def port =  matcher.group(1)
+                    line.replace(
+                        port,
+                        "\"${port}:${port}\""
+                    )
+                } else line
         }
     }
     srcFile.deleteDir()

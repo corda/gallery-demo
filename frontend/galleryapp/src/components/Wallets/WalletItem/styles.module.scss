@@ -1,0 +1,21 @@
+.main {
+  &:hover {
+    background: var(--color-medium-light-gray-300);
+    cursor: pointer;
+  }
+}
+
+.chevron {
+  padding: 0;
+
+  svg {
+    width: 18px;
+    fill: var(--color-dark-gray);
+  }
+
+  &.open {
+    svg {
+      transform: rotate(90deg);
+    }
+  }
+}

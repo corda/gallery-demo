@@ -1,6 +1,30 @@
 package com.r3.gallery.broker.corda.client.api
 
-import com.r3.gallery.other.CordaReference
+import java.util.*
+import com.r3.gallery.broker.corda.client.config.NetworkClientConfig
+
+/**
+ * A connection id for indexing CordaRPCConnection between multiple nodes.
+ * Assigned via [NetworkClientConfig]
+ */
+typealias RPCConnectionId = String
+
+/**
+ * A unique reference for something in the Corda system, usually a transaction or state id.
+ */
+typealias CordaReference = UUID
+
+/**
+ * Unique identifier for an artwork, used to look up its name, digitised image etc.
+ */
+typealias ArtworkId = UUID
+
+/**
+ * Identity of the party on the art network.
+ * String X500 name
+ * TODO: helpers to validate and parse various forms
+ */
+typealias ArtworkParty = String
 
 /**
  * Identity of a party on the tokens network.
@@ -37,3 +61,9 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
 }
 
 typealias EncumberedTokens = CordaReference
+
+enum class CordaRPCNetwork(val netName: String) {
+    AUCTION("auction"),
+    GBP("gbp"),
+    CBDC("cbdc")
+}

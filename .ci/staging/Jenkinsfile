@@ -23,50 +23,20 @@ pipeline {
 
     stages {
 
-        stage('Unit Tests') {
+        stage('Create and push docker images') {
             steps {
-                sh "./gradlew test"
-            }
-         }
-
-        stage('Integration Tests') {
-            steps {
-                sh "./gradlew integrationTest"
+                sh "./gradlew createAndPushDockerImages " +
+                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
             }
         }
 
-        stage('Docker image pull') {
+        stage('Build Network Deployments') {
             steps {
-                timeout(60) {
-                    sh '''
-                        docker pull postgres:9.6
-                        docker pull roastario/freighter-base:latest
-                        docker pull roastario/notary-and-network-map:4.0
-                        '''
-                }
+                sh "./gradlew buildAllNetworks " +
+                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
             }
         }
 
-        stage('Freighter Tests') {
-            steps {
-                timeout(60) {
-                    sh '''
-                        export ARTIFACTORY_USERNAME=\"\${ARTIFACTORY_CREDENTIALS_USR}\"
-                        export ARTIFACTORY_PASSWORD=\"\${ARTIFACTORY_CREDENTIALS_PSW}\"
-                        ./gradlew --parallel -Pfreighter.forks=2 freighterTest --info --stacktrace --no-daemon
-                        '''
-                }
-            }
-        }
-
-        stage('Build Deployment') {
-            steps {
-                sh "./gradlew buildDevDeployment -Pdocker.push.registry=\${DOCKER_REGISTRY} " +
-                        "-Pdocker.push.username=\"\${DOCKER_CREDENTIALS_USR}\" -Pdocker.push.password=\"\${DOCKER_CREDENTIALS_PSW}\""
-            }
-        }
-
-        //TODO: kubectl apply -f build/kubernetes/ledgerswaps.yaml
         stage('Deploy to Azure') {
             steps {
                 withCredentials([azureServicePrincipal("payments-deployer-service-principal")]) {
@@ -74,6 +44,10 @@ pipeline {
                     az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID
                     az account set -s $AZURE_SUBSCRIPTION_ID
                     az aks get-credentials --resource-group payments-dev --name payments-dev-k8s
+                    kubectl apply -f deploy/build/kubernetes/namespaceAndCredDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/auctionNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/gbpNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/cbdcNetworkDeployment.yaml
                   '''
                 }
             }
@@ -83,7 +57,6 @@ pipeline {
 
     post {
         always {
-            junit '**/build/test-results/**/*.xml'
             archiveArtifacts artifacts: '**/build/kubernetes/*.yaml'
         }
 

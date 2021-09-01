@@ -1,0 +1,17 @@
+.main {
+  display: grid;
+  grid-column-gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-row-gap: 20px;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.item {
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  transition: box-shadow 0.2s ease-in-out;
+  &:hover {
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.07);
+    cursor: pointer;
+  }
+}

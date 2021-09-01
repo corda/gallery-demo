@@ -164,13 +164,13 @@ class KubernetesDeployment {
         System.out.println(" Deployment target is: " + deploymentTarget.toString())
     }
 
-    StorageClass buildFileStorageClass(String identifier) {
+    def buildFileStorageClass = { String identifier ->
         return new StorageClass(
                 deploymentTarget.getFileShareStorage("standard-file-share").build()
         )
     }
 
-    static Namespace buildNamespace(String devNamespace) {
+    def buildNamespace = { String devNamespace ->
         return new Namespace(new V1NamespaceBuilder()
                 .withNewApiVersion("v1")
                 .withNewKind("Namespace")
@@ -181,67 +181,78 @@ class KubernetesDeployment {
                 .build())
     }
 
-    static NodeStatefulSet buildNodeStatefulSet(
-                                     String regcred,
-                                     String devNamespace,
-                                     String identifier,
-                                     String x500,
-                                     String imageName
-    ) {
-        return NodeStatefulSet.buildNodeStatefulSet(regcred, identifier, x500, devNamespace, imageName)
+    def buildNodeStatefulSet = {
+        String regcred,
+        String devNamespace,
+        String targetNetworkService,
+        String identifier,
+        String x500,
+        String imageName,
+        String imageVersion
+            ->
+            return NodeStatefulSet.buildNodeStatefulSet(regcred, devNamespace, targetNetworkService, identifier, x500, imageName, imageVersion)
     }
 
-    static NodeDeployment buildNodeDeployment(
-                                       String regcred,
-                                       String devNamespace,
-                                       String identifier,
-                                       String x500,
-                                       String imageName,
-                                       randomSuffix) {
-        return NodeDeployment.buildNodeDeployment(regcred, devNamespace, identifier, x500, imageName, randomSuffix)
+    def buildNodeDeployment = {
+        String regcred,
+        String devNamespace,
+        String targetNetworkService,
+        String identifier,
+        String x500,
+        String imageName,
+        String imageVersion ->
+            return NodeDeployment.buildNodeDeployment(
+                    regcred,
+                    devNamespace,
+                    targetNetworkService,
+                    identifier,
+                    x500,
+                    imageName,
+                    imageVersion
+            )
     }
 
-    static NetworkServicesDeployment buildNMSDeployment(String devNamespace, String imageName) {
-        return NetworkServicesDeployment.buildNMSDeployment(devNamespace, imageName)
+    def buildNMSDeployment = { String devNamespace, String networkServiceName, String imageName ->
+        return NetworkServicesDeployment.buildNMSDeployment(devNamespace, networkServiceName, imageName)
     }
 
-    static WebAppDeployment buildWebAppDeployment(
-                                           String regcred,
-                                           String namespace,
-                                           String identifier,
-                                           Object node,
-                                           String image,
-                                           List<String> webAppArgsList = null,
-                                           Map<String, String> envStr = null,
-                                           Integer webAppPort = 8080) {
-        // check node param is of valid type
-        if (!(node instanceof NodeDeployment) && !(node instanceof NodeStatefulSet))
-            throw new IllegalArgumentException("invalid node param")
+    def buildWebAppDeployment = {
+        String regcred,
+        String namespace,
+        String identifier,
+        Object node,
+        String image,
+        List<String> webAppArgsList = null,
+        Map<String, String> envStr = null,
+        Integer webAppPort = 8080 ->
+            // check node param is of valid type
+            if (!(node instanceof NodeDeployment) && !(node instanceof NodeStatefulSet))
+                throw new IllegalArgumentException("invalid node param")
 
-        // set args or default
-        List<String> webAppArgs = webAppArgsList ?: ["--config.rpc.username=rpcUser",
-                                 "--server.port=8080",
-                                 "--config.rpc.password=${NodeDeployment.RPC_PASSWORD}",
-                                 "--config.rpc.host=${node.nodeService.metadata.name}",
-                                 "--config.rpc.port=${NodeDeployment.RPC_PORT}"]
+            // set args or default
+            List<String> webAppArgs = webAppArgsList ?: ["--config.rpc.username=rpcUser",
+                                                         "--server.port=8080",
+                                                         "--config.rpc.password=${NodeDeployment.RPC_PASSWORD}",
+                                                         "--config.rpc.host=${node.nodeService.metadata.name}",
+                                                         "--config.rpc.port=${NodeDeployment.RPC_PORT}"]
 
-        List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
-        return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, image, webAppArgs, env, webAppPort)
+            List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
+            return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, image, webAppArgs, env, webAppPort)
     }
 
-    static FrontEndDeployment buildFrontEndDeployment(
-                                                String regcred,
-                                                String devNamespace,
-                                                String identifier,
-                                                String imageName
-    ) {
-        return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, devNamespace)
+    def buildFrontEndDeployment = {
+        String regcred,
+        String devNamespace,
+        String identifier,
+        String imageName
+            ->
+            return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, devNamespace)
     }
 
-    static IngressDeployment buildIngressDeployment(String namespace,
-                                                    String identifier,
-                                                    List<IngressRule> rules
-    ) {
+    def buildIngressDeployment = { String namespace,
+                                   String identifier,
+                                   List<IngressRule> rules
+        ->
         List<NetworkingV1beta1IngressRule> ingressRules = new ArrayList()
         rules.forEach({ rule ->
             NetworkingV1beta1IngressRule r = new NetworkingV1beta1IngressRuleBuilder()
@@ -263,28 +274,28 @@ class KubernetesDeployment {
         return IngressDeployment.buildIngressDeployment(namespace, identifier, ingressRules)
     }
 
-    static NginxReverseProxyDeployment buildReverseProxyDeployment(
-            String regcred,
-            String namespace,
-            String identifier,
-            String nginxImageName,
-            WebAppDeployment api,
-            FrontEndDeployment frontend,
-            Map<String, String> envStr = null
-    ) {
-        List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
-        return NginxReverseProxyDeployment.buildReverseProxyDeployment(
-                regcred,
-                identifier,
-                nginxImageName,
-                api,
-                frontend,
-                namespace,
-                env
-        )
+    def buildReverseProxyDeployment = {
+        String regcred,
+        String namespace,
+        String identifier,
+        String nginxImageName,
+        WebAppDeployment api,
+        FrontEndDeployment frontend,
+        Map<String, String> envStr = null
+            ->
+            List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
+            return NginxReverseProxyDeployment.buildReverseProxyDeployment(
+                    regcred,
+                    identifier,
+                    nginxImageName,
+                    api,
+                    frontend,
+                    namespace,
+                    env
+            )
     }
 
-    static String generateYaml(Iterable<Object> toYamlify) {
+    def generateYaml = { Iterable<Object> toYamlify ->
         return Yaml.dumpAll(Iterables.concat(toYamlify.asList().toArray(new Iterable[0]) as Iterable<? extends Iterable<?>>).iterator())
     }
 

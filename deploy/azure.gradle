@@ -1,0 +1,216 @@
+import com.fasterxml.jackson.databind.ObjectMapper
+import deployments.DockerRegistrySecret
+import deployments.IngressRule
+import deployments.NotaryDeployment
+
+import java.util.function.BiConsumer
+/**
+ * Creates deployment for K8s namespace isolation and ACR credentials for pulling docker images
+ */
+task buildNamespaceAndCreds(type: DeploymentTask) {
+    def namespaceDep = kdeployment.buildNamespace(namespaceName)
+    def acrCredentialsDep = new DockerRegistrySecret(
+            namespaceName,
+            ledgerRegCred,
+            docker_push_registry,
+            rootProject.ext.'docker.push.username',
+            rootProject.ext.'docker.push.password'
+    )
+    deployments = [namespaceDep, acrCredentialsDep] as Iterable<Object>
+    fileName = "namespaceAndCredDeployment"
+}
+
+/**
+ * Creates a deployment for Auction Network
+ * [Networks Services, Notary, Alice, Bob, Charlie]
+ */
+task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
+    def auctionNetworkServices = kdeployment.buildNMSDeployment.call(
+            namespaceName,
+            "auction-nms",
+            nmsImageName
+    )
+    def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName as String,
+            "auction-notary",
+            "roastario/notary-one:5",
+            auctionNetworkServices.getNmsService()
+    )
+
+    // Node deployment
+    ObjectMapper mapper = new ObjectMapper()
+    def nodesProperties = new Properties()
+    file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
+    List<Iterable<Object>> auctionNodeDeployments = new ArrayList()
+    List<IngressRule> ingressRules = new ArrayList()
+
+    nodesProperties.forEach({identifier, nodeSerialized ->
+        def node = mapper.readValue(nodeSerialized, Map.class)
+        if ((node.get("networks") as List).contains("auction")) {
+            println "Configuring ${node.toString()} for deployment."
+
+            def currentNode = kdeployment.buildNodeStatefulSet.call(
+                    ledgerRegCred,
+                    namespaceName as String,
+                    auctionNetworkServices.nmsService.metadata.name,
+                    "auction-$identifier" as String,
+                    node.get("x500") as String,
+                    gallery_cordapp_docker_image_name as String,
+                    project.version as String
+            )
+            auctionNodeDeployments.add(currentNode)
+
+            // add an ingress rule for routing to service
+          ingressRules.add(
+                    new IngressRule(
+                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            10201,
+                            currentNode.nodeService
+                    )
+          )
+        }
+    } as BiConsumer<String, String>)
+
+    def auctionIngress = kdeployment.buildIngressDeployment.call(
+            namespaceName as String,
+            "auction",
+            ingressRules
+    )
+
+    deployments = [auctionNetworkServices, auctionIngress, auctionNotaryDeployment, *auctionNodeDeployments]
+    fileName = "auctionNetworkDeployment"
+}
+
+/**
+ * Creates a deployment for GBP Network
+ * [Networks Services, Notary, Alice, Bob]
+ */
+task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
+    def gbpNetworkServices = kdeployment.buildNMSDeployment.call(
+            namespaceName,
+            "gbp-nms",
+            nmsImageName
+    )
+    def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName as String,
+            "gbp-notary",
+            "roastario/notary-two:5",
+            gbpNetworkServices.getNmsService()
+    )
+
+    // Node deployment
+    ObjectMapper mapper = new ObjectMapper()
+    def nodesProperties = new Properties()
+    file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
+    List<Iterable<Object>> gbpNodeDeployments = new ArrayList()
+    List<IngressRule> ingressRules = new ArrayList()
+
+    nodesProperties.forEach({identifier, nodeSerialized ->
+        def node = mapper.readValue(nodeSerialized, Map.class)
+        if ((node.get("networks") as List).contains("gbp")) {
+            println "Configuring ${node.toString()} for deployment."
+
+            def currentNode = kdeployment.buildNodeStatefulSet.call(
+                    ledgerRegCred,
+                    namespaceName as String,
+                    gbpNetworkServices.nmsService.metadata.name,
+                    "gbp-$identifier",
+                    node.get("x500") as String,
+                    gallery_cordapp_docker_image_name as String,
+                    project.version as String
+            )
+            gbpNodeDeployments.add(currentNode)
+
+            // add an ingress rule for routing to service
+            ingressRules.add(
+                    new IngressRule(
+                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            10201,
+                            currentNode.nodeService
+                    )
+            )
+        }
+    } as BiConsumer<String, String>)
+
+    def gbpIngress = kdeployment.buildIngressDeployment.call(
+            namespaceName as String,
+            "gbp",
+            ingressRules
+    )
+
+    deployments = [gbpNetworkServices, gbpIngress, gbpNotaryDeployment, *gbpNodeDeployments]
+    fileName = "gbpNetworkDeployment"
+}
+
+/**
+ * Creates a deployment for CBDC Network
+ * [Networks Services, Notary, Alice, Charlie]
+ */
+task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
+    def cbdcNetworkServices = kdeployment.buildNMSDeployment.call(
+            namespaceName,
+            "cbdc-nms",
+            nmsImageName
+    )
+    def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
+            namespaceName as String,
+            "cbdc-notary",
+            "roastario/notary-three:5",
+            cbdcNetworkServices.getNmsService()
+    )
+
+    // Node deployment
+    ObjectMapper mapper = new ObjectMapper()
+    def nodesProperties = new Properties()
+    file("$projectDir/azure/nodes.properties").withInputStream { nodesProperties.load(it) }
+    List<Iterable<Object>> cbdcNodeDeployments = new ArrayList()
+    List<IngressRule> ingressRules = new ArrayList()
+
+    nodesProperties.forEach({identifier, nodeSerialized ->
+        def node = mapper.readValue(nodeSerialized, Map.class)
+        if ((node.get("networks") as List).contains("cbdc")) {
+            println "Configuring ${node.toString()} for deployment."
+
+            def currentNode = kdeployment.buildNodeStatefulSet.call(
+                    ledgerRegCred,
+                    namespaceName as String,
+                    cbdcNetworkServices.nmsService.metadata.name,
+                    "cbdc-$identifier",
+                    node.get("x500") as String,
+                    gallery_cordapp_docker_image_name as String,
+                    project.version as String
+            )
+            cbdcNodeDeployments.add(currentNode)
+
+            // add an ingress rule for routing to service
+            ingressRules.add(
+                    new IngressRule(
+                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            10201,
+                            currentNode.nodeService
+                    )
+            )
+        }
+    } as BiConsumer<String, String>)
+
+    def cbdcIngress = kdeployment.buildIngressDeployment.call(
+            namespaceName as String,
+            "cbdc",
+            ingressRules
+    )
+
+    deployments = [cbdcNetworkServices, cbdcIngress, cbdcNotaryDeployment, *cbdcNodeDeployments]
+    fileName = "cbdcNetworkDeployment"
+}
+
+/**
+ * Builds all networks in single task
+ */
+task buildAllNetworks(type: Task, dependsOn: [
+        'buildNamespaceAndCreds',
+        'buildAuctionNetwork',
+        'buildGbpNetwork',
+        'buildCbdcNetwork'
+]) {
+    group = "deployment k8s"
+}
