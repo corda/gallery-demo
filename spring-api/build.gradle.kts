@@ -22,6 +22,7 @@ dependencies {
     runtimeOnly("com.h2database:h2")
 
     cordaCompile(project(":gallery-contracts"))
+    cordaCompile(project(":gallery-workflows"))
 
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")

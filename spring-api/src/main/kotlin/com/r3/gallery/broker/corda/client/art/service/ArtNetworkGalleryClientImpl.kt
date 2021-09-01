@@ -4,6 +4,9 @@ import com.r3.gallery.broker.corda.client.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.config.ClientProperties
 import com.r3.gallery.states.AuctionState
+import com.r3.gallery.workflows.artwork.IssueArtworkFlow
+import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -21,7 +24,11 @@ class ArtNetworkGalleryClientImpl(
     }
 
     override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
-        TODO("Not yet implemented")
+        val artworkLinearId: UniqueIdentifier = execute(galleryParty idOn CordaRPCNetwork.AUCTION.toString()) { connection ->
+            connection.proxy.startFlowDynamic(IssueArtworkFlow::class.java)
+        }.returnValue.getOrThrow()
+
+        return ArtworkOwnership(artworkLinearId.id, artworkId, galleryParty)
     }
 
     /**
