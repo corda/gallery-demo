@@ -1,11 +1,9 @@
-package com.r3.gallery.broker.corda.client.api
+package com.r3.gallery.api
 
 import java.util.*
-import com.r3.gallery.broker.corda.client.config.NetworkClientConfig
 
 /**
  * A connection id for indexing CordaRPCConnection between multiple nodes.
- * Assigned via [NetworkClientConfig]
  */
 typealias RPCConnectionId = String
 
@@ -22,7 +20,6 @@ typealias ArtworkId = UUID
 /**
  * Identity of the party on the art network.
  * String X500 name
- * TODO: helpers to validate and parse various forms
  */
 typealias ArtworkParty = String
 
