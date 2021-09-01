@@ -218,19 +218,42 @@ task buildAllNetworks(type: Task, dependsOn: [
 /**
  * Mid-layer; Frontend and Orchestration Spring services
  */
-task buildSpringService(type: DeploymentTask) {
-    def springService = kdeployment.build
+task buildFrontEndAndSpringService(type: DeploymentTask) {
+    def springService = kdeployment.buildWebAppDeployment.call(
+            ledgerRegCred,
+            namespaceName,
+            "gallery",
+            gallery_webappapi_docker_image_name as String,
+            [ // environment variables for application.properties overrides
+                    "RPC_USERNAME": "rpcUser",
+                    "RPC_PASSWORD": "test",
+                    "AUCTION_ALICE_RPC_URL": "auction-alice-node",
+                    "AUCTION_BOB_RPC_URL": "auction-bob-node",
+                    "AUCTION_CHARLIE_RPC_URL": "auction-charlie-node",
+                    "GBP_ALICE_RPC_URL": "gbp-alice-node",
+                    "GBP_BOB_RPC_URL": "gbp-bob-node",
+                    "CBDC_ALICE_RPC_URL": "cbdc-alice-node",
+                    "CBDC_CHARLIE_RPC_URL": "cbdc-charlie-node"
+            ]
+    )
+    def frontEnd = kdeployment.buildFrontEndDeployment.call(
+            ledgerRegCred as String,
+            namespaceName as String,
+            "gallery",
+            frontend_docker_image_name as String
+    )
+    deployments = [springService, frontEnd] as Iterable<Object>
+    fileName = "frontEndAndSpring"
 }
 
 /**
  * UI Deployment - Nginx backed React frontend for cross network interaction and demo
  */
-task
 
 task buildAll(type: Task, dependsOn: [
         'buildNamespaceAndCreds',
         'buildAllNetworks',
-        'buildSpringService'
+        'buildFrontEndAndSpringService'
 ]) {
     group = "deployment k8s"
 }

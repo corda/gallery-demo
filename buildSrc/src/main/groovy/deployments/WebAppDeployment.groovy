@@ -55,7 +55,6 @@ class WebAppDeployment implements Iterable<Object> {
                                                   String devNamespace,
                                                   String apiId,
                                                   imageName,
-                                                  List<String> webAppArgs,
                                                   List<V1EnvVar> env = null, // override env for spring config
                                                   Integer webAppPort = 8080 // server port for spring config and service
     ) {
@@ -94,7 +93,6 @@ class WebAppDeployment implements Iterable<Object> {
                         new V1ContainerPortBuilder().withName("debugport").withContainerPort(5000).build()
                 )
                 .withEnv(env)
-                .withArgs(webAppArgs)
                 .withNewResources()
                 .withRequests("memory": new Quantity("1024Mi"), "cpu": new Quantity("0.1"))
                 .endResources()

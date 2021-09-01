@@ -220,24 +220,11 @@ class KubernetesDeployment {
         String regcred,
         String namespace,
         String identifier,
-        Object node,
         String image,
-        List<String> webAppArgsList = null,
         Map<String, String> envStr = null,
         Integer webAppPort = 8080 ->
-            // check node param is of valid type
-            if (!(node instanceof NodeDeployment) && !(node instanceof NodeStatefulSet))
-                throw new IllegalArgumentException("invalid node param")
-
-            // set args or default
-            List<String> webAppArgs = webAppArgsList ?: ["--config.rpc.username=rpcUser",
-                                                         "--server.port=8080",
-                                                         "--config.rpc.password=${NodeDeployment.RPC_PASSWORD}",
-                                                         "--config.rpc.host=${node.nodeService.metadata.name}",
-                                                         "--config.rpc.port=${NodeDeployment.RPC_PORT}"]
-
             List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
-            return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, image, webAppArgs, env, webAppPort)
+            return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, image, env, webAppPort)
     }
 
     def buildFrontEndDeployment = {
