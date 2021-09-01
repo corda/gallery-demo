@@ -1,7 +1,7 @@
 package com.r3.gallery.broker.corda.client.api
 
-import java.util.*
 import com.r3.gallery.broker.corda.client.config.NetworkClientConfig
+import java.util.*
 
 /**
  * A connection id for indexing CordaRPCConnection between multiple nodes.
@@ -30,6 +30,16 @@ typealias ArtworkParty = String
  * Identity of a party on the tokens network.
  */
 typealias TokenParty = String
+
+/**
+ * Represents a state on the art network, identified by [cordaReference], which grants ownership
+ * of the artwork identified by [artworkId] to the owner identified by [artworkOwner]
+ */
+data class ArtworkOwnership(
+    val cordaReference: CordaReference,
+    val artworkId: ArtworkId,
+    val artworkOwner: ArtworkParty
+)
 
 typealias TransactionHash = String
 
