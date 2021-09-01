@@ -4,21 +4,6 @@ import deployments.IngressRule
 import deployments.NotaryDeployment
 
 import java.util.function.BiConsumer
-/**
- * Creates deployment for K8s namespace isolation and ACR credentials for pulling docker images
- */
-task buildNamespaceAndCreds(type: DeploymentTask) {
-    def namespaceDep = kdeployment.buildNamespace(namespaceName)
-    def acrCredentialsDep = new DockerRegistrySecret(
-            namespaceName,
-            ledgerRegCred,
-            docker_push_registry,
-            rootProject.ext.'docker.push.username',
-            rootProject.ext.'docker.push.password'
-    )
-    deployments = [namespaceDep, acrCredentialsDep] as Iterable<Object>
-    fileName = "namespaceAndCredDeployment"
-}
 
 /**
  * Creates a deployment for Auction Network
@@ -204,13 +189,48 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
 }
 
 /**
+ * Creates deployment for K8s namespace isolation and ACR credentials for pulling docker images
+ */
+task buildNamespaceAndCreds(type: DeploymentTask) {
+    def namespaceDep = kdeployment.buildNamespace(namespaceName)
+    def acrCredentialsDep = new DockerRegistrySecret(
+            namespaceName,
+            ledgerRegCred,
+            docker_push_registry,
+            rootProject.ext.'docker.push.username',
+            rootProject.ext.'docker.push.password'
+    )
+    deployments = [namespaceDep, acrCredentialsDep] as Iterable<Object>
+    fileName = "namespaceAndCredDeployment"
+}
+
+/**
  * Builds all networks in single task
  */
 task buildAllNetworks(type: Task, dependsOn: [
-        'buildNamespaceAndCreds',
         'buildAuctionNetwork',
         'buildGbpNetwork',
         'buildCbdcNetwork'
+]) {
+    group = "deployment k8s"
+}
+
+/**
+ * Mid-layer; Frontend and Orchestration Spring services
+ */
+task buildSpringService(type: DeploymentTask) {
+    def springService = kdeployment.build
+}
+
+/**
+ * UI Deployment - Nginx backed React frontend for cross network interaction and demo
+ */
+task
+
+task buildAll(type: Task, dependsOn: [
+        'buildNamespaceAndCreds',
+        'buildAllNetworks',
+        'buildSpringService'
 ]) {
     group = "deployment k8s"
 }

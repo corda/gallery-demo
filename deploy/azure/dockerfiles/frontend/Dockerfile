@@ -3,7 +3,11 @@ WORKDIR /app
 COPY galleryapp/public /app/public
 COPY galleryapp/src /app/src
 COPY galleryapp/package.json /app/package.json
+#COPY galleryapp/package-lock.json /app/package-lock.json
 COPY galleryapp/tsconfig.json /app/tsconfig.json
+COPY galleryapp/tsconfig.paths.json /app/tsconfig.paths.json
+COPY galleryapp/.nvmrc /app/.nvmrc
+COPY galleryapp/craco.config.js /app/craco.config.js
 RUN npm install
 RUN npm run build
 
