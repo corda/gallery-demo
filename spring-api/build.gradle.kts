@@ -16,10 +16,17 @@ dependencies {
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    // https://mvnrepository.com/artifact/org.mock-server/mockserver-client
+    implementation("org.mock-server:mockserver-client:3.2")
     runtimeOnly("com.h2database:h2")
 
     cordaCompile(project(":gallery-contracts"))
     cordaCompile(project(":gallery-workflows"))
+    cordaCompile(cordaCoreReleaseGroup, "corda-rpc", cordaCoreVersion)
+    cordaCompile(cordaCoreReleaseGroup, "corda-jackson", cordaCoreVersion)
+
+    // https://mvnrepository.com/artifact/org.mock-server/mockserver-netty
+    testImplementation("org.mock-server:mockserver-netty:5.11.2")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")

@@ -26,6 +26,7 @@ cordapp {
 dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7")
 }
 
 tasks.jar {
