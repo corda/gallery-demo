@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 /**
  * TODO: switch returns to Mono/Flux reactive
@@ -23,10 +24,10 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     @PutMapping("/issue-artwork")
     suspend fun issueArtwork(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
-        @RequestParam("artworkId") artworkId: ArtworkId
+        @RequestParam("artworkId") artworkId: String
     ) : ResponseEntity<ArtworkOwnership> {
         logger.info("Request by $galleryParty to issue artwork of id $artworkId")
-        val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId)
+        val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId.toUUID())
         return ResponseEntity.status(HttpStatus.OK).body(artworkOwnership)
     }
 
@@ -43,11 +44,11 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     suspend fun createArtworkTransferTx(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("bidderParty") bidderParty: ArtworkParty,
-        @RequestParam("artworkId") artworkId: ArtworkId,
+        @RequestParam("artworkId") artworkId: String,
     ) : ResponseEntity<UnsignedArtworkTransferTx> {
         // TODO: Is the DTO for ownership to be provided in full? or shall artworkId be used as is here?
         logger.info("Request to create artwork transfer transaction seller: $galleryParty, bidder: $bidderParty, art: $artworkId")
-        val artworkOwnership = galleryClient.getOwnership(galleryParty, artworkId)
+        val artworkOwnership = galleryClient.getOwnership(galleryParty, artworkId.toUUID())
         val artworkTx = galleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
         return ResponseEntity.status(HttpStatus.OK).body(artworkTx)
     }
