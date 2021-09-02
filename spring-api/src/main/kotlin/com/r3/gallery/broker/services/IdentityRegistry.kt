@@ -1,7 +1,7 @@
 package com.r3.gallery.broker.services
 
-import com.r3.gallery.broker.corda.client.api.ArtworkParty
-import com.r3.gallery.broker.corda.client.api.TokenParty
+import com.r3.gallery.api.ArtworkParty
+import com.r3.gallery.api.TokenParty
 
 interface IdentityRegistry {
 

@@ -9,7 +9,7 @@ import com.r3.corda.lib.tokens.money.FiatCurrency
 import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.*
-import net.corda.core.identity.Party
+import net.corda.core.identity.AbstractParty
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.utilities.ProgressTracker
 
@@ -18,10 +18,10 @@ import net.corda.core.utilities.ProgressTracker
 class IssueTokensFlow(
     val amount: Long,
     val currency: String,
-    var receiver: Party? = null
+    var receiver: AbstractParty? = null
 ) : FlowLogic<SignedTransaction>() {
 
-    constructor(amount: Amount<TokenType>, receiver: Party? = null) : this(
+    constructor(amount: Amount<TokenType>, receiver: AbstractParty? = null) : this(
         amount.quantity,
         amount.token.tokenIdentifier,
         receiver

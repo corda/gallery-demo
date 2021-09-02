@@ -2,12 +2,14 @@ package com.r3.gallery.contracts
 
 import com.r3.gallery.states.ArtworkState
 import net.corda.core.contracts.*
+import net.corda.core.contracts.CommandData
+import net.corda.core.contracts.Contract
 import net.corda.core.transactions.LedgerTransaction
 import java.security.PublicKey
 
 class ArtworkContract : Contract {
     companion object {
-        const val ARTWORK_CONTRACT_ID = "com.r3.gallery.contracts.ArtworkContract"
+        val ID = ArtworkContract::class.java.name
     }
 
     interface Commands : CommandData {
@@ -32,21 +34,9 @@ class ArtworkContract : Contract {
                     "Expected only one AuctionItemState output" using (tx.outputsOfType(ArtworkState::class.java).size == 1)
                     val inputItem = tx.inputsOfType(ArtworkState::class.java).single()
                     val outputItem = tx.outputsOfType(ArtworkState::class.java).single()
-                    "Only the 'owner' and 'listed' properties can change" using (inputItem == outputItem.copy(owner = inputItem.owner, listed = inputItem.listed))
+                    "Only the 'owner' property can change" using (inputItem == outputItem.copy(owner = inputItem.owner))
                     "The 'owner' property must change" using (outputItem.owner != inputItem.owner)
-                    "The 'listed' property must change" using (outputItem.listed != inputItem.listed)
-                    "The 'listed' property must be 'false'" using (!outputItem.listed)
                     "The previous and new owner only must sign a transfer transaction" using (signers == setOf(outputItem.owner.owningKey, inputItem.owner.owningKey))
-                }
-            }
-
-            class List : TypeOnlyCommandData(), Commands {
-                override fun verifyCommand(tx: LedgerTransaction, signers: Set<PublicKey>) {
-                }
-            }
-
-            class Delist : TypeOnlyCommandData(), Commands {
-                override fun verifyCommand(tx: LedgerTransaction, signers: Set<PublicKey>) {
                 }
             }
         }

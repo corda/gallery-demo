@@ -1,9 +1,9 @@
 package com.r3.gallery.broker.services.api
 
-import com.r3.gallery.broker.corda.client.api.ArtworkId
-import com.r3.gallery.broker.corda.client.api.CordaReference
-import com.r3.gallery.broker.corda.client.api.EncumberedTokens
-import com.r3.gallery.broker.corda.client.api.UnsignedArtworkTransferTx
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.CordaReference
+import com.r3.gallery.api.EncumberedTokens
+import com.r3.gallery.api.UnsignedArtworkTransferTx
 
 sealed class Receipt {
 

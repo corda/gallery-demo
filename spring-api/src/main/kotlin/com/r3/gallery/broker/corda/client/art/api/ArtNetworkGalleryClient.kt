@@ -1,6 +1,6 @@
 package com.r3.gallery.broker.corda.client.art.api
 
-import com.r3.gallery.broker.corda.client.api.*
+import com.r3.gallery.api.*
 
 /**
  * Execute flows against Corda nodes running the Art Network application, acting as the gallery
@@ -19,11 +19,11 @@ interface ArtNetworkGalleryClient {
 
     /**
      * Create an unsigned transaction that would transfer an artwork owned by the gallery,
-     * identified by [galleryOwnership], to the given [bidder].
+     * identified by [galleryOwnership], to the given bidder.
      *
      * @return The unsigned fulfilment transaction
      */
-    suspend fun createArtworkTransferTx(galleryPart: ArtworkParty,
+    suspend fun createArtworkTransferTx(galleryParty: ArtworkParty,
                                         bidderParty: ArtworkParty,
                                         galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
 

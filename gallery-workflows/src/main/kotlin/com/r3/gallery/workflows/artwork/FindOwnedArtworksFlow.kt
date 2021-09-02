@@ -10,7 +10,7 @@ import net.corda.core.node.services.queryBy
 
 @StartableByRPC
 @InitiatingFlow
-class FindArtworksForSaleFlow() :
+class FindOwnedArtworksFlow() :
     FlowLogic<List<StateAndRef<ArtworkState>>>() {
 
     @Suspendable

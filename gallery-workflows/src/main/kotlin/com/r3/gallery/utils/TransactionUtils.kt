@@ -78,3 +78,12 @@ fun WireTransaction.getLockState(serviceHub: ServiceHub, creator: Party, receive
 internal fun SignedTransaction.getTransactionSignatureForParty(party: Party): TransactionSignature {
     return this.sigs.single { it.by == party.owningKey }
 }
+
+/**
+ * Return the [TransactionSignature] for the notary of this [SignedTransaction]
+ * @return [TransactionSignature] representing the party's signature on this transaction.
+ * @throws
+ */
+fun SignedTransaction.getNotaryTransactionSignature(): TransactionSignature {
+    return this.sigs.single { it.by == this.notary!!.owningKey }
+}

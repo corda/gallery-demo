@@ -1,8 +1,6 @@
 package com.r3.gallery.broker.corda.client.config
 
-import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
+import com.r3.gallery.api.CordaRPCNetwork
 import org.springframework.stereotype.Component
 
 /**

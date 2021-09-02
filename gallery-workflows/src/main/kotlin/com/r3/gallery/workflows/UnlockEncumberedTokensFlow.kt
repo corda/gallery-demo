@@ -8,6 +8,7 @@ import com.r3.gallery.states.LockState
 import com.r3.gallery.utils.addMoveTokens
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndRef
+import net.corda.core.contracts.StateRef
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
@@ -23,19 +24,18 @@ import java.time.Duration
  */
 @StartableByService
 @InitiatingFlow
-class UnlockPushedEncumberedDefinedTokenFlow(
-        private val lockStateAndRef: StateAndRef<LockState>,
-        private val requiredSignature: TransactionSignature) : FlowLogic<Unit>() {
+class UnlockEncumberedTokensFlow(
+    private val lockStateRef: StateRef,
+    private val requiredSignature: TransactionSignature) : FlowLogic<SignedTransaction>() {
 
     val txTimeWindowTol = Duration.ofMinutes(5)
 
     @Suspendable
-    override fun call() {
-        val encumberedTx = serviceHub.validatedTransactions.getTransaction(lockStateAndRef.ref.txhash)
-            ?: throw IllegalArgumentException("Unable to find transaction with id: ${lockStateAndRef.ref.txhash}" +
-                    " for lock state: ${lockStateAndRef.state.data}")
+    override fun call() : SignedTransaction {
+        val encumberedTx = serviceHub.validatedTransactions.getTransaction(lockStateRef.txhash)
+            ?: throw IllegalArgumentException("Unable to find transaction with id: ${lockStateRef.txhash}")
 
-        val enrichedStateAndRef: StateAndRef<LockState> = encumberedTx.coreTransaction.outRef(lockStateAndRef.ref.index)
+        val enrichedStateAndRef: StateAndRef<LockState> = encumberedTx.coreTransaction.outRef(lockStateRef.index)
         val inputStateAndRefs = getOurEncumberedTokenStates(encumberedTx)
         val outputStates = inputStateAndRefs.map { it.state.data.withNewHolder(ourIdentity) }
 
@@ -48,7 +48,7 @@ class UnlockPushedEncumberedDefinedTokenFlow(
             .filter { it != ourIdentity }
             .map { initiateFlow(it) }
 
-        val signedTransaction = subFlow(FinalityFlow(locallySignedTx, sessions, statesToRecord = StatesToRecord.ALL_VISIBLE))
+        return subFlow(FinalityFlow(locallySignedTx, sessions, statesToRecord = StatesToRecord.ALL_VISIBLE))
     }
 
     /**
@@ -84,11 +84,11 @@ class UnlockPushedEncumberedDefinedTokenFlow(
 }
 
 /**
- * Responder flow for [UnlockPushedEncumberedDefinedTokenFlow].
+ * Responder flow for [UnlockEncumberedTokensFlow].
  * Sign and finalise the unlock encumbered state transaction.
  */
-@InitiatedBy(UnlockPushedEncumberedDefinedTokenFlow::class)
-class UnlockPushedEncumberedDefinedTokenFlowHandler(private val otherSession: FlowSession) : FlowLogic<SignedTransaction?>() {
+@InitiatedBy(UnlockEncumberedTokensFlow::class)
+class UnlockEncumberedTokensFlowHandler(private val otherSession: FlowSession) : FlowLogic<SignedTransaction?>() {
     @Suspendable
     override fun call(): SignedTransaction? {
         return if (!serviceHub.myInfo.isLegalIdentity(otherSession.counterparty)) {

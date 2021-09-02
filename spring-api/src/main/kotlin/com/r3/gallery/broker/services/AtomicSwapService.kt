@@ -1,18 +1,18 @@
 package com.r3.gallery.broker.services
 
-import com.r3.gallery.broker.corda.client.api.*
-import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
-import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
-import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.broker.corda.client.art.service.ArtNetworkGalleryClientImpl
+import com.r3.gallery.broker.corda.client.art.service.TokenNetworkBuyerClientImpl
+import com.r3.gallery.broker.corda.client.art.service.TokenNetworkSellerClientImpl
 import com.r3.gallery.broker.services.api.Receipt.*
 import org.springframework.beans.factory.annotation.Autowired
 
 const val GALLERY = "gallery"
 
 open class AtomicSwapService(
-    @Autowired val  galleryClient: ArtNetworkGalleryClient,
-    @Autowired val buyerClient: TokenNetworkBuyerClient,
-    @Autowired val sellerClient: TokenNetworkSellerClient,
+    @Autowired val  galleryClient: ArtNetworkGalleryClientImpl,
+    @Autowired val buyerClient: TokenNetworkBuyerClientImpl,
+    @Autowired val sellerClient: TokenNetworkSellerClientImpl,
     @Autowired val identityRegistry: IdentityRegistry
 ) {
 

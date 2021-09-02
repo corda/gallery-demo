@@ -1,35 +1,25 @@
 package com.r3.gallery.workflows.artwork
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.states.ArtworkState
-import net.corda.core.contracts.StateAndRef
-import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowException
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.node.services.queryBy
-import net.corda.core.node.services.vault.QueryCriteria
 
 @StartableByRPC
 @InitiatingFlow
-class FindArtworkFlow private constructor(private val criteria: QueryCriteria) :
-    FlowLogic<StateAndRef<ArtworkState>>() {
-
-    constructor(linearId: UniqueIdentifier) : this(
-        QueryCriteria.LinearStateQueryCriteria(
-            linearId = listOf(linearId),
-            contractStateTypes = setOf(ArtworkState::class.java)
-        )
-    )
+class FindArtworkFlow(val artworkId: ArtworkId) : FlowLogic<ArtworkState>() {
 
     @Suspendable
-    override fun call(): StateAndRef<ArtworkState> {
+    override fun call(): ArtworkState {
         return serviceHub
             .vaultService
-            .queryBy<ArtworkState>(criteria)
+            .queryBy<ArtworkState>()
             .states
-            .singleOrNull()
+            .singleOrNull { it.state.data.artworkId == artworkId }?.state?.data
             ?: throw FlowException("Failed to find state.")
     }
 }

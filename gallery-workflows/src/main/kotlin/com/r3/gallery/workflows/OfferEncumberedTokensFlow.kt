@@ -2,14 +2,14 @@ package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.TokenType
+import com.r3.corda.lib.tokens.money.FiatCurrency
 import com.r3.gallery.states.LockState
 import com.r3.gallery.utils.addMoveTokens
 import com.r3.gallery.utils.getLockState
 import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.InsufficientBalanceException
-import net.corda.core.contracts.StateAndRef
-import net.corda.core.contracts.TransactionState
+import net.corda.core.contracts.StateRef
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.flows.*
 import net.corda.core.identity.AnonymousParty
@@ -32,11 +32,20 @@ class OfferEncumberedTokensFlow(
     val proposedSwapTx: WireTransaction,
     val proposingParty: Party,
     val encumberedAmount: Amount<TokenType>
-) : FlowLogic<StateAndRef<LockState>>() {
+) : FlowLogic<StateRef>() {
     override val progressTracker = ProgressTracker()
 
+    constructor(
+        proposedSwapTx: WireTransaction,
+        proposingParty: Party,
+        encumberedAmount: Long,
+        encumberedCurrency: String
+    ) : this(
+        proposedSwapTx, proposingParty, Amount(encumberedAmount, FiatCurrency.getInstance(encumberedCurrency))
+    )
+
     @Suspendable
-    override fun call(): StateAndRef<LockState> {
+    override fun call(): StateRef {
         val lockState = proposedSwapTx.getLockState(serviceHub, ourIdentity, proposingParty)
         val compositeKey = lockState.getCompositeKey() //  (a @ CN1 + b @ CN2) => (a @ CN1 + b' @ CN1)
         val compositeParty = AnonymousParty(compositeKey)
@@ -66,10 +75,9 @@ class OfferEncumberedTokensFlow(
         signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(proposingParty)))
 
         val stx = subFlow(FinalityFlow(signedTx, initiateFlow(proposingParty)))
+        val lockStateRef = stx.tx.outRefsOfType(LockState::class.java).single()
 
-        return with(stx.tx.outRefsOfType(LockState::class.java).single()) {
-            StateAndRef(TransactionState(state.data, state.contract, state.notary), ref)
-        }
+        return lockStateRef.ref
     }
 }
 
@@ -78,7 +86,7 @@ class OfferEncumberedTokensFlow(
  * Finalise push token transaction.
  */
 @InitiatedBy(OfferEncumberedTokensFlow::class)
-class OfferEncumberedTokensFlowHandler2(val otherSession: FlowSession) : FlowLogic<Unit>() {
+class OfferEncumberedTokensFlowHandler(val otherSession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
         val compositeKey = CompositeKey.Builder()

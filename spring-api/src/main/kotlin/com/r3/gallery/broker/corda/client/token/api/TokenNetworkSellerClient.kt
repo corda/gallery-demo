@@ -1,9 +1,9 @@
 package com.r3.gallery.broker.corda.client.token.api
 
-import com.r3.gallery.broker.corda.client.api.CordaReference
-import com.r3.gallery.broker.corda.client.api.EncumberedTokens
-import com.r3.gallery.broker.corda.client.api.ProofOfTransferOfOwnership
-import com.r3.gallery.broker.corda.client.api.TokenParty
+import com.r3.gallery.api.CordaReference
+import com.r3.gallery.api.EncumberedTokens
+import com.r3.gallery.api.ProofOfTransferOfOwnership
+import com.r3.gallery.api.TokenParty
 
 interface TokenNetworkSellerClient {
 

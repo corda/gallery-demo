@@ -1,11 +1,9 @@
-package com.r3.gallery.broker.corda.client.api
+package com.r3.gallery.api
 
-import com.r3.gallery.broker.corda.client.config.NetworkClientConfig
 import java.util.*
 
 /**
  * A connection id for indexing CordaRPCConnection between multiple nodes.
- * Assigned via [NetworkClientConfig]
  */
 typealias RPCConnectionId = String
 
@@ -22,7 +20,6 @@ typealias ArtworkId = UUID
 /**
  * Identity of the party on the art network.
  * String X500 name
- * TODO: helpers to validate and parse various forms
  */
 typealias ArtworkParty = String
 
@@ -53,6 +50,16 @@ data class TransactionSignature(val bytes: ByteArray) {
     override fun hashCode(): Int = bytes.contentHashCode()
 }
 
+data class LockStateRef(val bytes: ByteArray) {
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other is LockStateRef -> bytes.contentEquals(other.bytes)
+        else -> false
+    }
+
+    override fun hashCode(): Int = bytes.contentHashCode()
+}
+
 data class ProofOfTransferOfOwnership(
     val transactionId: CordaReference,
     val transactionHash: TransactionHash,
@@ -70,7 +77,8 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun hashCode(): Int = transactionBytes.contentHashCode()
 }
 
-typealias EncumberedTokens = CordaReference
+//typealias EncumberedTokens = CordaReference
+typealias EncumberedTokens = LockStateRef
 
 enum class CordaRPCNetwork(val netName: String) {
     AUCTION("auction"),

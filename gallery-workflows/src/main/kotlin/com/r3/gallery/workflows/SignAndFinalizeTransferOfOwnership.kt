@@ -1,9 +1,7 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.gallery.states.LockState
 import com.r3.gallery.workflows.internal.CollectSignaturesInitiatingFlow
-import net.corda.core.contracts.StateAndRef
 import net.corda.core.flows.*
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
@@ -11,15 +9,12 @@ import net.corda.core.transactions.WireTransaction
 
 /**
  * Sign and finalise the unsigned swap push [WireTransaction] and return a [SignedTransaction].
- * @property lockStateAndRef [StateAndRef] with [LockState] containing the controlling notary required to unlock the
- * lock state.
  * @property wireTransaction transaction to sign and finalise.
  */
 @StartableByService
 @InitiatingFlow
 class SignAndFinalizeTransferOfOwnership(
-        private val lockStateAndRef: StateAndRef<LockState>,
-        private val wireTransaction: WireTransaction) : FlowLogic<SignedTransaction>() {
+    private val wireTransaction: WireTransaction) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {
@@ -53,7 +48,7 @@ class SignAndFinalizeTransferOfOwnership(
     @Suspendable
     private fun WireTransaction.toTransactionBuilder(): TransactionBuilder {
         return TransactionBuilder(
-            notary = lockStateAndRef.state.data.controllingNotary,
+            notary = this.notary!!,
             inputs = this.inputs.toMutableList(),
             attachments = this.attachments.toMutableList(),
             outputs = this.outputs.toMutableList(),

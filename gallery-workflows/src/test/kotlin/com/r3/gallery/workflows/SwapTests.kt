@@ -1,12 +1,13 @@
 package com.r3.gallery.workflows
 
 import com.r3.corda.lib.tokens.money.USD
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.ArtworkOwnership
 import com.r3.gallery.states.ArtworkState
-import com.r3.gallery.utils.getTransactionSignatureForParty
+import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
-import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.getOrThrow
@@ -53,23 +54,7 @@ class SwapTests {
     }
 
     @Test
-    fun `can issue artwork items`() {
-        val flow = IssueArtworkFlow(description = "test artwork", url = "http://www.google.com")
-        val future: Future<UniqueIdentifier> = seller.startFlow(flow)
-        network.runNetwork()
-
-        val artworkId = future.getOrThrow()
-        val inputCriteria: QueryCriteria = QueryCriteria.VaultQueryCriteria().withStatus(Vault.StateStatus.UNCONSUMED)
-        val state = seller.services.vaultService.queryBy(ArtworkState::class.java, inputCriteria)
-            .states.singleOrNull { x -> x.state.data.linearId == artworkId }.let { x -> x!!.state.data }
-
-        assertNotNull(state)
-        assertEquals("test artwork", state.description)
-        assertEquals("http://www.google.com", state.url)
-    }
-
-    @Test
-    fun `share offer of encumbered tokens fungible tokens`() {
+    fun `swap steps`() {
         val artworkId = issueArtwork(seller)
         val sellerParty = seller.info.chooseIdentity()
         val buyer1Party = buyer1.info.chooseIdentity()
@@ -82,19 +67,18 @@ class SwapTests {
             network.runNetwork()
         }.getOrThrow()
 
-        val lockStateAndRef =
+        val lockStateRef =
             buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10.USD)).apply {
                 network.runNetwork()
             }.getOrThrow()
 
-        val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(lockStateAndRef, artTransferTx)).apply {
+        val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx)).apply {
             network.runNetwork()
         }.getOrThrow()
 
-        val controllingNotary = lockStateAndRef.state.data.controllingNotary
-        val requiredSignature = signedArtTransferTx.getTransactionSignatureForParty(controllingNotary)
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
 
-        seller.startFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature)).apply {
+        seller.startFlow(UnlockEncumberedTokensFlow(lockStateRef, requiredSignature)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -110,7 +94,7 @@ class SwapTests {
     }
 
     @Test
-    fun `can perform swap`() {
+    fun `can perform swap over x-network`() {
         val artworkId = issueArtwork(seller)
         val sellerParty = seller.info.chooseIdentity()
         val buyer1Party = buyer1.info.chooseIdentity()
@@ -121,14 +105,18 @@ class SwapTests {
 
         // ControllerService::PlaceBid [
 
-        val artTransferTx = buyer1.startFlow(PlaceBidFlow(sellerParty, artworkId, 10.USD)).apply {
+        // bidder/art-net <-> gallery/art-net (*)
+        val artTransferTx = buyer1.startFlow(PlaceBidFlow(sellerParty, artworkId, 10, USD.tokenIdentifier)).apply {
             network.runNetwork()
         }.getOrThrow()
 
-        val lockStateAndRef =
-            buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10.USD)).apply {
+        // bidder/token-net <-> gallery/token-net
+        val lockStateRef =
+            buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10, USD.tokenIdentifier)).apply {
                 network.runNetwork()
             }.getOrThrow()
+// encumberedtokens
+        // controllingNotary, txHash, lockstate output index
 
         // ] ControllerService::PlaceBid
 
@@ -136,14 +124,16 @@ class SwapTests {
 
         // ControllerService::AcceptBid [
 
-        val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(lockStateAndRef, artTransferTx)).apply {
+        // gallery/art-net <-> bidder/art-net  (*)
+        val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx)).apply {
             network.runNetwork()
         }.getOrThrow()
 
-        val controllingNotary = lockStateAndRef.state.data.controllingNotary
-        val requiredSignature = signedArtTransferTx.getTransactionSignatureForParty(controllingNotary)
 
-        seller.startFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature)).apply {
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
+
+        // gallery/token-net <-> bidder/token-net
+        seller.startFlow(UnlockEncumberedTokensFlow(lockStateRef, requiredSignature)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -207,10 +197,11 @@ class SwapTests {
         assertEquals(11.USD, buyer2Balance)
     }
 
-    private fun issueArtwork(node: StartedMockNode): UniqueIdentifier {
+    private fun issueArtwork(node: StartedMockNode): ArtworkOwnership {
         val epoch = Instant.now().epochSecond
-        val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
-        val future: Future<UniqueIdentifier> = node.startFlow(flow)
+        //val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
+        val flow = IssueArtworkFlow(ArtworkId.randomUUID())
+        val future: Future<ArtworkOwnership> = node.startFlow(flow)
         network.runNetwork()
         return future.getOrThrow()
     }

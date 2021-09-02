@@ -19,11 +19,17 @@ import java.time.Instant
 
 @InitiatingFlow
 @StartableByRPC
-class SendDraftTransferOfOwnershipFlow(
-    val artworkId: UniqueIdentifier,
+class CreateDraftTransferOfOwnershipFlow(
+    val artworkLinearId: UniqueIdentifier,
     val partyToTransferTo: Party,
     val validityInMinutes: Long = 10
 ) : FlowLogic<WireTransaction>() {
+
+//    constructor(bidderParty: AbstractParty, ownership: ArtworkOwnership, validityInMinutes: Long = 10) : this(
+//        UniqueIdentifier.fromString(ownership.cordaReference.toString()),
+//        bidderParty,
+//        validityInMinutes
+//    )
 
     override val progressTracker = ProgressTracker()
 
@@ -32,14 +38,14 @@ class SendDraftTransferOfOwnershipFlow(
 
         val artworkStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
         val artworkStateAndRef =
-            requireNotNull(artworkStates.states.singleOrNull { it.state.data.linearId == artworkId }) {
-                "Unable to find an artwork state by the id: $artworkId"
+            requireNotNull(artworkStates.states.singleOrNull { it.state.data.linearId == artworkLinearId }) {
+                "Unable to find an artwork state by the id: $artworkLinearId"
             }
         val artworkState = artworkStateAndRef.state.data
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
         val wireTx = with(TransactionBuilder(notary)) {
             addInputState(artworkStateAndRef)
-            addOutputState(artworkState.transferOwnershipTo(partyToTransferTo), ArtworkContract.ARTWORK_CONTRACT_ID)
+            addOutputState(artworkState.withNewOwner(partyToTransferTo), ArtworkContract.ID)
             addCommand(ArtworkContract.Commands.TransferOwnership(), ourIdentity.owningKey, partyToTransferTo.owningKey)
             setTimeWindow(TimeWindow.untilOnly(Instant.now().plus(Duration.ofMinutes(validityInMinutes))))
         }.also { it.verify(serviceHub) }.toWireTransaction(serviceHub)
@@ -65,13 +71,13 @@ class SendDraftTransferOfOwnershipFlow(
     }
 }
 
-@InitiatedBy(SendDraftTransferOfOwnershipFlow::class)
+@InitiatedBy(CreateDraftTransferOfOwnershipFlow::class)
 class SendDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : FlowLogic<Unit>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): Unit {
+    override fun call() {
 
         val wireTx = otherSession.receive<WireTransaction>().unwrap { it }
         val txMerkleTree = wireTx.generateWireTransactionMerkleTree()
