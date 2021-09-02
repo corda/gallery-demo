@@ -19,6 +19,8 @@ dependencies {
 
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
+    cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+    cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
 }
 
 sourceSets {
