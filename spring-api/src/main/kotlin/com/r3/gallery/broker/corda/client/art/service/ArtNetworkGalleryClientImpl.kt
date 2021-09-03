@@ -75,7 +75,7 @@ class ArtNetworkGalleryClientImpl(
     /**
      * Simple shorthand for describing connection id in terms of node vs network
      */
-    internal fun ArtworkParty.network() : RPCConnectionId
+    internal fun ArtworkParty.network() : RpcConnectionTarget
         = (this + CordaRPCNetwork.AUCTION.toString())
             .also { idExists(it) } // check validity
 

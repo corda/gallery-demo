@@ -1,14 +1,16 @@
 package com.r3.gallery.broker.corda.client.art.service
 
-import com.r3.gallery.broker.corda.client.api.CordaRPCNetwork
-import com.r3.gallery.broker.corda.client.api.RpcConnectionTarget
+import com.r3.gallery.api.CordaRPCNetwork
+import com.r3.gallery.api.RpcConnectionTarget
 import com.r3.gallery.broker.corda.client.config.ClientProperties
 import net.corda.client.rpc.*
 import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.flows.FlowLogic
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 /**
  * Generic class for handling RPCClient connections and node interactions
@@ -96,11 +98,17 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     }
 
     /**
+     * Checks if a proposed rpcConnectionId exists based on network configurations
+     */
+    protected fun idExists(rpcConnectionTarget: RpcConnectionTarget)
+        = require(rpcTargetToCordaRpcClientsMap!!.containsKey(rpcConnectionTarget))
+
+    /**
      * Simple shorthand for describing connection id in terms of node vs network
      */
     protected infix fun String.idOn(network: String) : RpcConnectionTarget {
         val id = this + network.toUpperCase()
-        require(rpcTargetToCordaRpcClientsMap!!.containsKey(id))
+        idExists(id)
         return id
     }
     /**
@@ -143,7 +151,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     /**
      * Executes the RPC command against a target connection
      */
-    protected fun <A> execute(target: RpcConnectionTarget, block: (CordaRPCConnection) -> A): A {
+    private fun <A> execute(target: RpcConnectionTarget, block: (CordaRPCConnection) -> A): A {
         val sessionId = target.connect() // open
         val result = block(sessions[sessionId]!!) // execute
         sessionId.disconnect() // close
@@ -153,7 +161,7 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     /**
      * Starts a flow on the given RPC connection
      */
-    protected fun <T> RPCConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
+    protected fun <T> RpcConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
         return execute(this) { connections ->
             connections.proxy.startFlowDynamic(
                 logicType,
