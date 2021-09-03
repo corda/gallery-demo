@@ -22,7 +22,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     }
 
     @PutMapping("/issue-artwork")
-    suspend fun issueArtwork(
+    fun issueArtwork(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: String
     ) : ResponseEntity<ArtworkOwnership> {
@@ -32,7 +32,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     }
 
     @GetMapping("/list-available-artworks")
-    suspend fun listAvailableArtworks(
+    fun listAvailableArtworks(
         @RequestParam("galleryParty") galleryParty: ArtworkParty
     ) : ResponseEntity<List<ArtworkId>> {
         logger.info("Request of artwork listing of $galleryParty")
@@ -41,7 +41,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     }
 
     @PutMapping("/create-artwork-transfer-tx")
-    suspend fun createArtworkTransferTx(
+    fun createArtworkTransferTx(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("bidderParty") bidderParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: String,
@@ -54,7 +54,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     }
 
     @PutMapping("/finalise-artwork-trans")
-    suspend fun finaliseArtworkTransfer(
+    fun finaliseArtworkTransfer(
         galleryParty: ArtworkParty,
         unsignedArtworkTransferTx: UnsignedArtworkTransferTx
     ) : ResponseEntity<ProofOfTransferOfOwnership> {

@@ -19,7 +19,7 @@ open class AtomicSwapService(
     private val galleryParty = identityRegistry.getArtworkParty(GALLERY)
     private val sellerParty = identityRegistry.getTokenParty(GALLERY)
 
-    suspend fun bidForArtwork(bidderName: String, artworkId: ArtworkId, bidAmount: Int): BidReceipt {
+    fun bidForArtwork(bidderName: String, artworkId: ArtworkId, bidAmount: Int): BidReceipt {
         val bidderParty = identityRegistry.getArtworkParty(bidderName)
         val buyerParty = identityRegistry.getTokenParty(bidderName)
 
@@ -35,14 +35,14 @@ open class AtomicSwapService(
      *
      * @return Details of the sale, with transaction ids for both legs of the swap.
      */
-    suspend fun awardArtwork(bid: BidReceipt): SaleReceipt {
+    fun awardArtwork(bid: BidReceipt): SaleReceipt {
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
         val tokenTxId = sellerClient.claimTokens(sellerParty, bid.encumberedTokens, proofOfTransfer)
 
         return SaleReceipt(bid.bidderName, bid.artworkId, proofOfTransfer.transactionId, tokenTxId)
     }
 
-    suspend fun cancelBid(bid: BidReceipt): CancellationReceipt {
+    fun cancelBid(bid: BidReceipt): CancellationReceipt {
         val tokenTxId = sellerClient.releaseTokens(
             sellerParty,
             identityRegistry.getTokenParty(bid.bidderName),

@@ -28,7 +28,7 @@ class ArtNetworkGalleryClientImpl(
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    override suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership {
+    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
         return galleryParty.network().startFlow(IssueArtworkFlow::class.java, artworkId)
     }
@@ -36,7 +36,7 @@ class ArtNetworkGalleryClientImpl(
     /**
      * List out the artworks still held by the gallery.
      */
-    override suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
+    override fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
         logger.info("Starting ListAvailableArtworks flow via $galleryParty")
         return galleryParty.network().startFlow(ListAvailableArtworks::class.java, galleryParty)
     }
@@ -47,7 +47,7 @@ class ArtNetworkGalleryClientImpl(
      *
      * @return The unsigned fulfilment transaction
      */
-    override suspend fun createArtworkTransferTx(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
+    override fun createArtworkTransferTx(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
         logger.info("Starting CreateArtworkTransferTx flow via $galleryParty with bidder: $bidderParty for ownership $galleryOwnership")
         return galleryParty.network().startFlow(CreateArtworkTransferTx::class.java, bidderParty, galleryOwnership)
     }
@@ -57,7 +57,7 @@ class ArtNetworkGalleryClientImpl(
      *
      * @return Proof that ownership of the artwork has been transferred.
      */
-    override suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
+    override fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
         logger.info("Starting FinaliseArtworkTransferTx flow via $galleryParty for $unsignedArtworkTransferTx")
         return galleryParty.network().startFlow(FinaliseArtworkTransferTx::class.java, unsignedArtworkTransferTx)
     }
@@ -65,7 +65,7 @@ class ArtNetworkGalleryClientImpl(
     /**
      * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
      */
-    override suspend fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
+    override fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
         logger.info("Fetching ownership record for $galleryParty with artworkId: $artworkId")
         return galleryParty.artworkIdToState(artworkId).let {
             ArtworkOwnership(it.linearId.id, it.artworkId, it.owner.nameOrNull().toString())

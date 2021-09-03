@@ -47,7 +47,7 @@ class NetworkToolsController(
      * TODO: add jackson model for NodeInfo rather than string
      */
     @GetMapping("/nodes")
-    suspend fun nodes(
+    fun nodes(
         @RequestParam("networks", required = false) networks: List<String>?
     ): ResponseEntity<String> {
         val nodes = networkClients.flatMap {

@@ -89,9 +89,14 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         }
         throw RPCException("Unable to establish connection to $target")
     }
-    // extension function variation
+
+    // extension function variation returns a given connection if exists otherwise creates a new connection
     @JvmName("connectExtension")
-    private fun RpcConnectionTarget.connect() : UniqueIdentifier = connect(this)
+    private fun RpcConnectionTarget.connect() : UniqueIdentifier {
+        return sessions.keys.firstOrNull { it.externalId == this } ?: connect(this)
+    }
+
+    // extension function to disconnect a session and remove from list
     private fun UniqueIdentifier.disconnect() {
         this.session()?.close()
         sessions.remove(this)
@@ -149,17 +154,15 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     }
 
     /**
-     * Executes the RPC command against a target connection
+     * Executes the RPC command against a target connection using existing connection if avail
      */
     private fun <A> execute(target: RpcConnectionTarget, block: (CordaRPCConnection) -> A): A {
         val sessionId = target.connect() // open
-        val result = block(sessions[sessionId]!!) // execute
-        sessionId.disconnect() // close
-        return result
+        return block(sessions[sessionId]!!) // execute
     }
 
     /**
-     * Starts a flow on the given RPC connection
+     * Starts a flow via rpc against a target
      */
     protected fun <T> RpcConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
         return execute(this) { connections ->

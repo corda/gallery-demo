@@ -7,12 +7,12 @@ import com.r3.gallery.api.TokenParty
 
 interface TokenNetworkSellerClient {
 
-    suspend fun claimTokens(
+    fun claimTokens(
         sellerParty: TokenParty,
         encumberedTokens: EncumberedTokens,
         proofOfTransfer: ProofOfTransferOfOwnership): CordaReference
 
-    suspend fun releaseTokens(
+    fun releaseTokens(
         sellerParty: TokenParty,
         buyer: TokenParty,
         encumberedTokens: EncumberedTokens): CordaReference
