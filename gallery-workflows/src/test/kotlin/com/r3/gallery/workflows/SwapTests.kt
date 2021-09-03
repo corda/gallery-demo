@@ -52,6 +52,13 @@ class SwapTests {
     fun tearDown() {
         network.stopNodes()
     }
+    @Test
+    fun `can issue artwork`() {
+        //val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
+        val flow = IssueArtworkFlow(ArtworkId.randomUUID())
+        val artworkOwnership = seller.startFlow(flow).also { network.runNetwork() }.getOrThrow()
+        // TODO
+    }
 
     @Test
     fun `swap steps`() {

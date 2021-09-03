@@ -30,6 +30,22 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return ResponseEntity.status(HttpStatus.OK).body(artworkOwnership)
     }
 
+    @PutMapping("/test-endpoint")
+    suspend fun testEndpoint() : ResponseEntity<String> {
+        var result = ""
+        val galleryParties = listOf("O=Alice,L=London,C=GB", "O=Bob,L=San Francisco,C=US", "O=Charlie,L=Mumbai,C=IN")
+        for(galleryParty in galleryParties) {
+            try {
+                val artworkId = ArtworkId.randomUUID()
+                val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId)
+                result += "${artworkOwnership}\r\n"
+            } catch (e: Exception) {
+                result += "${e.message}\r\n"
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(result)
+    }
+
     @GetMapping("/list-available-artworks")
     suspend fun listAvailableArtworks(
         @RequestParam("galleryParty") galleryParty: ArtworkParty
