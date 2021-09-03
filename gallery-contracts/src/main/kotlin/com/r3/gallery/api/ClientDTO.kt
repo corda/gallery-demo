@@ -1,5 +1,6 @@
 package com.r3.gallery.api
 
+import net.corda.core.serialization.CordaSerializable
 import java.util.*
 
 /**
@@ -32,6 +33,7 @@ typealias TokenParty = String
  * Represents a state on the art network, identified by [cordaReference], which grants ownership
  * of the artwork identified by [artworkId] to the owner identified by [artworkOwner]
  */
+@CordaSerializable
 data class ArtworkOwnership(
     val cordaReference: CordaReference,
     val artworkId: ArtworkId,

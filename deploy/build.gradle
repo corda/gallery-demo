@@ -126,7 +126,7 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
         cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -222,7 +222,7 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
         cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -299,7 +299,7 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
         cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
