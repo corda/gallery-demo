@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import java.lang.IllegalStateException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import javax.annotation.PreDestroy
 
 /**
  * Generic class for handling RPCClient connections and node interactions
@@ -194,5 +195,16 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
             (networkParty + associatedNetwork.toString())
                 .also { idExists(it) } // check validity
         } ?: throw IllegalStateException("Cannot target a rpc connection without setting the associatedNetwork of ${this::class.simpleName}")
+    }
+
+    /**
+     * Function that runs as cleanup
+     * It is used to notify each corda node about the connection's termination
+     */
+    @PreDestroy
+    private fun closeConnections() {
+        sessions.keys.forEach {
+            it.disconnect()
+        }
     }
 }
