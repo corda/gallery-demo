@@ -1,8 +1,8 @@
-package com.r3.gallery.broker.corda.client.art.service
+package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.*
-import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
-import com.r3.gallery.broker.corda.client.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.CreateArtworkTransferTx
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.FinaliseArtworkTransferTx
@@ -13,16 +13,27 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import javax.annotation.PostConstruct
 
 @Component
-class ArtNetworkGalleryClientImpl(
+class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
+
+    private lateinit var artNetworkGalleryCS: ConnectionServiceImpl
+
     @Autowired
     @Qualifier("ArtNetworkGalleryProperties")
-    clientProperties: ClientProperties
-) : NodeClient(clientProperties), ArtNetworkGalleryClient {
+    private lateinit var artNetworkGalleryProperties: ClientProperties
+
+    // init client and set associated network
+    @PostConstruct
+    private fun postConstruct() {
+        artNetworkGalleryCS = ConnectionServiceImpl(artNetworkGalleryProperties)
+        artNetworkGalleryCS.associatedNetwork = network
+    }
 
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryClientImpl::class.java)
+        private val network = CordaRPCNetwork.AUCTION
     }
 
     /**
@@ -30,7 +41,7 @@ class ArtNetworkGalleryClientImpl(
      */
     override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
-        return galleryParty.network().startFlow(IssueArtworkFlow::class.java, artworkId)
+        return artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId)
     }
 
     /**
@@ -38,7 +49,7 @@ class ArtNetworkGalleryClientImpl(
      */
     override fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
         logger.info("Starting ListAvailableArtworks flow via $galleryParty")
-        return galleryParty.network().startFlow(ListAvailableArtworks::class.java, galleryParty)
+        return artNetworkGalleryCS.startFlow(galleryParty, ListAvailableArtworks::class.java, galleryParty)
     }
 
     /**
@@ -49,7 +60,7 @@ class ArtNetworkGalleryClientImpl(
      */
     override fun createArtworkTransferTx(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
         logger.info("Starting CreateArtworkTransferTx flow via $galleryParty with bidder: $bidderParty for ownership $galleryOwnership")
-        return galleryParty.network().startFlow(CreateArtworkTransferTx::class.java, bidderParty, galleryOwnership)
+        return artNetworkGalleryCS.startFlow(galleryParty, CreateArtworkTransferTx::class.java, bidderParty, galleryOwnership)
     }
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
@@ -59,7 +70,7 @@ class ArtNetworkGalleryClientImpl(
      */
     override fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
         logger.info("Starting FinaliseArtworkTransferTx flow via $galleryParty for $unsignedArtworkTransferTx")
-        return galleryParty.network().startFlow(FinaliseArtworkTransferTx::class.java, unsignedArtworkTransferTx)
+        return artNetworkGalleryCS.startFlow(galleryParty, FinaliseArtworkTransferTx::class.java, unsignedArtworkTransferTx)
     }
 
     /**
@@ -73,24 +84,10 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * Simple shorthand for describing connection id in terms of node vs network
-     */
-    internal fun ArtworkParty.network() : RpcConnectionTarget
-        = (this + CordaRPCNetwork.AUCTION.toString())
-            .also { idExists(it) } // check validity
-
-    /**
      * Returns the ArtworkState associated with the ArtworkId
      */
     internal fun ArtworkParty.artworkIdToState(artworkId: ArtworkId): ArtworkState {
         logger.info("Fetching ArtworkState for artworkId $artworkId")
-        return network().startFlow(ArtworkIdToState::class.java, artworkId)
-    }
-
-    /**
-     * Returns the ArtworkState associated with the CordaReference
-     */
-    internal fun ArtworkParty.artworkIdToCordaReference(artworkId: ArtworkId): CordaReference {
-        return artworkIdToState(artworkId).linearId.id
+        return artNetworkGalleryCS.startFlow(this, ArtworkIdToState::class.java, artworkId)
     }
 }

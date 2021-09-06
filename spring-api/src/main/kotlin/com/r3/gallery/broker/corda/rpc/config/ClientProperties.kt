@@ -1,4 +1,4 @@
-package com.r3.gallery.broker.corda.client.config
+package com.r3.gallery.broker.corda.rpc.config
 
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.RpcConnectionTarget

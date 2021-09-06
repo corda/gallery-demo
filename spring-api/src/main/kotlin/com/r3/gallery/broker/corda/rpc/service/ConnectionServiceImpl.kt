@@ -1,27 +1,35 @@
-package com.r3.gallery.broker.corda.client.art.service
+package com.r3.gallery.broker.corda.rpc.service
 
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.RpcConnectionTarget
-import com.r3.gallery.broker.corda.client.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import net.corda.client.rpc.*
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
+import java.lang.IllegalStateException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 /**
  * Generic class for handling RPCClient connections and node interactions
  */
-abstract class NodeClient(private val clientProperties: ClientProperties) {
+class ConnectionServiceImpl(private val clientProperties: ClientProperties) : ConnectionService {
+
     companion object {
-        private val logger = LoggerFactory.getLogger(NodeClient::class.java)
+        private val logger = LoggerFactory.getLogger(ConnectionServiceImpl::class.java)
 
         private const val MINIMUM_SERVER_PROTOCOL_VERSION = 4
         const val TIMEOUT = 30L
     }
+
+    /**
+     * Corda network which this connection service handles RPC towards.
+     * - Should set as quickly as possible after init as needed to resolve rpcConnectionTargets
+     */
+    override var associatedNetwork: CordaRPCNetwork? = null
 
     /**
      * Clients mapped from configurations
@@ -29,13 +37,13 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     private var rpcTargetToCordaRpcClientsMap: Map<RpcConnectionTarget, CordaRPCClient>? = null
 
     /**
-     * Store sessions: UniqueIdentifier [UUID, RpcConnectionTarget] / ConnectionInstance
+     * Store sessions: UniqueIdentifier [UUID, RpcConnectionTarget] / Connection Instance
      * Each request will open-close new unique session
      */
-    private var sessions: MutableMap<UniqueIdentifier, CordaRPCConnection> = ConcurrentHashMap()
+    override var sessions: MutableMap<UniqueIdentifier, CordaRPCConnection> = ConcurrentHashMap()
 
     init {
-        // Establish clients for all available destinations
+        // Establish clients for all available destinations in client properties
         rpcTargetToCordaRpcClientsMap = clientProperties.clients.associate {
             val currentClient = CordaRPCClient(
                 NetworkHostAndPort.parse(it.nodeUrl),
@@ -48,13 +56,13 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     /**
      * Returns all live target connections to node based on destination
      */
-    private fun RpcConnectionTarget.sessions(): Map<UniqueIdentifier, CordaRPCConnection> {
+    override fun RpcConnectionTarget.sessions(): Map<UniqueIdentifier, CordaRPCConnection> {
         return sessions.filterKeys { it.externalId == this }
     }
 
     /**
      * Returns connection for a single session
-     * - possibly null do to onDisconnect hook from serverside disconnect
+     * - possibly null due to onDisconnect hook from serverside disconnect
      */
     private fun UniqueIdentifier.session(): CordaRPCConnection? {
         return sessions[this]
@@ -96,8 +104,8 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         return sessions.keys.firstOrNull { it.externalId == this } ?: connect(this)
     }
 
-    // extension function to disconnect a session and remove from list
-    private fun UniqueIdentifier.disconnect() {
+    // extension function to disconnect a session and remove from sessions list
+    override fun UniqueIdentifier.disconnect() {
         this.session()?.close()
         sessions.remove(this)
     }
@@ -105,25 +113,25 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     /**
      * Checks if a proposed rpcConnectionId exists based on network configurations
      */
-    protected fun idExists(rpcConnectionTarget: RpcConnectionTarget)
+    private fun idExists(rpcConnectionTarget: RpcConnectionTarget)
         = require(rpcTargetToCordaRpcClientsMap!!.containsKey(rpcConnectionTarget))
 
     /**
      * Simple shorthand for describing connection id in terms of node vs network
      */
-    protected infix fun String.idOn(network: String) : RpcConnectionTarget {
+    override infix fun String.idOn(network: String) : RpcConnectionTarget {
         val id = this + network.toUpperCase()
         idExists(id)
         return id
     }
+
     /**
      * Returns NodeInfos for all configured nodes.
      *
      * @param networks optional list of networks to filter on
-     * @param dev default = false; rather than utilizing network map fetches across
-     * individual connections (useful for test).
+     * @param dev default = false; rather than utilizing network map fetches across individual connections
      */
-    fun getNodes(networks: List<CordaRPCNetwork>? = null, dev: Boolean = false) : List<NodeInfo> {
+    override fun getNodes(networks: List<CordaRPCNetwork>?, dev: Boolean) : List<NodeInfo> {
         // filter to networks if necessary
         val targetRpcIds = if (!networks.isNullOrEmpty()) {
             clientProperties.clients.rpcIdsByNetwork(networks)
@@ -149,14 +157,14 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
      * Optional initialization invoked when a connection is made to a node.
      * @param node [RpcConnectionTarget] of the node which has just connected
      */
-    open fun initializeNodeService(node: RpcConnectionTarget) {
+    override fun initializeNodeService(node: RpcConnectionTarget) {
         logger.info("Starting node service $node")
     }
 
     /**
      * Executes the RPC command against a target connection using existing connection if avail
      */
-    private fun <A> execute(target: RpcConnectionTarget, block: (CordaRPCConnection) -> A): A {
+    override fun <A> execute(target: RpcConnectionTarget, block: (CordaRPCConnection) -> A): A {
         val sessionId = target.connect() // open
         return block(sessions[sessionId]!!) // execute
     }
@@ -164,12 +172,27 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
     /**
      * Starts a flow via rpc against a target
      */
-    protected fun <T> RpcConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
+    override fun <T> startFlow(networkParty: String, logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
+        return getConnectionTarget(networkParty).startFlow(logicType, args)
+    }
+    @JvmName("startFlowExtension")
+    fun <T> RpcConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
         return execute(this) { connections ->
             connections.proxy.startFlowDynamic(
                 logicType,
                 *args
             )
         }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
+    }
+
+    /**
+     * Simple shorthand for describing connection id in terms of node vs network
+     * @return RpcConnectionTarget and checks the target exists through the client list
+     */
+    private fun getConnectionTarget(networkParty: String): RpcConnectionTarget {
+        return associatedNetwork?.let {
+            (networkParty + associatedNetwork.toString())
+                .also { idExists(it) } // check validity
+        } ?: throw IllegalStateException("Cannot target a rpc connection without setting the associatedNetwork of ${this::class.simpleName}")
     }
 }

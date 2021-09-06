@@ -1,9 +1,9 @@
-package com.r3.gallery.broker.corda.client.art.service
+package com.r3.gallery.broker.corda.rpc.service
 
 
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.RpcConnectionTarget
-import com.r3.gallery.broker.corda.client.config.NetworkClientConfig
+import com.r3.gallery.broker.corda.rpc.config.NetworkClientConfig
 
 /**
  * Returns RPCConnectionId filtered on Corda Network membership
