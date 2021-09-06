@@ -2,6 +2,7 @@ package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.broker.corda.rpc.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,7 +13,7 @@ import javax.annotation.PostConstruct
 @Component
 class ArtNetworkBidderClientImpl : ArtNetworkBidderClient {
 
-    private lateinit var artNetworkBidderCS: ConnectionServiceImpl
+    private lateinit var artNetworkBidderCS: ConnectionService
 
     @Autowired
     @Qualifier("ArtNetworkBidderProperties")

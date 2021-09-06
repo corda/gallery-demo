@@ -2,6 +2,7 @@ package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.workflows.webapp.artnetwork.gallery.CreateArtworkTransferTx
@@ -18,7 +19,7 @@ import javax.annotation.PostConstruct
 @Component
 class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
 
-    private lateinit var artNetworkGalleryCS: ConnectionServiceImpl
+    private lateinit var artNetworkGalleryCS: ConnectionService
 
     @Autowired
     @Qualifier("ArtNetworkGalleryProperties")
