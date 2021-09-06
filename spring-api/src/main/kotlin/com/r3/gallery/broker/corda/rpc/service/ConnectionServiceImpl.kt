@@ -106,7 +106,7 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
 
     // extension function to disconnect a session and remove from sessions list
     override fun UniqueIdentifier.disconnect() {
-        this.session()?.close()
+        this.session()?.notifyServerAndClose()
         sessions.remove(this)
     }
 
