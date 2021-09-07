@@ -181,15 +181,6 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
             )
         }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
     }
-//    @JvmName("startFlowExtension")
-//    fun <T> RpcConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
-//        return execute(this) { connections ->
-//            connections.proxy.startFlowDynamic(
-//                logicType,
-//                *args
-//            )
-//        }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
-//    }
 
     /**
      * Simple shorthand for describing connection id in terms of node vs network
