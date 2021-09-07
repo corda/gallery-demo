@@ -174,17 +174,22 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
      * Starts a flow via rpc against a target
      */
     override fun <T> startFlow(networkParty: String, logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
-        return getConnectionTarget(networkParty).startFlow(logicType, args)
-    }
-    @JvmName("startFlowExtension")
-    fun <T> RpcConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
-        return execute(this) { connections ->
+        return execute(getConnectionTarget(networkParty)) { connections ->
             connections.proxy.startFlowDynamic(
                 logicType,
                 *args
             )
         }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
     }
+//    @JvmName("startFlowExtension")
+//    fun <T> RpcConnectionTarget.startFlow(logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
+//        return execute(this) { connections ->
+//            connections.proxy.startFlowDynamic(
+//                logicType,
+//                *args
+//            )
+//        }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
+//    }
 
     /**
      * Simple shorthand for describing connection id in terms of node vs network

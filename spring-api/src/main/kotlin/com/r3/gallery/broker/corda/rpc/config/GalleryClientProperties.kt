@@ -21,7 +21,7 @@ class ArtNetworkGalleryProperties(properties: RpcProperties) : ClientProperties 
         )
 }
 
-@Component("TokenNetworkGalleryProperties")
+@Component("TokenNetworkSellerProperties")
 class TokenNetworkGalleryProperties(properties: RpcProperties) : ClientProperties {
     override var clients: List<NetworkClientConfig> =
         listOf(
