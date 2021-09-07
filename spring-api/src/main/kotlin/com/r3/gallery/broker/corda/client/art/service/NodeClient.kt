@@ -8,6 +8,7 @@ import net.corda.client.rpc.CordaRPCClientConfiguration
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.client.rpc.GracefulReconnect
 import net.corda.core.flows.FlowLogic
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
@@ -135,9 +136,9 @@ abstract class NodeClient(private val clientProperties: ClientProperties) {
         }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
     }
 
-    fun RPCConnectionId.wellKnownPartyFromName(name: String): Party {
+    fun RPCConnectionId.wellKnownPartyFromName(name: String): Party? {
         return execute(this) { connections ->
-            connections.proxy.partiesFromName(name, true).first()
+            connections.proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(name))
         }
     }
 }

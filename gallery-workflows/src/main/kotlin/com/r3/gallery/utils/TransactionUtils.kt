@@ -20,34 +20,43 @@ fun WireTransaction.getDependencies(): Set<SecureHash> {
 @Suspendable
 fun WireTransaction.generateWireTransactionMerkleTree(): MerkleTree {
     val availableComponentNonces: Map<Int, List<SecureHash>> by lazy {
-        this.componentGroups.map {
-            Pair(it.groupIndex, it.components.mapIndexed { internalIndex, internalIt ->
-                componentHash(internalIt, this.privacySalt, it.groupIndex, internalIndex)
-            })
-        }.toMap()
+        componentGroups.associate {
+            it.groupIndex to it.components.mapIndexed { internalIndex, internalIt ->
+                digestService.componentHash(
+                    internalIt,
+                    privacySalt,
+                    it.groupIndex,
+                    internalIndex
+                )
+            }
+        }
     }
 
-    val availableComponentHashes = this.componentGroups.map {
-        Pair(it.groupIndex, it.components.mapIndexed { internalIndex, internalIt ->
-            componentHash(availableComponentNonces[it.groupIndex]!![internalIndex], internalIt)
-        })
-    }.toMap()
+    val availableComponentHashes: Map<Int, List<SecureHash>> by lazy {
+        componentGroups.associate {
+            it.groupIndex to it.components.mapIndexed { internalIndex, internalIt ->
+                digestService.componentHash(
+                    availableComponentNonces[it.groupIndex]!![internalIndex],
+                    internalIt
+                )
+            }
+        }
+    }
 
     val groupsMerkleRoots: Map<Int, SecureHash> by lazy {
-        availableComponentHashes.map {
-            Pair(it.key, MerkleTree.getMerkleTree(it.value).hash)
-        }.toMap()
+        availableComponentHashes.entries.associate { it.key to MerkleTree.getMerkleTree(it.value, digestService).hash }
     }
+
     val groupHashes: List<SecureHash> by lazy {
         val listOfLeaves = mutableListOf<SecureHash>()
-        // Even if empty and not used, we should at least send oneHashes for each known
-        // or received but unknown (thus, bigger than known ordinal) component groups.
-        for (i in 0..this.componentGroups.map { it.groupIndex }.maxOrNull()!!) {
-            val root = groupsMerkleRoots[i] ?: SecureHash.allOnesHash
+        val allOnesHash = digestService.allOnesHash
+        for (i in 0..componentGroups.map { it.groupIndex }.max()!!) {
+            val root = groupsMerkleRoots[i] ?: allOnesHash
             listOfLeaves.add(root)
         }
         listOfLeaves
     }
+
     return MerkleTree.getMerkleTree(groupHashes)
 }
 

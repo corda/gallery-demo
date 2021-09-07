@@ -31,22 +31,6 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return ResponseEntity.status(HttpStatus.OK).body(artworkOwnership)
     }
 
-    @PutMapping("/test-endpoint")
-    suspend fun testEndpoint() : ResponseEntity<String> {
-        var result = ""
-        val galleryParties = listOf("O=Alice,L=London,C=GB", "O=Bob,L=San Francisco,C=US", "O=Charlie,L=Mumbai,C=IN")
-        for(galleryParty in galleryParties) {
-            try {
-                val artworkId = ArtworkId.randomUUID()
-                val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId)
-                result += "${artworkOwnership}\r\n"
-            } catch (e: Exception) {
-                result += "${e.message}\r\n"
-            }
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(result)
-    }
-
     @GetMapping("/list-available-artworks")
     suspend fun listAvailableArtworks(
         @RequestParam("galleryParty") galleryParty: ArtworkParty
@@ -58,14 +42,14 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
 
     @PutMapping("/create-artwork-transfer-tx")
     suspend fun createArtworkTransferTx(
-        @RequestParam("galleryParty") galleryParty: ArtworkParty,
-        @RequestParam("bidderParty") bidderParty: ArtworkParty,
-        @RequestParam("artworkId") artworkId: String,
+        @RequestParam("galleryParty") galleryParty: ArtworkParty? = "O=Alice,L=London,C=GB",
+        @RequestParam("bidderParty") bidderParty: ArtworkParty? = "O=Bob,L=San Francisco,C=US",
+        @RequestParam("artworkId") artworkId: String? = "c0b4a1a8-e11f-42b6-9e7e-bc73d191f38d"
     ) : ResponseEntity<UnsignedArtworkTransferTx> {
         // TODO: Is the DTO for ownership to be provided in full? or shall artworkId be used as is here?
         logger.info("Request to create artwork transfer transaction seller: $galleryParty, bidder: $bidderParty, art: $artworkId")
-        val artworkOwnership = galleryClient.getOwnership(galleryParty, artworkId.toUUID())
-        val artworkTx = galleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
+        val artworkOwnership = galleryClient.getOwnership(galleryParty!!, artworkId!!.toUUID())
+        val artworkTx = galleryClient.createArtworkTransferTx(galleryParty!!, bidderParty!!, artworkOwnership!!)
         return ResponseEntity.status(HttpStatus.OK).body(artworkTx)
     }
 

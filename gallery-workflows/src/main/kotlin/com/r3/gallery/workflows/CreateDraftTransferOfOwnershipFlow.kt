@@ -25,12 +25,6 @@ class CreateDraftTransferOfOwnershipFlow(
     val validityInMinutes: Long = 10
 ) : FlowLogic<WireTransaction>() {
 
-//    constructor(bidderParty: AbstractParty, ownership: ArtworkOwnership, validityInMinutes: Long = 10) : this(
-//        UniqueIdentifier.fromString(ownership.cordaReference.toString()),
-//        bidderParty,
-//        validityInMinutes
-//    )
-
     override val progressTracker = ProgressTracker()
 
     @Suspendable
@@ -59,7 +53,10 @@ class CreateDraftTransferOfOwnershipFlow(
             if (validatedTxDependency == null) {
                 FlowException("Unable to find validated transaction for input: $it")
             }
-            subFlow(SendTransactionFlow(session, validatedTxDependency!!))
+            try { subFlow(SendTransactionFlow(session, validatedTxDependency!!)) } catch(e: Exception) {
+                var m = e.message
+                throw e
+            }
         }
 
         val txOk = session.receive<Boolean>().unwrap { it }
@@ -84,7 +81,7 @@ class SendDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : F
         val txOk = receiveAndVerifyTxDependencies(wireTx) && verifyShareConditions(
             wireTx,
             txMerkleTree
-        ) && verifySharedTx(wireTx) //&& persistTxDetails(wireTx)
+        ) && verifySharedTx(wireTx)
 
         otherSession.send(txOk)
     }
