@@ -220,20 +220,22 @@ class KubernetesDeployment {
         String regcred,
         String namespace,
         String identifier,
-        String image,
+        String imageName,
+        String imageVersion,
         Map<String, String> envStr = null,
         Integer webAppPort = 8080 ->
             List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
-            return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, image, env, webAppPort)
+            return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, imageName, imageVersion, env, webAppPort)
     }
 
     def buildFrontEndDeployment = {
         String regcred,
         String devNamespace,
         String identifier,
-        String imageName
+        String imageName,
+        String imageVersion
             ->
-            return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, devNamespace)
+            return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, imageVersion, devNamespace)
     }
 
     def buildIngressDeployment = { String namespace,

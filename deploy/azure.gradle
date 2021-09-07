@@ -224,6 +224,7 @@ task buildFrontEndAndSpringService(type: DeploymentTask) {
             namespaceName,
             "gallery",
             gallery_webappapi_docker_image_name as String,
+            project.version as String,
             [ // environment variables for application.properties overrides
                     "RPC_USERNAME": "rpcUser",
                     "RPC_PASSWORD": "test",
@@ -240,7 +241,8 @@ task buildFrontEndAndSpringService(type: DeploymentTask) {
             ledgerRegCred as String,
             namespaceName as String,
             "gallery",
-            frontend_docker_image_name as String
+            frontend_docker_image_name as String,
+            project.version as String
     )
     deployments = [springService, frontEnd] as Iterable<Object>
     fileName = "frontEndAndSpring"

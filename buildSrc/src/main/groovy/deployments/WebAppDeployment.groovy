@@ -55,6 +55,7 @@ class WebAppDeployment implements Iterable<Object> {
                                                   String devNamespace,
                                                   String apiId,
                                                   imageName,
+                                                  imageVersion,
                                                   List<V1EnvVar> env = null, // override env for spring config
                                                   Integer webAppPort = 8080 // server port for spring config and service
     ) {
@@ -86,7 +87,7 @@ class WebAppDeployment implements Iterable<Object> {
                 .withImagePullSecrets(new V1LocalObjectReferenceBuilder().withName(regcred).build())
                 .addNewContainer()
                 .withName("${apiId}-webappapi")
-                .withImage("${imageName}")
+                .withImage("${imageName}:${imageVersion}")
                 .withImagePullPolicy("Always")
                 .withPorts(
                         new V1ContainerPortBuilder().withName("webappport").withContainerPort(webAppPort).build(),
