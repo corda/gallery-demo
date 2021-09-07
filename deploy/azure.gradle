@@ -244,7 +244,29 @@ task buildFrontEndAndSpringService(type: DeploymentTask) {
             frontend_docker_image_name as String,
             project.version as String
     )
-    deployments = [springService, frontEnd] as Iterable<Object>
+
+    // create ingress rules for web and front-end
+    List<IngressRule> ingressRules = new ArrayList()
+    ingressRules.add(
+            new IngressRule(
+                    springService.getWebAppDeployment().metadata.name + ingressHostSuffix,
+                    80,
+                    springService.webAppService
+            )
+    )
+    ingressRules.add(
+            new IngressRule(
+                    "swaps" + ingressHostSuffix,
+                    80,
+                    frontEnd.frontEndService
+            )
+    )
+    def frontEndIngress = kdeployment.buildIngressDeployment.call(
+        namespaceName as String,
+        "frontend",
+        ingressRules
+    )
+    deployments = [springService, frontEnd, frontEndIngress] as Iterable<Object>
     fileName = "frontEndAndSpring"
 }
 
