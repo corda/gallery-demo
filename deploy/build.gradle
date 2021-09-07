@@ -118,7 +118,7 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -142,11 +142,16 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
             adminAddress("0.0.0.0:10021")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10022' ],
+                h2Settings: [ address: '0.0.0.0:10022' ],
                 dataSourceProperties: [
                     dataSource: [
                         password: "test"
                     ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5000"
                 ]
         ]
         sshdPort 2222
@@ -166,6 +171,11 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5001"
                 ]
         ]
         sshdPort 2223
@@ -173,7 +183,7 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
 
     node {
         name "O=Charlie,L=Mumbai,C=IN"
-        p2pPort 10003
+        p2pPort 10002
         p2pAddress "0.0.0.0"
         rpcSettings {
             address("0.0.0.0:10026")
@@ -185,6 +195,11 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5002"
                 ]
         ]
         sshdPort 2224
@@ -212,7 +227,7 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -236,11 +251,16 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
             adminAddress("0.0.0.0:10032")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10033' ],
+                h2Settings: [ address: '0.0.0.0:10033' ],
                 dataSourceProperties: [
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5003"
                 ]
         ]
         sshdPort 2226
@@ -260,6 +280,11 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5004"
                 ]
         ]
         sshdPort 2227
@@ -287,7 +312,7 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -311,11 +336,16 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
             adminAddress("0.0.0.0:10040")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10041' ],
+                h2Settings: [ address: '0.0.0.0:10041' ],
                 dataSourceProperties: [
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
                 ]
         ]
         sshdPort 2229
@@ -335,6 +365,11 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
                 ]
         ]
         sshdPort 2230
@@ -473,8 +508,18 @@ task allNetworksDown(type: Task) {
  * @return
  */
 def mvYamlToTarget(String source, String target) {
+    // for recognizing a nodes rpc port and injecting a unique debug port locally
+    Map<String, String> rpcToDebugPortMap = [
+            "10020":"5000", // auction alice
+            "10023":"5001", // auction bob
+            "10026":"5002", // auction charlie
+            "10031":"5003", // gbp alice
+            "10034":"5004", // gbp bob
+            "10039":"5005", // cbdc alice
+            "10042":"5006"  // cbdc charlie
+    ]
     File srcFile = new File(source)
-    Pattern pattern = Pattern.compile("-\\s(\\d{5})")
+    Pattern pattern = Pattern.compile("-\\s(\\d{5})") // rpc port pattern
     copy {
         from(source) {
             include '**/docker-compose.yml'
@@ -485,13 +530,19 @@ def mvYamlToTarget(String source, String target) {
             line -> line.replaceAll(source, target)
         }
         filter {
+            // Makes local ports static rather than generated
             line ->
                 def matcher =  pattern.matcher(line as String)
+
                 if (matcher.find()) {
                     def port =  matcher.group(1)
+                    def rpcPort = ""
+                    if (rpcToDebugPortMap.keySet().contains(port)) {
+                        rpcPort = "\n    - \"${rpcToDebugPortMap[port]}:${rpcToDebugPortMap[port]}\""
+                    }
                     line.replace(
                         port,
-                        "\"${port}:${port}\""
+                        "\"${port}:${port}\"$rpcPort"
                     )
                 } else line
         }
