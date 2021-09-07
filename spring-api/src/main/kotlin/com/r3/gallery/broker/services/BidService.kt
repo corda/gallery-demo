@@ -9,13 +9,13 @@ class BidService(
     @Autowired val bidRepository: BidReceiptRepository
 ) {
 
-    suspend fun placeBid(bidderName: String, artworkId: ArtworkId, bidAmount: Int) {
+    fun placeBid(bidderName: String, artworkId: ArtworkId, bidAmount: Int) {
         val bidReceipt = swapService.bidForArtwork(bidderName, artworkId, bidAmount)
 
         bidRepository.store(bidReceipt)
     }
 
-    suspend fun awardArtwork(bidderName: String, artworkId: ArtworkId): List<Receipt> {
+    fun awardArtwork(bidderName: String, artworkId: ArtworkId): List<Receipt> {
         val bidReceipt = bidRepository.retrieve(bidderName, artworkId)
         val saleReceipt = swapService.awardArtwork(bidReceipt)
 

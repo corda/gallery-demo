@@ -1,6 +1,6 @@
 package com.r3.gallery.broker
 
-import com.r3.gallery.broker.corda.client.config.RpcProperties
+import com.r3.gallery.broker.corda.rpc.config.RpcProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication

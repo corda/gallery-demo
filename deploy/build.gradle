@@ -183,7 +183,7 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
 
     node {
         name "O=Charlie,L=Mumbai,C=IN"
-        p2pPort 10003
+        p2pPort 10002
         p2pAddress "0.0.0.0"
         rpcSettings {
             address("0.0.0.0:10026")

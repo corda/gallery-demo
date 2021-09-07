@@ -6,7 +6,7 @@ import com.r3.gallery.api.UnsignedArtworkTransferTx
 
 interface TokenNetworkBuyerClient {
 
-    suspend fun transferEncumberedTokens(buyer: TokenParty,
+    fun transferEncumberedTokens(buyer: TokenParty,
                                          seller: TokenParty,
                                          amount: Int,
                                          lockedOn: UnsignedArtworkTransferTx): EncumberedTokens
