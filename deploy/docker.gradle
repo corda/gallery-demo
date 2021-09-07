@@ -58,4 +58,8 @@ task createAndPushDockerImages(type: ImageTask, dependsOn: 'copyImageSources') {
             new Pair(new File(project.buildDir, "dockerBuild/galleryCordapp"), gallery_cordapp_docker_image_name),
             new Pair(new File(project.buildDir, "dockerBuild/spring-api"), gallery_webappapi_docker_image_name)
     ]
+    imageToBuildArgsMap = ["$frontend_docker_image_name":[
+            "CORDA_ARTIFACTORY_USERNAME":System.getenv("CORDA_ARTIFACTORY_USERNAME"),
+            "CORDA_ARTIFACTORY_PASSWORD":System.getenv("CORDA_ARTIFACTORY_PASSWORD")
+    ]] as Map
 }
