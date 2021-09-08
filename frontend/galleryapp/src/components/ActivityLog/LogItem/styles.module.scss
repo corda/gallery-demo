@@ -17,3 +17,46 @@
 .timestamp {
   margin-right: 20px;
 }
+
+.message {
+  display: inline-block;
+
+  .dataBlock {
+    padding: var(--p-1) var(--p-2);
+    background: var(--color-light-gray-400);
+    color: var(--color-dark-gray);
+    border-radius: 4px;
+    display: inline-flex;
+    text-align: center;
+    margin: 0 var(--p-2);
+    font-size: 12px;
+  }
+
+  .icon {
+    width: 14px;
+    fill: var(--color-dark-gray);
+    margin-right: 8px;
+  }
+}
+
+.formattedMessage {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.hasAction {
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.arrow {
+  width: 24px;
+
+  &.reverse {
+    transform: rotate(180deg);
+  }
+}

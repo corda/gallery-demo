@@ -1,7 +1,21 @@
 .main {
-  h2 {
+  h3 {
     text-align: left;
     margin-bottom: var(--p-4);
     margin-top: var(--p-10);
   }
+}
+
+.gallery {
+  background: var(--color-light-gray-400);
+  border-radius: 6px;
+  padding: var(--p-5);
+  display: flex;
+  justify-content: center;
+}
+
+.galleryImage {
+  max-width: calc(33% - 10px);
+  border-radius: 4px;
+  margin: 0 5px;
 }

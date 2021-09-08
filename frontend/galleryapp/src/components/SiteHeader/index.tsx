@@ -1,35 +1,30 @@
-import { Dropdown, IconCustom, Option, TopNavBar } from "@r3/r3-tooling-design-system";
+import { TopNavBar } from "@r3/r3-tooling-design-system";
 import React, { useContext } from "react";
-import { useHistory } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { UsersContext } from "@Context/users";
-import { getParticipantPath } from "@Helpers/users";
+import { RouterParams } from "@Models";
+import logo from "@Assets/logo.svg";
+import UserDropdown from "@Components/SiteHeader/UserDropdown";
+import FlowsDropdown from "@Components/SiteHeader/FlowsDropdown";
 
 function SiteHeader() {
-  const history = useHistory();
-  const { list } = useContext(UsersContext);
+  const { list, getUser } = useContext(UsersContext);
+  const { id } = useParams<RouterParams>();
+  const user = getUser(id);
 
   return (
     <TopNavBar
       logoAlt="R3"
       logoWidth="33px"
+      logo={logo}
+      center={
+        <>
+          <FlowsDropdown />
+        </>
+      }
       right={
         <>
-          <Dropdown
-            closeOnSelectOption
-            positionX="right"
-            positionY="bottom"
-            trigger={<IconCustom className="h-5" icon="Account" />}
-          >
-            {list.map((participant) => (
-              <Option
-                key={participant.id}
-                value={participant.displayName}
-                onClick={() => history.push(getParticipantPath(participant))}
-              >
-                {participant.displayName}
-              </Option>
-            ))}
-          </Dropdown>
+          <UserDropdown currentUser={user} userList={list} />
         </>
       }
       title="Cross Chain Swap Demo"

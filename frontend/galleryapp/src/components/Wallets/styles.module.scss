@@ -1,7 +1,12 @@
 .main {
-  h2 {
+  h3 {
     text-align: left;
     margin-bottom: var(--p-4);
+  }
+
+  table {
+    table-layout: fixed;
+    width: 100%;
   }
 
   thead {
