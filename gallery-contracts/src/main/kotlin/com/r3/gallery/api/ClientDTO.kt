@@ -30,6 +30,18 @@ typealias ArtworkParty = String
 typealias TokenParty = String
 
 /**
+ * Log entry templated for UI output.
+ */
+data class LogUpdateEntry(
+    val associatedFlow: String,
+    val network: String,
+    val x500: String,
+    val logRecordId: String,
+    val timestamp: String,
+    val message: String
+)
+
+/**
  * Represents a state on the art network, identified by [cordaReference], which grants ownership
  * of the artwork identified by [artworkId] to the owner identified by [artworkOwner]
  */
