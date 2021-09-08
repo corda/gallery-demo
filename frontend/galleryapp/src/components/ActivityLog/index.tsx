@@ -1,14 +1,16 @@
 import styles from "./styles.module.scss";
 import LogItem from "@Components/ActivityLog/LogItem";
+import { Log } from "@Models";
 
 interface Props {
   title: string;
-  small?: boolean;
+  inline?: boolean;
+  logs: Log[];
 }
 
-function ActivityLog({ title, small }: Props) {
+function ActivityLog({ title, inline, logs }: Props) {
   return (
-    <section className={`${styles.main} ${small ? styles.small : ""}`}>
+    <section className={`${styles.main} ${inline ? styles.small : ""}`}>
       <header>
         <h6>{title}</h6>
         <div>
@@ -17,14 +19,11 @@ function ActivityLog({ title, small }: Props) {
         </div>
       </header>
       <div className={styles.log}>
-        <LogItem></LogItem>
-        <LogItem></LogItem>
-        <LogItem></LogItem>
-        <LogItem></LogItem>
-        <LogItem></LogItem>
-        <LogItem></LogItem>
-        <LogItem></LogItem>
-        <LogItem></LogItem>
+        {logs
+          .sort((logA, logB) => (logA.timestamp > logB.timestamp ? -1 : 1))
+          .map((log) => (
+            <LogItem key={log.logRecordId} log={log} />
+          ))}
       </div>
     </section>
   );

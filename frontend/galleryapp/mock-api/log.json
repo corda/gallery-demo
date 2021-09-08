@@ -1,0 +1,34 @@
+[
+  {
+    "associatedFlow": "com.r3.gallery.workflows.IssuedArtworkFlow",
+    "network": "auction",
+    "x500": "O=Alice,L=London,C=GB",
+    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb01",
+    "timestamp": "15:17:08.132263",
+    "message": "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"
+  },
+  {
+    "associatedFlow": "com.r3.gallery.workflows.BidOnArtworkFlow",
+    "network": "GBP",
+    "x500": "O=Bob,L=San Francisco,C=US",
+    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb02",
+    "timestamp": "15:17:08.132263",
+    "message": "Something has happened here on [83HFJKF8736YHG09SDJ]"
+  },
+  {
+    "associatedFlow": "com.r3.gallery.workflows.BidOnArtworkFlow",
+    "network": "CBDC",
+    "x500": "O=Charles,L=London,C=GB",
+    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb03",
+    "timestamp": "15:17:08.132263",
+    "message": "[<Unlocked>300 GBP|83HFJKF8736YHG09SDJ] -> [Wallet|SDF7SDF8G9H00ME8569]"
+  },
+  {
+    "associatedFlow": "com.r3.gallery.workflows.FinaliseArtworkTransfer",
+    "network": "auction",
+    "x500": "O=Alice,L=London,C=GB",
+    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb04",
+    "timestamp": "15:17:08.132263",
+    "message": "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"
+  }
+]

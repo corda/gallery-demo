@@ -1,0 +1,48 @@
+.main {
+  padding: 0;
+  border-radius: 6px;
+  border: solid 1px var(--color-medium-light-gray-500);
+  width: 260px;
+  text-align: left;
+  color: var(--color-medium-light-gray-600);
+  font-family: "Monaco", "Courier New", Courier, monospace;
+
+  &.draft {
+    background: var(--color-medium-light-gray-100);
+  }
+
+  &.considerationLedger {
+    background: var(--color-red-100);
+  }
+
+  &.nftLedger {
+    background: var(--color-green-100);
+  }
+
+  ul {
+    padding: 10px 0;
+
+    h6 {
+      color: var(--color-medium-light-gray-600);
+    }
+
+    li {
+      margin: 0;
+      list-style: none;
+      line-height: 1.4rem;
+      padding: 0 10px;
+      font-family: "Monaco", "Courier New", Courier, monospace;
+    }
+  }
+}
+
+.title {
+  border-bottom: solid 1px var(--color-medium-light-gray-500);
+  text-align: center;
+  padding: 5px 20px;
+  color: var(--color-medium-light-gray-600);
+}
+
+.properties {
+  border-bottom: solid 1px var(--color-medium-light-gray-500);
+}

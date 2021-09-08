@@ -19,3 +19,14 @@
     }
   }
 }
+
+.lotDetail {
+  display: flex;
+  align-items: center;
+}
+
+.thumbnail {
+  max-width: 64px;
+  max-height: 64px;
+  margin-right: 12px;
+}
