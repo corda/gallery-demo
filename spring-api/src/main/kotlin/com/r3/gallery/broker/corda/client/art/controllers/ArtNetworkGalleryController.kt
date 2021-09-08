@@ -2,15 +2,13 @@ package com.r3.gallery.broker.corda.client.art.controllers
 
 import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
-import com.r3.gallery.broker.corda.client.art.service.NodeClient
+import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 /**
- * TODO: switch returns to Mono/Flux reactive
+ * REST endpoints for Gallery parties on Auction Network
  */
 @CrossOrigin
 @RestController
@@ -18,48 +16,48 @@ import java.util.*
 class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryClient) {
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryController::class.java)
-        const val TIMEOUT = NodeClient.TIMEOUT
+        const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
     @PutMapping("/issue-artwork")
-    suspend fun issueArtwork(
+    fun issueArtwork(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: String
     ) : ResponseEntity<ArtworkOwnership> {
         logger.info("Request by $galleryParty to issue artwork of id $artworkId")
         val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId.toUUID())
-        return ResponseEntity.status(HttpStatus.OK).body(artworkOwnership)
+        return asResponse(artworkOwnership)
     }
 
     @GetMapping("/list-available-artworks")
-    suspend fun listAvailableArtworks(
+    fun listAvailableArtworks(
         @RequestParam("galleryParty") galleryParty: ArtworkParty
     ) : ResponseEntity<List<ArtworkId>> {
         logger.info("Request of artwork listing of $galleryParty")
         val artworkIds = galleryClient.listAvailableArtworks(galleryParty)
-        return ResponseEntity.status(HttpStatus.OK).body(artworkIds)
+        return asResponse(artworkIds)
     }
 
     @PutMapping("/create-artwork-transfer-tx")
-    suspend fun createArtworkTransferTx(
-        @RequestParam("galleryParty") galleryParty: ArtworkParty? = "O=Alice,L=London,C=GB",
-        @RequestParam("bidderParty") bidderParty: ArtworkParty? = "O=Bob,L=San Francisco,C=US",
-        @RequestParam("artworkId") artworkId: String? = "c0b4a1a8-e11f-42b6-9e7e-bc73d191f38d"
+    fun createArtworkTransferTx(
+        @RequestParam("galleryParty") galleryParty: ArtworkParty,
+        @RequestParam("bidderParty") bidderParty: ArtworkParty,
+        @RequestParam("artworkId") artworkId: String
     ) : ResponseEntity<UnsignedArtworkTransferTx> {
         // TODO: Is the DTO for ownership to be provided in full? or shall artworkId be used as is here?
         logger.info("Request to create artwork transfer transaction seller: $galleryParty, bidder: $bidderParty, art: $artworkId")
-        val artworkOwnership = galleryClient.getOwnership(galleryParty!!, artworkId!!.toUUID())
-        val artworkTx = galleryClient.createArtworkTransferTx(galleryParty!!, bidderParty!!, artworkOwnership!!)
-        return ResponseEntity.status(HttpStatus.OK).body(artworkTx)
+        val artworkOwnership = galleryClient.getOwnership(galleryParty, artworkId.toUUID())
+        val artworkTx = galleryClient.createArtworkTransferTx(galleryParty, bidderParty, artworkOwnership)
+        return asResponse(artworkTx)
     }
 
     @PutMapping("/finalise-artwork-trans")
-    suspend fun finaliseArtworkTransfer(
+    fun finaliseArtworkTransfer(
         galleryParty: ArtworkParty,
         unsignedArtworkTransferTx: UnsignedArtworkTransferTx
     ) : ResponseEntity<ProofOfTransferOfOwnership> {
         logger.info("Request to finalise artwork transfer by $galleryParty for tx: $unsignedArtworkTransferTx")
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, unsignedArtworkTransferTx)
-        return ResponseEntity.status(HttpStatus.OK).body(proofOfTransfer)
+        return asResponse(proofOfTransfer)
     }
 }

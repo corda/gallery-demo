@@ -10,12 +10,12 @@ interface ArtNetworkGalleryClient {
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
+    fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
 
     /**
      * List out the artworks still held by the gallery.
      */
-    suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
+    fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
 
     /**
      * Create an unsigned transaction that would transfer an artwork owned by the gallery,
@@ -23,7 +23,7 @@ interface ArtNetworkGalleryClient {
      *
      * @return The unsigned fulfilment transaction
      */
-    suspend fun createArtworkTransferTx(galleryParty: ArtworkParty,
+    fun createArtworkTransferTx(galleryParty: ArtworkParty,
                                         bidderParty: ArtworkParty,
                                         galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
 
@@ -33,10 +33,10 @@ interface ArtNetworkGalleryClient {
      *
      * @return Proof that ownership of the artwork has been transferred.
      */
-    suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership
+    fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership
 
     /**
      * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
      */
-    suspend fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
+    fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
 }

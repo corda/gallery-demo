@@ -1,4 +1,4 @@
-package com.r3.gallery.broker.corda.client.config
+package com.r3.gallery.broker.corda.rpc.config
 
 import com.r3.gallery.api.CordaRPCNetwork
 import org.springframework.stereotype.Component
@@ -28,7 +28,7 @@ class ArtNetworkBidderProperties(properties: RpcProperties) : ClientProperties {
         )
 }
 
-@Component("TokenNetworkBidderProperties")
+@Component("TokenNetworkBuyerProperties")
 class TokenNetworkBidderProperties(properties: RpcProperties) : ClientProperties {
     override var clients: List<NetworkClientConfig> =
         listOf(

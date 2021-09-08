@@ -6,7 +6,7 @@ import java.util.*
 /**
  * A connection id for indexing CordaRPCConnection between multiple nodes.
  */
-typealias RPCConnectionId = String
+typealias RpcConnectionTarget = String
 
 /**
  * A unique reference for something in the Corda system, usually a transaction or state id.

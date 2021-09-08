@@ -10,21 +10,17 @@ val cordaCoreVersion : String by project
 
 dependencies {
     implementation(cordaCoreReleaseGroup, "corda-rpc", cordaCoreVersion)
-    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
-
-    implementation(project(":gallery-contracts"))
-
     runtimeOnly("com.h2database:h2")
 
     cordaCompile(project(":gallery-contracts"))
     cordaCompile(project(":gallery-workflows"))
 
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
     testImplementation( "org.mockito:mockito-inline:2.21.0")
