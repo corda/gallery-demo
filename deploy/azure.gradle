@@ -228,13 +228,13 @@ task buildFrontEndAndSpringService(type: DeploymentTask) {
             [ // environment variables for application.properties overrides
                     "RPC_USERNAME": "rpcUser",
                     "RPC_PASSWORD": "test",
-                    "AUCTION_ALICE_RPC_URL": "auction-alice-node",
-                    "AUCTION_BOB_RPC_URL": "auction-bob-node",
-                    "AUCTION_CHARLIE_RPC_URL": "auction-charlie-node",
-                    "GBP_ALICE_RPC_URL": "gbp-alice-node",
-                    "GBP_BOB_RPC_URL": "gbp-bob-node",
-                    "CBDC_ALICE_RPC_URL": "cbdc-alice-node",
-                    "CBDC_CHARLIE_RPC_URL": "cbdc-charlie-node"
+                    "AUCTION_ALICE_RPC_URL": "auction-alice-node:10201",
+                    "AUCTION_BOB_RPC_URL": "auction-bob-node:10201",
+                    "AUCTION_CHARLIE_RPC_URL": "auction-charlie-node:10201",
+                    "GBP_ALICE_RPC_URL": "gbp-alice-node:10201",
+                    "GBP_BOB_RPC_URL": "gbp-bob-node:10201",
+                    "CBDC_ALICE_RPC_URL": "cbdc-alice-node:10201",
+                    "CBDC_CHARLIE_RPC_URL": "cbdc-charlie-node:10201"
             ]
     )
     def frontEnd = kdeployment.buildFrontEndDeployment.call(
