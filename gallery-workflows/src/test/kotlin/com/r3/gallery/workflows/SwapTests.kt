@@ -119,7 +119,7 @@ class SwapTests {
 
         // bidder/token-net <-> gallery/token-net
         val lockStateRef =
-            buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10, USD.tokenIdentifier)).apply {
+            buyer1.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10.USD)).apply {
                 network.runNetwork()
             }.getOrThrow()
 // encumberedtokens

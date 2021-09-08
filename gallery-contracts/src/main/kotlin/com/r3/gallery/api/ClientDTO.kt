@@ -69,6 +69,7 @@ data class ProofOfTransferOfOwnership(
     val notarySignature: TransactionSignature
 )
 
+@CordaSerializable
 data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun equals(other: Any?): Boolean = when {
         this === other -> true

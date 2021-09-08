@@ -35,15 +35,6 @@ class OfferEncumberedTokensFlow(
 ) : FlowLogic<StateRef>() {
     override val progressTracker = ProgressTracker()
 
-    constructor(
-        proposedSwapTx: WireTransaction,
-        proposingParty: Party,
-        encumberedAmount: Long,
-        encumberedCurrency: String
-    ) : this(
-        proposedSwapTx, proposingParty, Amount(encumberedAmount, FiatCurrency.getInstance(encumberedCurrency))
-    )
-
     @Suspendable
     override fun call(): StateRef {
         val lockState = proposedSwapTx.getLockState(serviceHub, ourIdentity, proposingParty)

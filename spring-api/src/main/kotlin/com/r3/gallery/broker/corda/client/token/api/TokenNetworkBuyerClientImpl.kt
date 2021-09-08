@@ -36,13 +36,13 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
 
     companion object {
         private val logger = LoggerFactory.getLogger(TokenNetworkBuyerClientImpl::class.java)
-        private val network = CordaRPCNetwork.AUCTION
+        private val network = CordaRPCNetwork.GBP
     }
 
     override fun issueTokens(buyer: TokenParty, amount: Long, currency: String) {
         logger.info("Starting IssueTokensFlow via $buyer for $amount $currency")
-        //val buyerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, buyer)
-        val signedTx = tokenNetworkBuyerCS.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyer)
+        val buyerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, buyer)
+        val signedTx = tokenNetworkBuyerCS.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
     }
 
     override fun transferEncumberedTokens(

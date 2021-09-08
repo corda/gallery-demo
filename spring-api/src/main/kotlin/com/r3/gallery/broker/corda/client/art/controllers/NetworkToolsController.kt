@@ -35,6 +35,14 @@ class NetworkToolsController {
     @Qualifier("ArtNetworkBidderProperties")
     private lateinit var artNetworkBidderProperties: ClientProperties
 
+    @Autowired
+    @Qualifier("TokenNetworkBuyerProperties")
+    private lateinit var tokenNetworkBuyerProperties: ClientProperties
+
+    @Autowired
+    @Qualifier("TokenNetworkSellerProperties")
+    private lateinit var tokenNetworkSellerProperties: ClientProperties
+
     // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
@@ -44,8 +52,16 @@ class NetworkToolsController {
         val artNetworkBidderCS = ConnectionServiceImpl(artNetworkBidderProperties)
         artNetworkBidderCS.associatedNetwork = CordaRPCNetwork.AUCTION
 
+        val tokenNetworkBuyerCS = ConnectionServiceImpl(tokenNetworkBuyerProperties)
+        tokenNetworkBuyerCS.associatedNetwork = CordaRPCNetwork.GBP
+
+        val tokenNetworkSellerCS = ConnectionServiceImpl(tokenNetworkSellerProperties)
+        tokenNetworkSellerCS.associatedNetwork = CordaRPCNetwork.GBP
+
         networkClients.add(artNetworkBidderCS)
         networkClients.add(artNetworkGalleryCS)
+        networkClients.add(tokenNetworkBuyerCS)
+        networkClients.add(tokenNetworkSellerCS)
     }
 
     /**

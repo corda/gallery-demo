@@ -22,14 +22,24 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
-    @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_OCTET_STREAM_VALUE])
+    @PutMapping("/issue-tokens")
+    fun issueTokens(
+        @RequestParam("buyerParty") buyerParty: TokenParty,
+        @RequestParam("amount") amount: Long,
+        @RequestParam("currency") currency: String) : ResponseEntity<Unit> {
+        logger.info("Request by $buyerParty to issue $amount $currency to self")
+        buyerClient.issueTokens(buyerParty, amount, currency)
+        return asResponse(Unit)
+    }
+
+    @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun transferEncumberedTokens(
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("sellerParty") sellerParty: TokenParty,
         @RequestParam("amount") amount: Int,
-        @RequestBody tx: ByteArray) : ResponseEntity<EncumberedTokens> {
+        @RequestBody unsignedArtworkTransferTx: UnsignedArtworkTransferTx) : ResponseEntity<EncumberedTokens> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
-        val encumberedTokens = buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount,UnsignedArtworkTransferTx(tx))
+        val encumberedTokens = buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, unsignedArtworkTransferTx)
         return asResponse(encumberedTokens)
     }
 }

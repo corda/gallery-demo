@@ -11,7 +11,7 @@ import net.corda.core.transactions.WireTransaction
  * Sign and finalise the unsigned swap push [WireTransaction] and return a [SignedTransaction].
  * @property wireTransaction transaction to sign and finalise.
  */
-@StartableByService
+@StartableByRPC
 @InitiatingFlow
 class SignAndFinalizeTransferOfOwnership(
     private val wireTransaction: WireTransaction) : FlowLogic<SignedTransaction>() {

@@ -4,6 +4,7 @@ import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -51,10 +52,10 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return asResponse(artworkTx)
     }
 
-    @PutMapping("/finalise-artwork-trans")
+    @PostMapping("/finalise-artwork-transfer", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun finaliseArtworkTransfer(
-        galleryParty: ArtworkParty,
-        unsignedArtworkTransferTx: UnsignedArtworkTransferTx
+        @RequestParam("galleryParty") galleryParty: ArtworkParty,
+        @RequestBody unsignedArtworkTransferTx: UnsignedArtworkTransferTx
     ) : ResponseEntity<ProofOfTransferOfOwnership> {
         logger.info("Request to finalise artwork transfer by $galleryParty for tx: $unsignedArtworkTransferTx")
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, unsignedArtworkTransferTx)

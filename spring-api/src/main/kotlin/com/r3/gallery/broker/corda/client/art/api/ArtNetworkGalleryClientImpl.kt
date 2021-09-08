@@ -73,7 +73,6 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
         val artworkLinearId = UniqueIdentifier.fromString(galleryOwnership.cordaReference.toString())
         val unsignedTx = artNetworkGalleryCS.startFlow(galleryParty, CreateDraftTransferOfOwnershipFlow::class.java, artworkLinearId, partyToTransferTo)
         return UnsignedArtworkTransferTx(unsignedTx.serialize().bytes)
-        //return artNetworkGalleryCS.startFlow(galleryParty, CreateArtworkTransferTx::class.java, bidderParty, galleryOwnership)
     }
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
@@ -91,9 +90,6 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
             previousOwnerSignature = TransactionSignature(ByteArray(0)),
             notarySignature = TransactionSignature(signedTx.getNotaryTransactionSignature().bytes),
         )
-    //override fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
-        //logger.info("Starting FinaliseArtworkTransferTx flow via $galleryParty for $unsignedArtworkTransferTx")
-        //return artNetworkGalleryCS.startFlow(galleryParty, FinaliseArtworkTransferTx::class.java, unsignedArtworkTransferTx)
     }
 
     /**
@@ -113,12 +109,4 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
         logger.info("Fetching ArtworkState for artworkId $artworkId")
         return artNetworkGalleryCS.startFlow(this, FindArtworkFlow::class.java, artworkId)
     }
-
-    // /**
-    //  * Returns the ArtworkState associated with the CordaReference
-    //  */
-    // internal fun ArtworkParty.artworkIdToCordaReference(artworkId: ArtworkId): CordaReference {
-    //     return artworkIdToState(artworkId).linearId.id
-    //     return artNetworkGalleryCS.startFlow(this, ArtworkIdToState::class.java, artworkId)
-    // }
 }

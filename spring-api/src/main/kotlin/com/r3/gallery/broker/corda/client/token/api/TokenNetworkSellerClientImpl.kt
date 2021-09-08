@@ -35,7 +35,7 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
 
     companion object {
         private val logger = LoggerFactory.getLogger(TokenNetworkSellerClientImpl::class.java)
-        private val network = CordaRPCNetwork.AUCTION
+        private val network = CordaRPCNetwork.GBP
     }
 
     @Suppress("CAST_NEVER_SUCCEEDS")
