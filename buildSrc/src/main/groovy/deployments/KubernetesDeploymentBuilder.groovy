@@ -294,6 +294,8 @@ class KubernetesDeployment {
         envVars.entrySet().forEach {
             env.add(new V1EnvVarBuilder().withName(it.key).withValue(it.value).build())
         }
+        // add jdwp debug port env
+        env.add(new V1EnvVarBuilder().withName("JVM_ARGS").withValue("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -XX:MaxHeapFreeRatio=40").build())
         return env
     }
 }

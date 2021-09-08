@@ -91,7 +91,7 @@ class WebAppDeployment implements Iterable<Object> {
                 .withImagePullPolicy("Always")
                 .withPorts(
                         new V1ContainerPortBuilder().withName("webappport").withContainerPort(webAppPort).build(),
-                        new V1ContainerPortBuilder().withName("debugport").withContainerPort(5000).build()
+                        new V1ContainerPortBuilder().withName("debugport").withContainerPort(5005).build()
                 )
                 .withEnv(env)
                 .withNewResources()
@@ -135,7 +135,7 @@ class WebAppDeployment implements Iterable<Object> {
                 .withNewSpec()
                 .withPorts(
                         new V1ServicePortBuilder()
-                                .withPort(5000)
+                                .withPort(5005)
                                 .withProtocol("TCP")
                                 .withName("debugport")
                                 .build()
