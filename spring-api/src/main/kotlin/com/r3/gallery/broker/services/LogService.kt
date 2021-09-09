@@ -23,8 +23,6 @@ class LogService(proxiesAndNetwork: List<Pair<CordaRPCOps, CordaRPCNetwork>>) {
         MutableList<Triple<StateMachineInfo, CordaRPCNetwork, ProgressUpdateSubscription>> = ArrayList()
     private val progressUpdates: MutableList<Triple<StateMachineInfo, ProgressUpdate, CordaRPCNetwork>> =  ArrayList()
 
-    private var lastRetrievalIdx: LogRetrievalIdx = 0 // index at last retrieval
-
     init {
         // setup subscriptions to state machines and progressUpdates
         proxiesAndNetwork.forEach { (rpc, network) ->
@@ -64,19 +62,20 @@ class LogService(proxiesAndNetwork: List<Pair<CordaRPCOps, CordaRPCNetwork>>) {
      * TODO: Add pruning or cleanup to retrieved, or do we want access to historic?
      */
     fun getProgressUpdates(retrievalIdx: LogRetrievalIdx = 0): Pair<LogRetrievalIdx, List<LogUpdateEntry>> {
+        val lastIndex = progressUpdates.lastIndex
+
         // no new updates
-        if (retrievalIdx == lastRetrievalIdx) {
+        if (retrievalIdx == lastIndex || lastIndex == -1) {
             return Pair(retrievalIdx, emptyList())
         }
 
-        val lastIndex = progressUpdates.lastIndex
         val updatesSubList = progressUpdates.subList(retrievalIdx, lastIndex)
-        lastRetrievalIdx = lastIndex
-        return Pair(lastRetrievalIdx, updatesSubList.map { (smInfo, update, network) ->
+
+        return Pair(lastIndex, updatesSubList.map { (smInfo, update, network) ->
             LogUpdateEntry(
                 associatedFlow = smInfo.flowLogicClassName,
                 network = network.netName,
-                x500 = smInfo.invocationContext.actor?.owningLegalIdentity.toString(),
+                x500 = smInfo.invocationContext.actor?.owningLegalIdentity?.toString() ?: "",
                 logRecordId = smInfo.invocationContext.trace.invocationId.value,
                 timestamp = smInfo.invocationContext.trace.invocationId.timestamp.toString(),
                 message = update

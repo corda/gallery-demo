@@ -13,12 +13,12 @@ internal class LogUpdateEntrySerializer : JsonSerializer<LogUpdateEntry>() {
 
     override fun serialize(value: LogUpdateEntry, gen: JsonGenerator, serializers: SerializerProvider) {
         gen.writeStartObject()
-        gen.writeString(value.associatedFlow)
-        gen.writeString(value.network)
-        gen.writeString(value.x500)
-        gen.writeString(value.logRecordId)
-        gen.writeString(value.timestamp)
-        gen.writeString(value.message)
+        gen.writeStringField("associatedFlow", value.associatedFlow)
+        gen.writeStringField("network", value.network)
+        gen.writeStringField("x500", value.x500)
+        gen.writeStringField("logRecordId", value.logRecordId)
+        gen.writeStringField("timestamp", value.timestamp)
+        gen.writeStringField("message", value.message)
         gen.writeEndObject()
     }
 }

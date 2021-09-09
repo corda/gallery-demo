@@ -55,10 +55,12 @@ class NetworkToolsService {
     private fun initializeLogService() {
         val proxiesAndNetwork = networkClients.runPerConnectionService {
             val network = it.associatedNetwork
-            it.sessions.values.map { rpc ->
+
+            it.allConnections()?.map { rpc ->
                 Pair(rpc.proxy, network!!)
-            }
+            }!!
         }.flatten()
+
         logService = LogService(proxiesAndNetwork)
     }
 

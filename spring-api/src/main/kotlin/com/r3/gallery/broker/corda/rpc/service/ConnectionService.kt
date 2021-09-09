@@ -19,6 +19,11 @@ interface ConnectionService {
     var sessions: MutableMap<UniqueIdentifier, CordaRPCConnection>
 
     /**
+     * Returns CordaRPCConnection for all available clients
+     */
+    fun allConnections(): List<CordaRPCConnection>?
+
+    /**
      * Returns all live target connections to node based on destination
      */
     fun RpcConnectionTarget.sessions(): Map<UniqueIdentifier, CordaRPCConnection>
