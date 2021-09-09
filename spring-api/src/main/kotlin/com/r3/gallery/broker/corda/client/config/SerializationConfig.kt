@@ -1,5 +1,6 @@
 package com.r3.gallery.broker.corda.client.config
 
+import com.r3.gallery.api.Balance
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.Participant
 import com.r3.gallery.broker.corda.client.config.mixin.*
@@ -26,6 +27,7 @@ class SerializationConfig {
         mapper.addMixIn(FiatCurrency::class.java, FiatCurrencyMixin::class.java)
         mapper.addMixIn(LogUpdateEntry::class.java, LogUpdateEntryMixin::class.java)
         mapper.addMixIn(Participant::class.java, ParticipantMixin::class.java)
+        mapper.addMixIn(Balance::class.java, BalanceMixin::class.java)
         val converter = MappingJackson2HttpMessageConverter()
         converter.objectMapper = mapper
         return converter

@@ -1,5 +1,7 @@
 package com.r3.gallery.api
 
+import com.r3.corda.lib.tokens.contracts.types.TokenType
+import net.corda.core.contracts.Amount
 import net.corda.core.serialization.CordaSerializable
 import java.util.*
 
@@ -61,8 +63,8 @@ data class Participant(
  */
 data class Balance(
     val currencyCode: String,
-    val encumberedFunds: String,
-    val availableFunds: String
+    val encumberedFunds: Amount<TokenType>,
+    val availableFunds: Amount<TokenType>
 )
 
 /**
