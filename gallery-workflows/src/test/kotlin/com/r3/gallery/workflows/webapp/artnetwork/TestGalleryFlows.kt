@@ -2,7 +2,6 @@
 //
 //import com.r3.gallery.api.ArtworkId
 //import com.r3.gallery.api.ArtworkOwnership
-//import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 //import com.r3.gallery.workflows.webapp.artnetwork.gallery.IssueArtworkFlow
 //import com.r3.gallery.workflows.webapp.artnetwork.gallery.ListAvailableArtworks
 //import com.r3.gallery.workflows.webapp.artnetwork.gallery.utilityflows.ArtworkIdToState
