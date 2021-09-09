@@ -6,6 +6,8 @@ import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import net.corda.client.rpc.*
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
+import net.corda.core.identity.CordaX500Name
+import net.corda.core.identity.Party
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
@@ -193,6 +195,12 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
         } ?: throw IllegalStateException("Cannot target a rpc connection without setting the associatedNetwork of ${this::class.simpleName}")
     }
 
+   override fun wellKnownPartyFromName(networkParty: String, name: String): Party? {
+        return execute(getConnectionTarget(networkParty)) { connections ->
+            connections.proxy.wellKnownPartyFromX500Name(CordaX500Name.parse(name))
+        }
+    }
+
     /**
      * Function that runs as cleanup
      * It is used to notify each corda node about the connection's termination
@@ -204,3 +212,4 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
         }
     }
 }
+

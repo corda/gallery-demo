@@ -7,6 +7,8 @@ val cordaPlatformVersion : String by project
 val cordaCoreReleaseGroup : String by project
 val cordaCoreVersion : String by project
 val gradlePluginsVersion : String by project
+val tokensReleaseVersion : String by project
+val tokensReleaseGroup : String by project
 
 cordapp {
     val cordaLedgerReleaseVersion : String by rootProject
@@ -26,6 +28,9 @@ cordapp {
 
 dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
+    cordaCompile(tokensReleaseGroup,"tokens-contracts", tokensReleaseVersion)
+    cordaCompile(tokensReleaseGroup,"tokens-workflows", tokensReleaseVersion)
+
     cordaRuntime(cordaCoreReleaseGroup, "corda", cordaCoreVersion)
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
 

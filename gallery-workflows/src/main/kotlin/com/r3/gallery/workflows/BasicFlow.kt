@@ -47,4 +47,3 @@ class BasicFlowResponder(private val counterPartySession: FlowSession) : FlowLog
     }
 
 }
-

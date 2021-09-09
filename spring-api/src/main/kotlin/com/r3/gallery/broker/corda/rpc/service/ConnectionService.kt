@@ -5,6 +5,8 @@ import com.r3.gallery.api.RpcConnectionTarget
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
+import net.corda.core.identity.CordaX500Name
+import net.corda.core.identity.Party
 import net.corda.core.node.NodeInfo
 
 interface ConnectionService {
@@ -54,4 +56,7 @@ interface ConnectionService {
      * Starts a flow via rpc against a target
      */
     fun <T> startFlow(networkParty: String, logicType: Class<out FlowLogic<T>>, vararg args: Any?): T
+
+    fun wellKnownPartyFromName(networkParty: String, name: String): Party?
 }
+
