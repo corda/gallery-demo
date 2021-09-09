@@ -36,6 +36,7 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
 
     companion object {
         private val logger = LoggerFactory.getLogger(TokenNetworkBuyerClientImpl::class.java)
+        // TODO: properly setup token networks
         private val network = CordaRPCNetwork.GBP
     }
 

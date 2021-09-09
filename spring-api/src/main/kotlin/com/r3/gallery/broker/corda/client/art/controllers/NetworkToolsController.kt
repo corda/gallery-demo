@@ -52,6 +52,7 @@ class NetworkToolsController {
         val artNetworkBidderCS = ConnectionServiceImpl(artNetworkBidderProperties)
         artNetworkBidderCS.associatedNetwork = CordaRPCNetwork.AUCTION
 
+        // TODO: properly setup token networks
         val tokenNetworkBuyerCS = ConnectionServiceImpl(tokenNetworkBuyerProperties)
         tokenNetworkBuyerCS.associatedNetwork = CordaRPCNetwork.GBP
 

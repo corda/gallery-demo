@@ -8,7 +8,6 @@ import net.corda.core.identity.AbstractParty
 @BelongsToContract(ArtworkContract::class)
 data class ArtworkState(
     val artworkId: ArtworkId,
-    val issuer: AbstractParty,
     val owner: AbstractParty,
     override val linearId: UniqueIdentifier = UniqueIdentifier()
 ): LinearState {

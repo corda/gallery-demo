@@ -87,44 +87,11 @@ class OfferEncumberedTokensFlowHandler(val otherSession: FlowSession) : FlowLogi
 
         serviceHub.identityService.registerKey(compositeKey, ourIdentity)
 
-        val ff = subFlow(
+        subFlow(
             ReceiveFinalityFlow(
                 otherSideSession = otherSession,
                 statesToRecord = StatesToRecord.ALL_VISIBLE
             )
         )
-
-//        val inputCriteria: QueryCriteria = QueryCriteria.VaultQueryCriteria().withStatus(Vault.StateStatus.UNCONSUMED)
-//        //val cash: List<Cash.State> = serviceHub.vaultService.queryBy(Cash.State::class.java, inputCriteria).states.map { it.state.data }
-//
-//        val stateAndRef = serviceHub.vaultService.queryBy(LockState::class.java, inputCriteria).states.last()
-//        val lockState = stateAndRef.state.data as LockState
-//        val transactionState = TransactionState(lockState, stateAndRef.state.contract, stateAndRef.state.notary)
-//        val lockStateAndRef = StateAndRef(transactionState, stateAndRef.ref)
-//
-//        val unsignedSwapTx = serviceHub.cacheService().getWireTransactionById(lockState.txHash.txId, this.ourIdentity)
-//
-//        if (unsignedSwapTx != null) {
-//            unlockEncumberedStates(lockStateAndRef, unsignedSwapTx)
-//        }
     }
-//
-//    /**
-//     * Unlock encumbered states in transaction given by [StateAndRef<LockState>.ref]. Sign and finalise
-//     * [unsignedSwapTx] and use the [LockState.controllingNotary] signature to unlock the states in the encumbered push
-//     * transaction referenced by [lockStateAndRef].
-//     * @param lockStateAndRef the lock state [StateAndRef<LockState>] to unlock.
-//     * @param unsignedSwapTx transaction to sign and finalise.
-//     */
-//    @Suspendable
-//    fun unlockEncumberedStates(lockStateAndRef: StateAndRef<LockState>, unsignedSwapTx: WireTransaction) {
-//        val signedTx = subFlow(SignAndFinaliseTxForPush(lockStateAndRef, unsignedSwapTx))
-//
-//        logger.info("Signed and finalised swap tx with id: ${signedTx.id}")
-//
-//        val controllingNotary = lockStateAndRef.state.data.controllingNotary
-//        val requiredSignature = signedTx.getTransactionSignatureForParty(controllingNotary)
-//
-//        subFlow(UnlockPushedEncumberedDefinedTokenFlow(lockStateAndRef, requiredSignature))
-//    }
 }

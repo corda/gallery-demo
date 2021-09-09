@@ -9,7 +9,7 @@ import java.security.PublicKey
 
 class ArtworkContract : Contract {
     companion object {
-        val ID = ArtworkContract::class.java.name
+        const val ID = "com.r3.gallery.contracts.ArtworkContract"
     }
 
     interface Commands : CommandData {

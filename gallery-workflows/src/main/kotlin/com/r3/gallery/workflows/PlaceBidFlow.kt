@@ -48,13 +48,8 @@ class PlaceBidFlowHandler(val session: FlowSession) : FlowLogic<Unit>() {
 
         val bid = session.receive<PlaceBidFlow.Bid>().unwrap { it }
 
-        // PB2: gallery/cn1 initiates the transfer of ownership tx back to bidder/cn1
-        //      - PB2.1: gallery/cn1 build the transfer-of-ownership tx and sends it to bidder/cn1 for inspection
-        //      - PB2.2: bidder/cn1 verifies the tx and responds to gallery/cn1 accepting or rejecting the tx
-        //      - PB2.3: gallery/cn1 verifies bidder/cn1 accepted, returns the draft tx, throws if bidder/cn1 rejected
         val validatedTx = subFlow(CreateDraftTransferOfOwnershipFlow(bid.artworkId, bid.bidder))
 
-        // PB3: gallery/cn1 sends the (validated) transfer-of-ownership tx back to bidder/cn1
         session.send(validatedTx)
     }
 }

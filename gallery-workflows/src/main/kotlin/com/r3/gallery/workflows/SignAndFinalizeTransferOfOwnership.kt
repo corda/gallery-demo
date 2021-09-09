@@ -37,7 +37,7 @@ class SignAndFinalizeTransferOfOwnership(
 
         val signedTx = subFlow(CollectSignaturesInitiatingFlow(locallySignedTx, otherSigners))
 
-        val sessions = otherParticipants.filter { it != ourIdentity }.map { initiateFlow(it) }
+        val sessions = otherParticipants.map { initiateFlow(it) }
         return subFlow(FinalityFlow(signedTx, sessions))
     }
 

@@ -58,7 +58,6 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
     override fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
         logger.info("Starting ListAvailableArtworks flow via $galleryParty")
         return artNetworkGalleryCS.startFlow(galleryParty, FindOwnedArtworksFlow::class.java).map { it.state.data.artworkId }
-        //return artNetworkGalleryCS.startFlow(galleryParty, ListAvailableArtworks::class.java, galleryParty)
     }
 
     /**
@@ -74,6 +73,7 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
         val unsignedTx = artNetworkGalleryCS.startFlow(galleryParty, CreateDraftTransferOfOwnershipFlow::class.java, artworkLinearId, partyToTransferTo)
         return UnsignedArtworkTransferTx(unsignedTx.serialize().bytes)
     }
+
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]

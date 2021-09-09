@@ -30,6 +30,7 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
     @PostConstruct
     private fun postConstruct() {
         tokenNetworkSellerCS = ConnectionServiceImpl(tokenNetworkSellerProperties)
+        // TODO: properly setup token networks
         tokenNetworkSellerCS.associatedNetwork = network
     }
 

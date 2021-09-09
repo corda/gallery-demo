@@ -23,8 +23,7 @@ class IssueArtworkFlow(
 
     @Suspendable
     override fun call(): ArtworkOwnership {
-        // REVIEW: ourIdentity = Party A / CN1
-        val state = ArtworkState(artworkId, ourIdentity, ourIdentity)
+        val state = ArtworkState(artworkId, ourIdentity)
         val command = Command(ArtworkContract.Commands.Issue(), listOf(ourIdentity.owningKey))
         val builder = TransactionBuilder(notary = serviceHub.networkMapCache.notaryIdentities.first())
             .withItems(StateAndContract(state, ID), command)
