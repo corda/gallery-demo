@@ -88,6 +88,16 @@ data class TransactionSignature(val bytes: ByteArray) {
     override fun hashCode(): Int = bytes.contentHashCode()
 }
 
+data class LockStateRef(val bytes: ByteArray) {
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other is LockStateRef -> bytes.contentEquals(other.bytes)
+        else -> false
+    }
+
+    override fun hashCode(): Int = bytes.contentHashCode()
+}
+
 data class ProofOfTransferOfOwnership(
     val transactionId: CordaReference,
     val transactionHash: TransactionHash,
@@ -95,6 +105,7 @@ data class ProofOfTransferOfOwnership(
     val notarySignature: TransactionSignature
 )
 
+@CordaSerializable
 data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
@@ -105,7 +116,8 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun hashCode(): Int = transactionBytes.contentHashCode()
 }
 
-typealias EncumberedTokens = CordaReference
+//typealias EncumberedTokens = CordaReference
+typealias EncumberedTokens = LockStateRef
 
 enum class CordaRPCNetwork(val netName: String) {
     AUCTION("auction"),

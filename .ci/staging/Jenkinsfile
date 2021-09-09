@@ -19,6 +19,7 @@ pipeline {
         DOCKER_CREDENTIALS = credentials('payments-docker-credentials')
         DOCKER_REGISTRY = "r3payments.azurecr.io"
         LOOPBACK_ADDRESS = "172.17.0.1"
+        DEPLOY_ENV = "STAGING"
     }
 
     stages {
@@ -48,6 +49,7 @@ pipeline {
                     kubectl apply -f deploy/build/kubernetes/auctionNetworkDeployment.yaml
                     kubectl apply -f deploy/build/kubernetes/gbpNetworkDeployment.yaml
                     kubectl apply -f deploy/build/kubernetes/cbdcNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/frontEndAndSpring.yaml
                   '''
                 }
             }

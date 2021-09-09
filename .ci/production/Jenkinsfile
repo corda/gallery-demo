@@ -1,0 +1,68 @@
+@Library('existing-build-control')
+import static com.r3.build.BuildControl.killAllExistingBuildsForJob
+killAllExistingBuildsForJob(env.JOB_NAME, env.BUILD_NUMBER.toInteger())
+
+pipeline {
+
+    agent {
+        dockerfile {
+            filename '.ci/staging/Dockerfile'
+            additionalBuildArgs "--build-arg USER=stresstester"
+            args '-v /var/run/docker.sock:/var/run/docker.sock --group-add 999'
+        }
+    }
+
+    options { timestamps() }
+
+    environment {
+        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        DOCKER_CREDENTIALS = credentials('payments-docker-credentials')
+        DOCKER_REGISTRY = "r3payments.azurecr.io"
+        LOOPBACK_ADDRESS = "172.17.0.1"
+    }
+
+    stages {
+
+        stage('Create and push docker images') {
+            steps {
+                sh "./gradlew createAndPushDockerImages " +
+                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
+            }
+        }
+
+        stage('Build Network Deployments') {
+            steps {
+                sh "./gradlew buildAllNetworks " +
+                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
+            }
+        }
+
+        stage('Deploy to Azure') {
+            steps {
+                withCredentials([azureServicePrincipal("payments-deployer-service-principal")]) {
+                    sh '''
+                    az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET -t $AZURE_TENANT_ID
+                    az account set -s $AZURE_SUBSCRIPTION_ID
+                    az aks get-credentials --resource-group payments-dev --name payments-dev-k8s
+                    kubectl apply -f deploy/build/kubernetes/namespaceAndCredDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/auctionNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/gbpNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/cbdcNetworkDeployment.yaml
+                    kubectl apply -f deploy/build/kubernetes/frontEndAndSpring.yaml
+                  '''
+                }
+            }
+        }
+
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: '**/build/kubernetes/*.yaml'
+        }
+
+        cleanup {
+            deleteDir() /* clean up our workspace */
+        }
+    }
+}
