@@ -1,10 +1,8 @@
 package com.r3.gallery.broker.corda.client.config
 
 import com.r3.gallery.api.LogUpdateEntry
-import com.r3.gallery.broker.corda.client.config.mixin.AmountMixin
-import com.r3.gallery.broker.corda.client.config.mixin.FiatCurrencyMixin
-import com.r3.gallery.broker.corda.client.config.mixin.LogUpdateEntryMixin
-import com.r3.gallery.broker.corda.client.config.mixin.UniqueIdentifierMixin
+import com.r3.gallery.api.Participant
+import com.r3.gallery.broker.corda.client.config.mixin.*
 import com.r3.payments.currency.FiatCurrency
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,6 +25,7 @@ class SerializationConfig {
         mapper.addMixIn(Amount::class.java, AmountMixin::class.java)
         mapper.addMixIn(FiatCurrency::class.java, FiatCurrencyMixin::class.java)
         mapper.addMixIn(LogUpdateEntry::class.java, LogUpdateEntryMixin::class.java)
+        mapper.addMixIn(Participant::class.java, ParticipantMixin::class.java)
         val converter = MappingJackson2HttpMessageConverter()
         converter.objectMapper = mapper
         return converter

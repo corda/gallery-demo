@@ -42,6 +42,30 @@ data class LogUpdateEntry(
 )
 
 /**
+ * Participant entry - represents a detailed view of a
+ * party (ArtworkParty, TokenParty)
+ */
+data class Participant(
+    val displayName: String,
+    val networkIds: List<NetworkId>
+)  {
+    data class NetworkId(
+        val network: String,
+        val x500: String,
+        val publicKey: String
+    )
+}
+
+/**
+ * Represents a balance for an asset class
+ */
+data class Balance(
+    val currencyCode: String,
+    val encumberedFunds: String,
+    val availableFunds: String
+)
+
+/**
  * Represents a state on the art network, identified by [cordaReference], which grants ownership
  * of the artwork identified by [artworkId] to the owner identified by [artworkOwner]
  */
