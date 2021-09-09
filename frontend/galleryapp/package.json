@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/core": "^7.13.0",
     "@craco/craco": "^6.2.0",
     "@r3/r3-tooling-design-system": "^1.0.0",
     "@testing-library/jest-dom": "^5.14.1",

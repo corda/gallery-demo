@@ -10,7 +10,7 @@ class DeploymentTask extends DefaultTask {
     protected String fileName
 
     DeploymentTask() {
-        group = "deploymentk8s"
+        group = "deployment k8s"
     }
 
     @TaskAction

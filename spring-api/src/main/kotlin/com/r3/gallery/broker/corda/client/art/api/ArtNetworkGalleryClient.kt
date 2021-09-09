@@ -1,6 +1,6 @@
 package com.r3.gallery.broker.corda.client.art.api
 
-import com.r3.gallery.broker.corda.client.api.*
+import com.r3.gallery.api.*
 
 /**
  * Execute flows against Corda nodes running the Art Network application, acting as the gallery
@@ -10,20 +10,20 @@ interface ArtNetworkGalleryClient {
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    suspend fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
+    fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
 
     /**
      * List out the artworks still held by the gallery.
      */
-    suspend fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
+    fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
 
     /**
      * Create an unsigned transaction that would transfer an artwork owned by the gallery,
-     * identified by [galleryOwnership], to the given [bidder].
+     * identified by [galleryOwnership], to the given bidder.
      *
      * @return The unsigned fulfilment transaction
      */
-    suspend fun createArtworkTransferTx(galleryPart: ArtworkParty,
+    fun createArtworkTransferTx(galleryParty: ArtworkParty,
                                         bidderParty: ArtworkParty,
                                         galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
 
@@ -33,10 +33,10 @@ interface ArtNetworkGalleryClient {
      *
      * @return Proof that ownership of the artwork has been transferred.
      */
-    suspend fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership
+    fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership
 
     /**
      * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
      */
-    suspend fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
+    fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
 }

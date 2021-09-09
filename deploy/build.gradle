@@ -1,3 +1,5 @@
+import java.util.regex.Pattern
+
 apply plugin: "net.corda.plugins.cordapp"
 apply plugin: "net.corda.plugins.cordformation"
 apply plugin: 'net.corda.plugins.quasar-utils'
@@ -9,13 +11,16 @@ rootProject.ext.corda_release_version = cordaCoreVersion // required for cordfor
 dependencies {
     cordaRuntime "$cordaCoreReleaseGroup:corda:$cordaCoreVersion"
     cordaCompile "$cordaCoreReleaseGroup:corda-node-api:$cordaCoreVersion"
+    cordaCompile "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+    cordaCompile "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
 
     cordaCompile "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
     cordaCompile "org.slf4j:jul-to-slf4j:$slf4jVersion"
 
     cordapp project(":gallery-contracts")
     cordapp project(":gallery-workflows")
-    project(":spring-api")
+    cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+    cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
 }
 
 sourceSets {
@@ -46,6 +51,8 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
     }
     signing {
         enabled false
@@ -116,8 +123,10 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -141,11 +150,16 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
             adminAddress("0.0.0.0:10021")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10022' ],
+                h2Settings: [ address: '0.0.0.0:10022' ],
                 dataSourceProperties: [
                     dataSource: [
                         password: "test"
                     ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5000"
                 ]
         ]
         sshdPort 2222
@@ -165,6 +179,11 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5001"
                 ]
         ]
         sshdPort 2223
@@ -172,7 +191,7 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
 
     node {
         name "O=Charlie,L=Mumbai,C=IN"
-        p2pPort 10003
+        p2pPort 10002
         p2pAddress "0.0.0.0"
         rpcSettings {
             address("0.0.0.0:10026")
@@ -184,6 +203,11 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5002"
                 ]
         ]
         sshdPort 2224
@@ -210,8 +234,10 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -235,11 +261,16 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
             adminAddress("0.0.0.0:10032")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10033' ],
+                h2Settings: [ address: '0.0.0.0:10033' ],
                 dataSourceProperties: [
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5003"
                 ]
         ]
         sshdPort 2226
@@ -259,6 +290,11 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5004"
                 ]
         ]
         sshdPort 2227
@@ -285,8 +321,10 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
         }
         cordapp project(":gallery-contracts")
         cordapp project(":gallery-workflows")
+        cordapp "$tokensReleaseGroup:tokens-contracts:$tokensReleaseVersion"
+        cordapp "$tokensReleaseGroup:tokens-workflows:$tokensReleaseVersion"
         rpcUsers = [[user: "user1", "password": "test", "permissions": ["ALL"]]]
-        //        runSchemaMigration = true
+        runSchemaMigration = true
     }
 
     node {
@@ -310,11 +348,16 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
             adminAddress("0.0.0.0:10040")
         }
         extraConfig = [
-                h2Settings: [ address: 'localhost:10041' ],
+                h2Settings: [ address: '0.0.0.0:10041' ],
                 dataSourceProperties: [
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
                 ]
         ]
         sshdPort 2229
@@ -334,6 +377,11 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
                         dataSource: [
                                 password: "test"
                         ]
+                ],
+                'custom.jvmArgs': [
+                        "-Xmx1G",
+                        "-XX:+UseG1GC",
+                        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5006"
                 ]
         ]
         sshdPort 2230
@@ -353,11 +401,89 @@ task prepareAllDockerNodes(type: Task, dependsOn: ['prepareAuctionDockerNodes','
 
 // RUNNERS
 
+task auctionNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task auctionNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = auctionNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task gbpNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task gbpNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = gbpNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
+task cbdcNetworkDown(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'down', '--remove-orphans'
+        }
+    }
+}
+
+task cbdcNetworkUp(type: Task) {
+    group = "deployment runners"
+    def network = cbdcNodeDir
+
+    doLast {
+        exec {
+            environment "ACCEPT_LICENSE", "YES"
+            workingDir network
+            commandLine 'docker-compose', '-f', "$network/docker-compose.yml", 'up', '--remove-orphans', '-d'
+        }
+    }
+}
+
 /**
  * Convenience task for bringing up all docker networks
  */
 task allNetworksUp(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({ network ->
@@ -374,7 +500,7 @@ task allNetworksUp(type: Task) {
  * Convenience task for bringing down all docker networks
  */
 task allNetworksDown(type: Task) {
-    group = "deployment"
+    group = "deployment runners"
 
     doLast {
         allNetworks.forEach({network ->
@@ -394,7 +520,18 @@ task allNetworksDown(type: Task) {
  * @return
  */
 def mvYamlToTarget(String source, String target) {
+    // for recognizing a nodes rpc port and injecting a unique debug port locally
+    Map<String, String> rpcToDebugPortMap = [
+            "10020":"5000", // auction alice
+            "10023":"5001", // auction bob
+            "10026":"5002", // auction charlie
+            "10031":"5003", // gbp alice
+            "10034":"5004", // gbp bob
+            "10039":"5005", // cbdc alice
+            "10042":"5006"  // cbdc charlie
+    ]
     File srcFile = new File(source)
+    Pattern pattern = Pattern.compile("-\\s(\\d{5})") // rpc port pattern
     copy {
         from(source) {
             include '**/docker-compose.yml'
@@ -403,6 +540,23 @@ def mvYamlToTarget(String source, String target) {
         filter {
             // Correction of Dockerform incorrect mnt path generations
             line -> line.replaceAll(source, target)
+        }
+        filter {
+            // Makes local ports static rather than generated
+            line ->
+                def matcher =  pattern.matcher(line as String)
+
+                if (matcher.find()) {
+                    def port =  matcher.group(1)
+                    def rpcPort = ""
+                    if (rpcToDebugPortMap.keySet().contains(port)) {
+                        rpcPort = "\n    - \"${rpcToDebugPortMap[port]}:${rpcToDebugPortMap[port]}\""
+                    }
+                    line.replace(
+                        port,
+                        "\"${port}:${port}\"$rpcPort"
+                    )
+                } else line
         }
     }
     srcFile.deleteDir()

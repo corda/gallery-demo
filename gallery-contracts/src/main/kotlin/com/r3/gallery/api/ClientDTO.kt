@@ -1,6 +1,12 @@
-package com.r3.gallery.broker.corda.client.api
+package com.r3.gallery.api
 
+import net.corda.core.serialization.CordaSerializable
 import java.util.*
+
+/**
+ * A connection id for indexing CordaRPCConnection between multiple nodes.
+ */
+typealias RpcConnectionTarget = String
 
 /**
  * A unique reference for something in the Corda system, usually a transaction or state id.
@@ -14,6 +20,7 @@ typealias ArtworkId = UUID
 
 /**
  * Identity of the party on the art network.
+ * String X500 name
  */
 typealias ArtworkParty = String
 
@@ -26,6 +33,7 @@ typealias TokenParty = String
  * Represents a state on the art network, identified by [cordaReference], which grants ownership
  * of the artwork identified by [artworkId] to the owner identified by [artworkOwner]
  */
+@CordaSerializable
 data class ArtworkOwnership(
     val cordaReference: CordaReference,
     val artworkId: ArtworkId,
@@ -44,6 +52,16 @@ data class TransactionSignature(val bytes: ByteArray) {
     override fun hashCode(): Int = bytes.contentHashCode()
 }
 
+data class LockStateRef(val bytes: ByteArray) {
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other is LockStateRef -> bytes.contentEquals(other.bytes)
+        else -> false
+    }
+
+    override fun hashCode(): Int = bytes.contentHashCode()
+}
+
 data class ProofOfTransferOfOwnership(
     val transactionId: CordaReference,
     val transactionHash: TransactionHash,
@@ -51,6 +69,7 @@ data class ProofOfTransferOfOwnership(
     val notarySignature: TransactionSignature
 )
 
+@CordaSerializable
 data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
@@ -61,4 +80,11 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun hashCode(): Int = transactionBytes.contentHashCode()
 }
 
-typealias EncumberedTokens = CordaReference
+//typealias EncumberedTokens = CordaReference
+typealias EncumberedTokens = LockStateRef
+
+enum class CordaRPCNetwork(val netName: String) {
+    AUCTION("auction"),
+    GBP("gbp"),
+    CBDC("cbdc")
+}
