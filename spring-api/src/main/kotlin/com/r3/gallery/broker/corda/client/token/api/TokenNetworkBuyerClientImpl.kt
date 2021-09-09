@@ -1,12 +1,17 @@
 package com.r3.gallery.broker.corda.client.token.api
 
-import com.r3.gallery.api.CordaRPCNetwork
-import com.r3.gallery.api.EncumberedTokens
-import com.r3.gallery.api.TokenParty
-import com.r3.gallery.api.UnsignedArtworkTransferTx
+import com.r3.corda.lib.tokens.money.FiatCurrency
+import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
+import com.r3.gallery.workflows.OfferEncumberedTokensFlow
+import com.r3.gallery.workflows.token.IssueTokensFlow
+import net.corda.core.contracts.Amount
+import net.corda.core.serialization.SerializedBytes
+import net.corda.core.serialization.deserialize
+import net.corda.core.serialization.serialize
+import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,11 +36,27 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
 
     companion object {
         private val logger = LoggerFactory.getLogger(TokenNetworkBuyerClientImpl::class.java)
-        private val network = CordaRPCNetwork.AUCTION
+        // TODO: properly setup token networks
+        private val network = CordaRPCNetwork.GBP
     }
 
-    override fun transferEncumberedTokens(buyer: TokenParty, seller: TokenParty, amount: Int, lockedOn: UnsignedArtworkTransferTx): EncumberedTokens {
-        TODO("Not yet implemented")
+    override fun issueTokens(buyer: TokenParty, amount: Long, currency: String) {
+        logger.info("Starting IssueTokensFlow via $buyer for $amount $currency")
+        val buyerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, buyer)
+        val signedTx = tokenNetworkBuyerCS.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
     }
 
+    override fun transferEncumberedTokens(
+        buyer: TokenParty,
+        seller: TokenParty,
+        amount: Int,
+        lockedOn: UnsignedArtworkTransferTx
+    ): EncumberedTokens {
+        logger.info("Starting OfferEncumberedTokensFlow flow via $buyer with seller: $seller")
+        val sellerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, seller)
+        val encumberedAmount = Amount(amount.toLong(), FiatCurrency.getInstance("GBP"))
+        val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
+        val lockStateRef = tokenNetworkBuyerCS.startFlow(buyer, OfferEncumberedTokensFlow::class.java, wireTx, sellerParty, encumberedAmount)
+        return LockStateRef(lockStateRef.serialize().bytes)
+    }
 }
