@@ -68,6 +68,27 @@ data class Balance(
 )
 
 /**
+ * AvailableArtworksResponse
+ */
+data class AvailableArtworksResponse(
+    val artworkId: ArtworkId,
+    val description: String,
+    val url: String,
+    val listed: Boolean,
+    val bids: List<BidRecord>
+) {
+    data class BidRecord(
+        val cordaReference: CordaReference,
+        val bidderPublicKey: String,
+        val bidderDisplayName: ArtworkParty,
+        val amountAndCurrency: Amount<TokenType>, // will expand to amount, currencyCode
+        val notary: ArtworkParty,
+        val expiryDate: Date,
+        val accepted: Boolean
+    )
+}
+
+/**
  * Represents a state on the art network, identified by [cordaReference], which grants ownership
  * of the artwork identified by [artworkId] to the owner identified by [artworkOwner]
  */
