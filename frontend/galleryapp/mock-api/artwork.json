@@ -1,0 +1,93 @@
+[
+  {
+    "artworkId": "4a8c9cf4-3000-4346-9324-2b1d2d954da8",
+    "description": "AppleMan",
+    "url": "https://thumbor.forbes.com/thumbor/960x0/https%3A%2F%2Fblogs-images.forbes.com%2Fchaddscott%2Ffiles%2F2018%2F10%2F12.-Son-of-Man-1200x1575.jpg",
+    "listed": true,
+    "bids": [
+      {
+        "cordaReference": "a1062db53e416d8fa109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48d",
+        "bidderPubKey": "0xb4bc263278d3ф82a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
+        "bidderDisplayName": "Bob GBP",
+        "amount": 250,
+        "currencyCode": "GBP",
+        "notary": "O=GBP Notary,L=London,C=GB",
+        "expiryDate": "15:17:08.132263",
+        "accepted": false
+      },
+      {
+        "cordaReference": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
+        "bidderPubKey": "0xfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3ф82a652a8d73a6b",
+        "bidderDisplayName": "Charles CBDC",
+        "amount": 250,
+        "currencyCode": "CBDC",
+        "notary": "O=CBDC Notary,L=London,C=GB",
+        "expiryDate": "15:17:08.132263",
+        "accepted": true
+      }
+    ]
+  },
+  {
+    "artworkId": "9cf44a8c-3000-4346-9324-2954da8b1d2d",
+    "description": "Summerset on the Beach",
+    "url": "https://render.fineartamerica.com/images/rendered/default/print/8/6.5/break/images-medium-5/summerset-sailboats-paul-brent.jpg",
+    "listed": true,
+    "bids": [
+      {
+        "cordaReference": "16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa109f23b7094a21e5b2645e",
+        "bidderPubKey": "0xd73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3382a652a8",
+        "bidderDisplayName": "Bob GBP",
+        "amount": 25000.33,
+        "currencyCode": "GBP",
+        "notary": "O=GBP Notary,L=London,C=GB",
+        "expiryDate": "15:17:08.132263",
+        "accepted": false
+      },
+      {
+        "cordaReference": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
+        "bidderPubKey": "0xfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3182a652a8d73a6b",
+        "bidderDisplayName": "Charles CBDC",
+        "amount": 1999.00,
+        "currencyCode": "CBDC",
+        "notary": "O=CBDC Notary,L=London,C=GB",
+        "expiryDate": "15:17:08.132263",
+        "accepted": true
+      }
+    ]
+  },
+  {
+    "artworkId": "9cf44a8c-3000-4346-9324-2954da8b1d2d4",
+    "description": "American Gothic",
+    "url": "https://www.galerie-sakura.com/media/main/produit/32f978fb9eb0a9685bfe4031af7b98dc6faf23c2.jpg",
+    "listed": true,
+    "bids": [
+      {
+        "cordaReference": "16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa109f23b7094a21e5b2645e",
+        "bidderPubKey": "0xd73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3382a652a8",
+        "bidderDisplayName": "Bob GBP",
+        "amount": 25000.33,
+        "currencyCode": "GBP",
+        "notary": "O=GBP Notary,L=London,C=GB",
+        "expiryDate": "15:17:08.132263",
+        "accepted": false
+      },
+      {
+        "cordaReference": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
+        "bidderPubKey": "0xfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3182a652a8d73a6b",
+        "bidderDisplayName": "Charles CBDC",
+        "amount": 1999.00,
+        "currencyCode": "CBDC",
+        "notary": "O=CBDC Notary,L=London,C=GB",
+        "expiryDate": "15:17:08.132263",
+        "accepted": false
+      }
+    ]
+  },
+  {
+    "artworkId": "9cf44a8c-3000-4346-9324-2954da8b1d2d3",
+    "description": "In the car",
+    "url": "https://www.invaluable.com/blog/wp-content/uploads/2017/10/Invaluable-Roy-Lichtenstein-Hero.jpg",
+    "listed": true,
+    "bids": []
+  }
+]

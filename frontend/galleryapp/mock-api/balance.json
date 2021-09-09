@@ -1,0 +1,37 @@
+[
+  {
+    "artworkParty": "O=Alice,L=London,C=GB",
+    "balances": [
+      {
+        "currencyCode": "GBP",
+        "encumberedFunds": 0,
+        "availableFunds": 50
+      },
+      {
+        "currencyCode": "CBDC",
+        "encumberedFunds": 0,
+        "availableFunds": 1000
+      }
+    ]
+  },
+  {
+    "artworkParty": "O=Bob,L=San Francisco,C=US",
+    "balances": [
+      {
+        "currencyCode": "GBP",
+        "encumberedFunds": 400,
+        "availableFunds": 50
+      }
+    ]
+  },
+  {
+    "artworkParty": "O=Charlie,L=Mumbai,C=IN",
+    "balances": [
+      {
+        "currencyCode": "CBDC",
+        "encumberedFunds": 0,
+        "availableFunds": 1000
+      }
+    ]
+  }
+]

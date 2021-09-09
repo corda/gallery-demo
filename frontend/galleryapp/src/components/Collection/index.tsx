@@ -1,16 +1,33 @@
 import styles from "./styles.module.scss";
 import { EmptyState } from "@r3/r3-tooling-design-system";
+import { GalleryLot } from "@Models";
 
-function Collection() {
+interface Props {
+  lots: GalleryLot[];
+}
+
+function Collection({ lots }: Props) {
   return (
     <section className={styles.main}>
-      <h2>Collection</h2>
-
-      <EmptyState
-        icon="FolderEdit"
-        show
-        title="There are no pieces of digital art in your collection"
-      />
+      <h3>Collection</h3>
+      {lots.length ? (
+        <div className={styles.gallery}>
+          {lots.map((lot, i) => (
+            <img
+              key={lot.artworkId}
+              className={styles.galleryImage}
+              src={lot.url}
+              alt={lot.description}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          icon="FolderEdit"
+          show
+          title="There are no pieces of digital art in your collection"
+        />
+      )}
     </section>
   );
 }

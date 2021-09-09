@@ -12,9 +12,6 @@ function GalleryBidModal({ open, onClose, selectedBid }: Props) {
   return selectedBid ? (
     <Modal closeOnOutsideClick onClose={onClose} size="small" title="" withBackdrop open={open}>
       <h4>Place Bid</h4>
-      <p>
-        {selectedBid.displayName} - {selectedBid.reservePrice} {selectedBid.currencySymbol}
-      </p>
       <TextInput className={styles.input} label="Bid amount" onChange={() => {}} value="" />
       <TextInput className={styles.input} label="Expiry time" onChange={() => {}} value="" />
       <div className={styles.ctas}>
