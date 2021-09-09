@@ -1,4 +1,4 @@
-import kotlin.Pair
+import kotlin.Triple
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -6,17 +6,19 @@ import org.gradle.api.tasks.TaskAction
  * Task abstraction for generation/push of docker images
  */
 class ImageTask extends DefaultTask {
-    protected List<Pair<File, String>> resourceAndImage
+    protected List<Triple<File, String, String>> resourceImageAndVersion
+    protected Map<String, Map<String, String>> imageToBuildArgsMap = null
 
     @TaskAction
     def buildImage() {
-        resourceAndImage.forEach({
+        resourceImageAndVersion.forEach({
             DockerClientProvider.buildDockerImage(
                     it.first as File,
                     it.second as String,
-                    project.version as String,
+                    it.third as String,
                     true,
-                    project
+                    project,
+                    imageToBuildArgsMap.getOrDefault(it.second, null)
             )
         })
     }

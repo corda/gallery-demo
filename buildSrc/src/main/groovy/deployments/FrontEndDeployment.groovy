@@ -43,6 +43,7 @@ class FrontEndDeployment implements Iterable<Object> {
     static FrontEndDeployment buildFrontEndDeployment(String regcred,
                                                       String identifier,
                                                       String imageName,
+                                                      String imageVersion,
                                                       String namespace
     ) {
 
@@ -73,7 +74,7 @@ class FrontEndDeployment implements Iterable<Object> {
                 .withImagePullSecrets(new V1LocalObjectReferenceBuilder().withName(regcred).build())
                 .addNewContainer()
                 .withName(identifier + "-frontend")
-                .withImage("${imageName}")
+                .withImage("${imageName}:${imageVersion}")
                 .withImagePullPolicy("Always")
                 .withPorts(
                         new V1ContainerPortBuilder().withName("frontendhttp").withContainerPort(6005).build(),
