@@ -1,6 +1,7 @@
 package com.r3.gallery.broker.corda.client
 
 import com.r3.gallery.api.LogUpdateEntry
+import com.r3.gallery.api.Participant
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
@@ -26,11 +27,11 @@ class NetworkToolsController(@Autowired private val networkToolsService: Network
      * Test endpoint to return NodeInfo of connections
      * TODO: add jackson model for NodeInfo rather than string
      */
-    @GetMapping("/nodes")
-    fun nodes(
+    @GetMapping("/participants")
+    fun participants(
         @RequestParam("networks", required = false) networks: List<String>?
-    ): ResponseEntity<String> {
-        return asResponse(networkToolsService.nodes(networks).toString())
+    ): ResponseEntity<List<Participant>> {
+        return asResponse(networkToolsService.participants(networks))
     }
 
     /**

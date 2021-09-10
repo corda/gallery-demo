@@ -49,13 +49,15 @@ data class LogUpdateEntry(
  */
 data class Participant(
     val displayName: String,
-    val networkIds: List<NetworkId>
+    val networkIds: List<NetworkId>,
+    val type: AuctionRole
 )  {
     data class NetworkId(
         val network: String,
         val x500: String,
         val publicKey: String
     )
+    enum class AuctionRole { BIDDER, GALLERY }
 }
 
 /**

@@ -23,6 +23,7 @@ internal class ParticipantSerializer : JsonSerializer<Participant>() {
             gen.writeEndObject()
         }
         gen.writeEndArray()
+        gen.writeStringField("type", value.type.name)
         gen.writeEndObject()
     }
 }

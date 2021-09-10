@@ -2,13 +2,14 @@ package com.r3.gallery.broker.corda.client
 
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.LogUpdateEntry
+import com.r3.gallery.api.Participant
 import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
 import net.corda.client.rpc.CordaRPCConnection
-import net.corda.core.node.NodeInfo
+import net.corda.core.internal.hash
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -90,12 +91,34 @@ class NetworkToolsService {
     }
 
     /**
-     * Test endpoint to return NodeInfo of connections
+     * Returns participants across all networks
+     *
+     * Creates a list of Pairs [displayName (node identity) and NetworkId] across all networks;
+     * Constructs Participants and injects grouped list
      */
-    fun nodes(networks: List<String>?) : List<NodeInfo> {
-        return networkClients.runPerConnectionService {
+    fun participants(networks: List<String>?) : List<Participant> {
+        val allNetworkIds = networkClients.runPerConnectionService {
+            val currentNetwork = it.associatedNetwork!!.netName
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
+                .map { nodeInfo ->
+                    val x500 = nodeInfo.legalIdentitiesAndCerts.first().name
+                    val displayName = x500.organisation
+                    val pubicKey = nodeInfo.legalIdentitiesAndCerts.first().owningKey.hash.toHexString()
+                    Pair(displayName, Participant.NetworkId(currentNetwork, x500.toString(), pubicKey))
+                }
+
         }.flatten()
+        return allNetworkIds.groupBy { it.first }
+            .entries.map {
+                val displayName = it.key
+                // TODO: remove hardcode of 'type'
+                Participant(
+                    displayName,
+                    it.value.map { list -> list.second },
+                    if (displayName.contains("alice", true))
+                        Participant.AuctionRole.GALLERY else Participant.AuctionRole.BIDDER
+                )
+            }
     }
 
     /**
