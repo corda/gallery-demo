@@ -63,8 +63,8 @@ class LockContract : Contract {
 				//  need to check whether there are any other conditions we should check for
 			}
 			is Release -> {
-				val ourState = tx.inRefsOfType(LockState::class.java).single().state.data
 				val signature = (ourCommand.value as Release).signature
+				val ourState = tx.inRefsOfType(LockState::class.java).single().state.data
 				require(signature.isValid(ourState.txHash.txId)) {
 					"Signature provided is not valid for encumberance transaction"
 				}

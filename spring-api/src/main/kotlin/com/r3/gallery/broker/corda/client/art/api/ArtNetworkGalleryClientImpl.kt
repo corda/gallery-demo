@@ -7,6 +7,7 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.CreateDraftTransferOfOwnershipFlow
+import com.r3.gallery.workflows.CreateDraftTransferOfOwnershipFlow2
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
 import com.r3.gallery.workflows.artwork.FindArtworkFlow
 import com.r3.gallery.workflows.artwork.FindOwnedArtworksFlow
@@ -72,6 +73,14 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
         val artworkLinearId = UniqueIdentifier.fromString(galleryOwnership.cordaReference.toString())
         val unsignedTx = artNetworkGalleryCS.startFlow(galleryParty, CreateDraftTransferOfOwnershipFlow::class.java, artworkLinearId, partyToTransferTo)
         return UnsignedArtworkTransferTx(unsignedTx.serialize().bytes)
+    }
+
+    override fun createArtworkTransferTx2(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTxAndLock {
+        logger.info("Starting CreateArtworkTransferTx flow via $galleryParty with bidder: $bidderParty for ownership $galleryOwnership")
+        val partyToTransferTo = artNetworkGalleryCS.wellKnownPartyFromName(galleryParty, bidderParty)
+        val artworkLinearId = UniqueIdentifier.fromString(galleryOwnership.cordaReference.toString())
+        val draft = artNetworkGalleryCS.startFlow(galleryParty, CreateDraftTransferOfOwnershipFlow2::class.java, artworkLinearId, partyToTransferTo)
+        return UnsignedArtworkTransferTxAndLock(draft.first.serialize().bytes, draft.second.serialize().bytes)
     }
 
     /**

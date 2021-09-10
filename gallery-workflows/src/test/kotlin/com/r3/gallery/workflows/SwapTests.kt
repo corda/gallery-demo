@@ -8,6 +8,7 @@ import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
+import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.getOrThrow
@@ -21,7 +22,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
-import java.time.Instant
 import java.util.concurrent.Future
 
 class SwapTests {
@@ -61,6 +61,31 @@ class SwapTests {
     }
 
     @Test
+    fun `can draft transfer tx`() {
+        val artworkOwnership: ArtworkOwnership = issueArtwork(seller)
+        val sellerParty = seller.info.chooseIdentity()
+        val buyer1Party = buyer1.info.chooseIdentity()
+
+//        val artTransferTx = seller.startFlow(BuildDraftTransferOfOwnership(artworkOwnership, buyer1Party)).apply {
+//            network.runNetwork()
+//        }.getOrThrow()
+//
+//        val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx)).apply {
+//            network.runNetwork()
+//        }.getOrThrow()
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkOwnership.cordaReference.toString())
+        val artTransferTx2 = seller.startFlow(CreateDraftTransferOfOwnershipFlow(artworkLinearId, buyer1Party)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val signedArtTransferTx2 = seller.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx2)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+    }
+
+    @Test
     fun `swap steps`() {
         val artworkId = issueArtwork(seller)
         val sellerParty = seller.info.chooseIdentity()
@@ -80,6 +105,50 @@ class SwapTests {
             }.getOrThrow()
 
         val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
+
+        seller.startFlow(UnlockEncumberedTokensFlow(lockStateRef, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artworkItemA = queryArtworkState(seller, false)
+        assertNull(artworkItemA)
+
+        val artworkItemB = queryArtworkState(buyer1, false)
+        assertNotNull(artworkItemB)
+        assertEquals(buyer1Party, buyer1.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
+
+        val aBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+        val bBalance = buyer1.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+    }
+
+    @Test
+    fun `swap steps x-net`() {
+        val artworkId = issueArtwork(seller)
+        val sellerParty = seller.info.chooseIdentity()
+        val buyer1Party = buyer1.info.chooseIdentity()
+
+        buyer1.startFlow(IssueTokensFlow(20.USD, buyer1Party)).apply {
+            network.runNetwork()
+        }
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkId.cordaReference.toString())
+        val draft = seller.startFlow(CreateDraftTransferOfOwnershipFlow2(artworkLinearId, buyer1Party)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val atrTransferTx = draft.first
+        val lockState = draft.second
+
+        val lockStateRef =
+            buyer1.startFlow(OfferEncumberedTokensFlow2(lockState, sellerParty, 10.USD)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val signedArtTransferTx = seller.startFlow(SignAndFinalizeTransferOfOwnership(atrTransferTx)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -205,7 +274,7 @@ class SwapTests {
     }
 
     private fun issueArtwork(node: StartedMockNode): ArtworkOwnership {
-        val epoch = Instant.now().epochSecond
+        //val epoch = Instant.now().epochSecond
         //val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
         val flow = IssueArtworkFlow(ArtworkId.randomUUID())
         val future: Future<ArtworkOwnership> = node.startFlow(flow)

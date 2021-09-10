@@ -5,7 +5,9 @@ import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
+import com.r3.gallery.states.LockState
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
+import com.r3.gallery.workflows.OfferEncumberedTokensFlow2
 import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.serialization.SerializedBytes
@@ -43,7 +45,7 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
     override fun issueTokens(buyer: TokenParty, amount: Long, currency: String) {
         logger.info("Starting IssueTokensFlow via $buyer for $amount $currency")
         val buyerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, buyer)
-        val signedTx = tokenNetworkBuyerCS.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
+        tokenNetworkBuyerCS.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
     }
 
     override fun transferEncumberedTokens(
@@ -57,6 +59,21 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
         val encumberedAmount = Amount(amount.toLong(), FiatCurrency.getInstance("GBP"))
         val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
         val lockStateRef = tokenNetworkBuyerCS.startFlow(buyer, OfferEncumberedTokensFlow::class.java, wireTx, sellerParty, encumberedAmount)
+        return LockStateRef(lockStateRef.serialize().bytes)
+    }
+
+    override fun transferEncumberedTokens2(
+        buyer: TokenParty,
+        seller: TokenParty,
+        amount: Int,
+        lockedOn: UnsignedArtworkTransferTxAndLock
+    ): EncumberedTokens {
+        logger.info("Starting OfferEncumberedTokensFlow2 flow via $buyer with seller: $seller")
+        val sellerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, seller)
+        val encumberedAmount = Amount(amount.toLong(), FiatCurrency.getInstance("GBP"))
+        //val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
+        val lockState = SerializedBytes<LockState>(lockedOn.lockBytes).deserialize()
+        val lockStateRef = tokenNetworkBuyerCS.startFlow(buyer, OfferEncumberedTokensFlow2::class.java, lockState, sellerParty, encumberedAmount)
         return LockStateRef(lockStateRef.serialize().bytes)
     }
 }

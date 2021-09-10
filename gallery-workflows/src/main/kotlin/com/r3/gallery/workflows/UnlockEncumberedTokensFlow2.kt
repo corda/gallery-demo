@@ -24,7 +24,7 @@ import java.time.Duration
  */
 @StartableByService
 @InitiatingFlow
-class UnlockEncumberedTokensFlow(
+class UnlockEncumberedTokensFlow2(
     private val lockStateRef: StateRef,
     private val requiredSignature: TransactionSignature) : FlowLogic<SignedTransaction>() {
 
@@ -72,11 +72,11 @@ class UnlockEncumberedTokensFlow(
 }
 
 /**
- * Responder flow for [UnlockEncumberedTokensFlow].
+ * Responder flow for [UnlockEncumberedTokensFlow2].
  * Sign and finalise the unlock encumbered state transaction.
  */
-@InitiatedBy(UnlockEncumberedTokensFlow::class)
-class UnlockEncumberedTokensFlowHandler(private val otherSession: FlowSession) : FlowLogic<SignedTransaction?>() {
+@InitiatedBy(UnlockEncumberedTokensFlow2::class)
+class UnlockEncumberedTokensFlow2Handler(private val otherSession: FlowSession) : FlowLogic<SignedTransaction?>() {
     @Suspendable
     override fun call(): SignedTransaction? {
         return if (!serviceHub.myInfo.isLegalIdentity(otherSession.counterparty)) {

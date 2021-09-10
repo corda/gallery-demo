@@ -52,6 +52,18 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return asResponse(artworkTx)
     }
 
+    @PutMapping("/create-artwork-transfer-tx2")
+    fun createArtworkTransferTx2(
+        @RequestParam("galleryParty") galleryParty: ArtworkParty,
+        @RequestParam("bidderParty") bidderParty: ArtworkParty,
+        @RequestParam("artworkId") artworkId: String
+    ) : ResponseEntity<UnsignedArtworkTransferTxAndLock> {
+        logger.info("Request to create artwork transfer transaction seller: $galleryParty, bidder: $bidderParty, art: $artworkId")
+        val artworkOwnership = galleryClient.getOwnership(galleryParty, artworkId.toUUID())
+        val artworkTx = galleryClient.createArtworkTransferTx2(galleryParty, bidderParty, artworkOwnership)
+        return asResponse(artworkTx)
+    }
+
     @PostMapping("/finalise-artwork-transfer", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun finaliseArtworkTransfer(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,

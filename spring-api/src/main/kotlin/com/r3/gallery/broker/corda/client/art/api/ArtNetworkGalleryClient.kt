@@ -27,6 +27,10 @@ interface ArtNetworkGalleryClient {
                                         bidderParty: ArtworkParty,
                                         galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
 
+    fun createArtworkTransferTx2(galleryParty: ArtworkParty,
+                                bidderParty: ArtworkParty,
+                                galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTxAndLock
+
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]

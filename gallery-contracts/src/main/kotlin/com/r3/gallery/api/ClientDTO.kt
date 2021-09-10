@@ -1,5 +1,6 @@
 package com.r3.gallery.api
 
+import com.r3.gallery.states.LockState
 import net.corda.core.serialization.CordaSerializable
 import java.util.*
 
@@ -78,6 +79,21 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     }
 
     override fun hashCode(): Int = transactionBytes.contentHashCode()
+}
+
+@CordaSerializable
+data class UnsignedArtworkTransferTxAndLock(val transactionBytes: ByteArray, val lockBytes: ByteArray) {
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other is UnsignedArtworkTransferTxAndLock -> {
+            transactionBytes.contentEquals(other.transactionBytes) && lockBytes.contentEquals(other.lockBytes)
+        }
+        else -> false
+    }
+
+    override fun hashCode(): Int {
+        return 31 * transactionBytes.contentHashCode() + lockBytes.contentHashCode()
+    }
 }
 
 //typealias EncumberedTokens = CordaReference
