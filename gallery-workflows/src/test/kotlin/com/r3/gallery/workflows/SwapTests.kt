@@ -9,14 +9,12 @@ import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.internal.chooseIdentity
-import net.corda.testing.node.MockNetwork
-import net.corda.testing.node.MockNetworkParameters
-import net.corda.testing.node.StartedMockNode
-import net.corda.testing.node.TestCordapp
+import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -24,14 +22,27 @@ import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.Future
 
+
 class SwapTests {
     private lateinit var network: MockNetwork
     private lateinit var seller: StartedMockNode
     private lateinit var buyer1: StartedMockNode
     private lateinit var buyer2: StartedMockNode
 
+    private lateinit var gallery: StartedMockNode
+    private lateinit var bidder: StartedMockNode
+    private lateinit var buyer: StartedMockNode
+
     @Before
     fun setup() {
+        val notaries = listOf(
+            MockNetworkNotarySpec(CordaX500Name("Notary", "London", "GB")),
+            MockNetworkNotarySpec(CordaX500Name("Notary", "Zurich", "CH"))
+        )
+
+//        val (networkSendManuallyPumped, threadPerNode, servicePeerAllocationStrategy, notarySpecs, networkParameters, cordappsForAllNodes) = MockNetworkParameters().withNotarySpecs(
+//            Arrays.asList()
+//        )
         network = MockNetwork(
             MockNetworkParameters(
                 cordappsForAllNodes = listOf(
@@ -39,11 +50,14 @@ class SwapTests {
                     TestCordapp.findCordapp("com.r3.gallery.workflows"),
                     TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts")
                 )
-            )
+            ).withNotarySpecs(notaries)
         )
         seller = network.createPartyNode()
         buyer1 = network.createPartyNode()
         buyer2 = network.createPartyNode()
+        gallery = network.createPartyNode()
+        bidder = network.createPartyNode()
+        buyer = network.createPartyNode()
 
         network.runNetwork()
     }
@@ -52,6 +66,7 @@ class SwapTests {
     fun tearDown() {
         network.stopNodes()
     }
+
     @Test
     fun `can issue artwork`() {
         //val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
@@ -123,6 +138,92 @@ class SwapTests {
 
         val aBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
         val bBalance = buyer1.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+    }
+
+    @Test
+    fun `swap steps with four parties`() {
+
+        val galleryParty = gallery.info.chooseIdentity()
+        val bidderParty = bidder.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+
+        val artworkId = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.USD, buyerParty)).apply {
+            network.runNetwork()
+        }
+
+        val artTransferTx = gallery.startFlow(BuildDraftTransferOfOwnership(artworkId, bidderParty)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val lockStateRef =
+            buyer.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10.USD)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val signedArtTransferTx = gallery.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
+
+        seller.startFlow(UnlockEncumberedTokensFlow(lockStateRef, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artworkItemGallery = queryArtworkState(gallery, false)
+        assertNull(artworkItemGallery)
+
+        val artworkItemBidder = queryArtworkState(bidder, false)
+        assertNotNull(artworkItemBidder)
+//        assertEquals(buyer1Party, buyer1.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
+//
+//        val aBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+//        val bBalance = buyer1.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+    }
+
+    @Test
+    fun `swap steps with four parties 3`() {
+
+        val galleryParty = gallery.info.chooseIdentity()
+        val bidderParty = bidder.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+
+        val artworkId = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.USD, buyerParty)).apply {
+            network.runNetwork()
+        }
+
+        val artTransferTx = gallery.startFlow(BuildDraftTransferOfOwnership(artworkId, bidderParty)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val lockStateRef =
+            buyer.startFlow(OfferEncumberedTokensFlow(artTransferTx, sellerParty, 10.USD)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val signedArtTransferTx = gallery.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
+
+        seller.startFlow(UnlockEncumberedTokensFlow(lockStateRef, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artworkItemGallery = queryArtworkState(gallery, false)
+        assertNull(artworkItemGallery)
+
+        val artworkItemBidder = queryArtworkState(bidder, false)
+        assertNotNull(artworkItemBidder)
+//        assertEquals(buyer1Party, buyer1.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
+//
+//        val aBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+//        val bBalance = buyer1.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
     }
 
     @Test

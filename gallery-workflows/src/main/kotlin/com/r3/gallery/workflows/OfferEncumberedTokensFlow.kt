@@ -37,9 +37,6 @@ class OfferEncumberedTokensFlow(
     @Suspendable
     override fun call(): StateRef {
         val lockState = proposedSwapTx.getLockState(serviceHub, ourIdentity, proposingParty)
-        // Executing on buyer @ token, offers token to seller @ token. The lock state on cbdc-demo was
-        // (a @ CN1 + b @ CN2) but supposed to be (a @ CN1 + b' @ CN1), which is equivalent, in our case, to
-        // (gallery @ art + buyer @ token) when it should be (gallery @ art + bidder @ art).
         val compositeKey = lockState.getCompositeKey()
         val compositeParty = AnonymousParty(compositeKey)
         serviceHub.identityService.registerKey(compositeKey, ourIdentity)
