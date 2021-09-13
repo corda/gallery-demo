@@ -275,9 +275,8 @@ task buildFrontEndAndSpringService(type: DeploymentTask) {
 }
 
 /**
- * UI Deployment - Nginx backed React frontend for cross network interaction and demo
+ * Top level task to generate yaml for all services.
  */
-
 task buildAll(type: Task, dependsOn: [
         'buildNamespaceAndCreds',
         'buildAllNetworks',

@@ -43,6 +43,13 @@ task<JavaExec>("runSpringApp") {
     main = "com.r3.gallery.broker.GalleryBrokerApplicationKt"
 }
 
+task<JavaExec>("runSpringAppMock") {
+    group = "deployment"
+    classpath = sourceSets.main.get().runtimeClasspath
+    main = "com.r3.gallery.broker.GalleryBrokerApplicationKt"
+    environment("MOCK_CONTROLLER_ENABLED", true)
+}
+
 tasks.bootJar {
     archiveBaseName.set("spring-api")
 }
