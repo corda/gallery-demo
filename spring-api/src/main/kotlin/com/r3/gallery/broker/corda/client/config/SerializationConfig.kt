@@ -5,7 +5,6 @@ import com.r3.gallery.api.Balance
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.Participant
 import com.r3.gallery.broker.corda.client.config.mixin.*
-import com.r3.payments.currency.FiatCurrency
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
@@ -25,7 +24,6 @@ class SerializationConfig {
         val mapper = createNonRpcMapper()
         mapper.addMixIn(UniqueIdentifier::class.java, UniqueIdentifierMixin::class.java)
         mapper.addMixIn(Amount::class.java, AmountMixin::class.java)
-        mapper.addMixIn(FiatCurrency::class.java, FiatCurrencyMixin::class.java)
         mapper.addMixIn(LogUpdateEntry::class.java, LogUpdateEntryMixin::class.java)
         mapper.addMixIn(Participant::class.java, ParticipantMixin::class.java)
         mapper.addMixIn(Balance::class.java, BalanceMixin::class.java)
