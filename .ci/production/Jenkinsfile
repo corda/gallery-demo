@@ -15,7 +15,7 @@ pipeline {
     options { timestamps() }
 
     environment {
-        ARTIFACTORY_CREDENTIALS = credentials('artifactory-credentials')
+        ARTIFACTORY_CREDENTIALS = credentials('swaps-artifactory-tooling')
         DOCKER_CREDENTIALS = credentials('payments-docker-credentials')
         DOCKER_REGISTRY = "r3payments.azurecr.io"
         LOOPBACK_ADDRESS = "172.17.0.1"
@@ -26,15 +26,15 @@ pipeline {
         stage('Create and push docker images') {
             steps {
                 sh "./gradlew createAndPushDockerImages " +
-                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW} " +
-                "-Pcorda.artifactory.username=${ARTIFACTORY_CREDENTIALS_USR} -Pcorda.artifactory.password=${ARTIFACTORY_CREDENTIALS_PSW}"
+                "-Pdocker.push.username=\"\${DOCKER_CREDENTIALS_USR}\" -Pdocker.push.password=\"\${DOCKER_CREDENTIALS_PSW}\" " +
+                "-Pcorda.artifactory.username=\"\${ARTIFACTORY_CREDENTIALS_USR}\" -Pcorda.artifactory.password=\"\${ARTIFACTORY_CREDENTIALS_PSW}\""
             }
         }
 
         stage('Build Network Deployments') {
             steps {
                 sh "./gradlew buildAll " +
-                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
+                "-Pdocker.push.username=\"\${DOCKER_CREDENTIALS_USR}\" -Pdocker.push.password=\"\${DOCKER_CREDENTIALS_PSW}\""
             }
         }
 
