@@ -4,13 +4,13 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.r3.gallery.api.AvailableArtworksResponse
+import com.r3.gallery.api.AvailableArtwork
 
-@JsonSerialize(using = AvailableArtworkResponseSerializer::class)
-abstract class AvailableArtworkResponseMixin
+@JsonSerialize(using = AvailableArtworkSerializer::class)
+abstract class AvailableArtworkMixin
 
-internal class AvailableArtworkResponseSerializer : JsonSerializer<AvailableArtworksResponse>() {
-    override fun serialize(value: AvailableArtworksResponse, gen: JsonGenerator, serializers: SerializerProvider) {
+internal class AvailableArtworkSerializer : JsonSerializer<AvailableArtwork>() {
+    override fun serialize(value: AvailableArtwork, gen: JsonGenerator, serializers: SerializerProvider) {
         gen.writeStartObject()
         gen.writeStringField("artworkId", value.artworkId.toString())
         gen.writeStringField("description", value.description)

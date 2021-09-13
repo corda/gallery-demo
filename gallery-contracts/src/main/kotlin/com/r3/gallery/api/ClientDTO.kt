@@ -84,7 +84,7 @@ data class NetworkBalancesResponse(
 /**
  * Response object for available artwork requests
  */
-data class AvailableArtworksResponse(
+data class AvailableArtwork(
     val artworkId: ArtworkId,
     val description: String,
     val url: String,
