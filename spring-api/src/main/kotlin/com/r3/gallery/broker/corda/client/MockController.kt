@@ -129,22 +129,49 @@ class MockController {
     //--- MOCK NETWORK ENDPOINTS
 
     @GetMapping("/network/balance")
-    fun balance() : ResponseEntity<List<Balance>> {
+    fun balance(
+        @RequestParam("party") party: ArtworkParty
+    ) : ResponseEntity<List<Balance>> {
         logger.info("MOCK Request for balance of parties across network")
-        return asResponse(
-            listOf(
-                Balance(
-                    GBP.tokenIdentifier,
-                    GBP(200),
-                    GBP(100)
-                ),
-                Balance(
-                    CBDC().tokenIdentifier,
-                    Amount(30, CBDC()),
-                    Amount(30, CBDC())
+        val response: List<Balance>
+
+        // mock balances depending on party
+        when (party) {
+            "O=Alice,L=London,C=GB" -> {
+                response = listOf(
+                    Balance(
+                        GBP.tokenIdentifier,
+                        GBP(0),
+                        GBP(80)
+                    ),
+                    Balance(
+                        CBDC().tokenIdentifier,
+                        Amount(0, CBDC()),
+                        Amount(30, CBDC())
+                    )
                 )
-            )
-        )
+            }
+            "O=Bob,L=San Francisco,C=US" -> {
+                response = listOf(
+                    Balance(
+                        GBP.tokenIdentifier,
+                        GBP(80),
+                        GBP(100)
+                    )
+                )
+            }
+            else -> {
+                response = listOf(
+                    Balance(
+                        CBDC().tokenIdentifier,
+                        Amount(0, CBDC()),
+                        Amount(3000, CBDC())
+                    )
+                )
+            }
+        }
+
+        return asResponse(response)
     }
     class CBDC : TokenType("CBDC", 2)
 
