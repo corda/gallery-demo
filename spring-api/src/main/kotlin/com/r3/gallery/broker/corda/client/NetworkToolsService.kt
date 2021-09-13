@@ -111,18 +111,19 @@ class NetworkToolsService {
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
                 .map { nodeInfo ->
                     val x500 = nodeInfo.legalIdentitiesAndCerts.first().name
-                    val displayName = x500.organisation
                     val pubicKey = nodeInfo.legalIdentitiesAndCerts.first().owningKey.hash.toHexString()
-                    Pair(displayName, Participant.NetworkId(currentNetwork, x500.toString(), pubicKey))
+                    Pair(x500, Participant.NetworkId(currentNetwork, pubicKey))
                 }
 
         }.flatten()
         return allNetworkIds.groupBy { it.first }
             .entries.map {
-                val displayName = it.key
+                val x500 = it.key
+                val displayName = it.key.organisation
                 // TODO: remove hardcode of 'type'
                 Participant(
-                    displayName,
+                    displayName = displayName,
+                    x500 = x500.toString(),
                     it.value.map { list -> list.second },
                     if (displayName.contains("alice", true))
                         Participant.AuctionRole.GALLERY else Participant.AuctionRole.BIDDER

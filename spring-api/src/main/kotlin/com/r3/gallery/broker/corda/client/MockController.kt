@@ -157,20 +157,18 @@ class MockController {
             listOf(
                 Participant(
                     displayName = "Alice",
+                    x500 = "O=Alice,L=London,C=GB",
                     networkIds = listOf(
                         Participant.NetworkId(
                             CordaRPCNetwork.AUCTION.name,
-                            "O=Alice,L=London,C=GB",
                             "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
                         ),
                         Participant.NetworkId(
                             CordaRPCNetwork.GBP.name,
-                            "O=Alice,L=London,C=GB",
                             "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
                         ),
                         Participant.NetworkId(
                             CordaRPCNetwork.CBDC.name,
-                            "O=Alice,L=London,C=GB",
                             "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
                         )
                     ),
@@ -178,15 +176,14 @@ class MockController {
                 ),
                 Participant(
                     displayName = "Bob GBP",
+                    x500 = "O=Bob,L=San Francisco,C=US",
                     networkIds = listOf(
                         Participant.NetworkId(
                             CordaRPCNetwork.AUCTION.name,
-                            "O=Bob,L=San Francisco,C=US",
                             "0xd8ec0ba1a63923bbb4f38147fb8a943da26ddfe3d63278d3282a652a8d73a6bf"
                         ),
                         Participant.NetworkId(
                             CordaRPCNetwork.GBP.name,
-                            "O=Bob,L=San Francisco,C=US",
                             "0x82a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d38"
                         )
                     ),
@@ -194,15 +191,14 @@ class MockController {
                 ),
                 Participant(
                     displayName = "Charlie CBDC",
+                    x500 = "O=Charlie,L=Mumbai,C=IN",
                     networkIds = listOf(
                         Participant.NetworkId(
                             CordaRPCNetwork.AUCTION.name,
-                            "O=Charlie,L=Mumbai,C=IN",
                             "0xa8d73a6bfd8ec0ba1a63923bbb4f38147fdfe3d63278d3282a652b8a943da26d"
                         ),
                         Participant.NetworkId(
                             CordaRPCNetwork.CBDC.name,
-                            "O=Charlie,L=Mumbai,C=IN",
                             "0xb4bc2ba1a63923bbb4f38147fb8a943da26d63278d3882a652a8d73a6bfd8ec0"
                         )
                     ),

@@ -14,11 +14,11 @@ internal class ParticipantSerializer : JsonSerializer<Participant>() {
     override fun serialize(value: Participant, gen: JsonGenerator, serializers: SerializerProvider) {
         gen.writeStartObject()
         gen.writeStringField("displayName", value.displayName)
+        gen.writeStringField("x500", value.x500)
         gen.writeArrayFieldStart("networkIds")
         for (networkId in value.networkIds) {
             gen.writeStartObject()
             gen.writeStringField("network", networkId.network)
-            gen.writeStringField("x500", networkId.x500)
             gen.writeStringField("publicKey", networkId.publicKey)
             gen.writeEndObject()
         }

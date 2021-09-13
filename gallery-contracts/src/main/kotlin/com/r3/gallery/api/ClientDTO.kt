@@ -51,13 +51,13 @@ data class LogUpdateEntry(
  */
 data class Participant(
     val displayName: String,
+    val x500: String,
     val networkIds: List<NetworkId>,
     val type: AuctionRole
 )  {
-    // A deconstruct of Certificate and Key data for a network
+    // A deconstruct of certificate and key data for a network
     data class NetworkId(
         val network: String,
-        val x500: String,
         val publicKey: String
     )
     // Role across the solution
