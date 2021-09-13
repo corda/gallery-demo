@@ -27,13 +27,14 @@ pipeline {
         stage('Create and push docker images') {
             steps {
                 sh "./gradlew createAndPushDockerImages " +
-                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
+                "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW} " +
+                "-Pcorda.artifactory.username=${ARTIFACTORY_CREDENTIALS_USR} -Pcorda.artifactory.password=${ARTIFACTORY_CREDENTIALS_PSW}"
             }
         }
 
         stage('Build Network Deployments') {
             steps {
-                sh "./gradlew buildAllNetworks " +
+                sh "./gradlew buildAll " +
                 "-Pdocker.push.username=${DOCKER_CREDENTIALS_USR} -Pdocker.push.password=${DOCKER_CREDENTIALS_PSW}"
             }
         }
@@ -50,6 +51,7 @@ pipeline {
                     kubectl apply -f deploy/build/kubernetes/gbpNetworkDeployment.yaml
                     kubectl apply -f deploy/build/kubernetes/cbdcNetworkDeployment.yaml
                     kubectl apply -f deploy/build/kubernetes/frontEndAndSpring.yaml
+                    kubectl apply -f deploy/build/kubernetes/mockFrontEndAndSpring.yaml
                   '''
                 }
             }
