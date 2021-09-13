@@ -57,6 +57,16 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
     }
 
     /**
+     * Returns CordaRPCConnection for all available clients
+     */
+    override fun allConnections(): List<CordaRPCConnection>? {
+        return rpcTargetToCordaRpcClientsMap?.keys?.map {
+            val sessionId = it.connect()
+            sessions[sessionId]!!
+        }
+    }
+
+    /**
      * Returns all live target connections to node based on destination
      */
     override fun RpcConnectionTarget.sessions(): Map<UniqueIdentifier, CordaRPCConnection> {

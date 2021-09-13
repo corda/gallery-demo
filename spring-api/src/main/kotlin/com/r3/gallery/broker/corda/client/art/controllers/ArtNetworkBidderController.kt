@@ -1,11 +1,10 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
-import com.r3.gallery.api.ArtworkOwnership
 import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
-import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.*
  */
 @CrossOrigin
 @RestController
+@ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @RequestMapping("/bidder")
 class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClient) {
     companion object {
@@ -21,8 +21,8 @@ class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClien
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
-    @PutMapping("/issue-artwork")
-    fun issueArtwork(
+    @PutMapping("/issue-tokens")
+    fun issueTokens(
         @RequestParam("bidderParty") bidderParty: ArtworkParty,
         @RequestParam("amount") amount: Long,
         @RequestParam("currency") currency: String

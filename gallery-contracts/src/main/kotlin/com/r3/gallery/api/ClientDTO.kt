@@ -1,5 +1,7 @@
 package com.r3.gallery.api
 
+import com.r3.corda.lib.tokens.contracts.types.TokenType
+import net.corda.core.contracts.Amount
 import net.corda.core.serialization.CordaSerializable
 import java.util.*
 
@@ -28,6 +30,78 @@ typealias ArtworkParty = String
  * Identity of a party on the tokens network.
  */
 typealias TokenParty = String
+
+/**
+ * Log entry templated for UI output.
+ * - message can/should include formatting tokens for resolving the
+ * display on the frontend.
+ */
+data class LogUpdateEntry(
+    val associatedFlow: String,
+    val network: String,
+    val x500: String,
+    val logRecordId: String,
+    val timestamp: String,
+    val message: String
+)
+
+/**
+ * Participant entry represents a detailed view of a
+ * party (ArtworkParty, TokenParty)
+ */
+data class Participant(
+    val displayName: String,
+    val x500: String,
+    val networkIds: List<NetworkId>,
+    val type: AuctionRole
+)  {
+    // A deconstruct of certificate and key data for a network
+    data class NetworkId(
+        val network: String,
+        val publicKey: String
+    )
+    // Role across the solution
+    enum class AuctionRole { BIDDER, GALLERY }
+}
+
+/**
+ * Returns balances across network
+ */
+data class NetworkBalancesResponse(
+    val x500: String,
+    val partyBalances: List<Balance>
+) {
+    /**
+     * Represents a balance for an asset class
+     */
+    data class Balance(
+        val currencyCode: String,
+        val encumberedFunds: Amount<TokenType>,
+        val availableFunds: Amount<TokenType>
+    )
+}
+
+/**
+ * Response object for available artwork requests
+ */
+data class AvailableArtworksResponse(
+    val artworkId: ArtworkId,
+    val description: String,
+    val url: String,
+    val listed: Boolean,
+    val bids: List<BidRecord>
+) {
+    // A record of a bid placed against a single artworkId
+    data class BidRecord(
+        val cordaReference: CordaReference, // UNIQUE
+        val bidderPublicKey: String,
+        val bidderDisplayName: ArtworkParty,
+        val amountAndCurrency: Amount<TokenType>, // will expand to amount, currencyCode
+        val notary: ArtworkParty,
+        val expiryDate: Date,
+        val accepted: Boolean
+    )
+}
 
 /**
  * Represents a state on the art network, identified by [cordaReference], which grants ownership
