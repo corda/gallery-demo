@@ -3,6 +3,7 @@ package com.r3.gallery.broker.corda.client
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.*
+import com.r3.gallery.api.AvailableArtworksResponse.BidRecord
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import net.corda.core.contracts.Amount
@@ -14,7 +15,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
-import java.util.Arrays.asList
 
 /**
  * REST endpoints for Gallery parties on Auction Network
@@ -51,33 +51,33 @@ class MockController {
 
     @GetMapping("/gallery/list-available-artworks")
     fun listAvailableArtworks(
-        @RequestParam("galleryParty") galleryParty: ArtworkParty
+        @RequestParam("galleryParty", required = false) galleryParty: ArtworkParty?
     ) : ResponseEntity<List<AvailableArtworksResponse>> {
         logger.info("MOCK Request by $galleryParty to list available artworks")
         return asResponse(
-            asList(
+            listOf(
                 AvailableArtworksResponse(
-                    UUID.randomUUID() as ArtworkId,
-                    "Mock artwork 1",
-                    "http://test.com",
+                    artworkId = UUID.randomUUID(),
+                    description = "AppleMan",
+                    "https://thumbor.forbes.com/thumbor/960x0/https%3A%2F%2Fblogs-images.forbes.com%2Fchaddscott%2Ffiles%2F2018%2F10%2F12.-Son-of-Man-1200x1575.jpg",
                     true,
                     listOf(
-                        AvailableArtworksResponse.BidRecord(
+                        BidRecord(
                             UUID.randomUUID() as CordaReference,
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "O=Bob,L=San Francisco,C=US",
-                            GBP(300),
-                            "O=DN Notary,L=London,C=GB",
-                            Date(),
+                            amountAndCurrency = GBP(300),
+                            notary = "O=DN Notary,L=London,C=GB",
+                            expiryDate = Date(),
                             accepted = false
                         ),
-                        AvailableArtworksResponse.BidRecord(
+                        BidRecord(
                             UUID.randomUUID() as CordaReference,
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
                             bidderDisplayName = "O=Bob,L=San Francisco,C=US",
-                            GBP(300),
-                            "O=DN Notary,L=London,C=GB",
-                            Date(),
+                            amountAndCurrency = GBP(300),
+                            notary = "O=DN Notary,L=London,C=GB",
+                            expiryDate = Date(),
                             accepted = false
                         )
                     )
