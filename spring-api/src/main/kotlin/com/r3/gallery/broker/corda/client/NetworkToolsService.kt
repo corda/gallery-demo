@@ -8,6 +8,7 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
+import com.r3.gallery.broker.services.exceptions.LogInitializationError
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.client.rpc.RPCException
 import net.corda.core.internal.hash
@@ -63,8 +64,9 @@ class NetworkToolsService {
                     Pair(rpc.proxy, network!!)
                 }!!
             } catch (rpcE: RPCException) {
-                logger.error("Unable to connect to a target node through LogService: $rpcE")
-                listOf()
+                val issue = "Unable to connect to a target node: $rpcE"
+                logger.error(issue)
+                throw LogInitializationError(issue)
             }
 
         }.flatten()
@@ -132,10 +134,14 @@ class NetworkToolsService {
     /**
      * Log returns progressUpdates for Node Level state-machine updates
      *
-     * initialisation of logService and connections on first call
+     * Initialisation of logService and connections on first call
+     * - current implementation is all or nothing (all intended nodes must be
+     * available for logService to correctly init.
      */
     fun getLogs(): List<LogUpdateEntry> {
-        if (!this::logService.isInitialized) initializeLogService()
+        if (!this::logService.isInitialized) {
+            initializeLogService()
+        }
         val result = logService.getProgressUpdates(logIdx)
         logIdx = result.first // set indexing for next fetch
         return result.second
