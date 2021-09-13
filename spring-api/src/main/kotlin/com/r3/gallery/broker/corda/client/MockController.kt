@@ -3,7 +3,7 @@ package com.r3.gallery.broker.corda.client
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.*
-import com.r3.gallery.api.AvailableArtworksResponse.BidRecord
+import com.r3.gallery.api.AvailableArtwork.BidRecord
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import net.corda.core.contracts.Amount
@@ -42,8 +42,8 @@ class MockController {
         logger.info("MOCK Request by $galleryParty to issue artwork of id $artworkId")
         return asResponse(
             ArtworkOwnership(
-                UUID.randomUUID() as CordaReference,
-                UUID.randomUUID() as ArtworkId,
+                UUID.fromString("7be3fd81-f293-40f9-be8b-5e341d20639a") as CordaReference,
+                UUID.fromString("1b7c6f62-0add-4c1e-bb54-ad22829c59c2") as ArtworkId,
                 "O=Alice,L=London,C=GB"
             )
         )
@@ -52,35 +52,94 @@ class MockController {
     @GetMapping("/gallery/list-available-artworks")
     fun listAvailableArtworks(
         @RequestParam("galleryParty", required = false) galleryParty: ArtworkParty?
-    ) : ResponseEntity<List<AvailableArtworksResponse>> {
+    ) : ResponseEntity<List<AvailableArtwork>> {
         logger.info("MOCK Request by $galleryParty to list available artworks")
         return asResponse(
             listOf(
-                AvailableArtworksResponse(
-                    artworkId = UUID.randomUUID(),
+                AvailableArtwork(
+                    artworkId = UUID.fromString("d9ecd08f-2b65-4ad8-921b-e0b48790e17f") as ArtworkId,
                     description = "AppleMan",
                     "https://thumbor.forbes.com/thumbor/960x0/https%3A%2F%2Fblogs-images.forbes.com%2Fchaddscott%2Ffiles%2F2018%2F10%2F12.-Son-of-Man-1200x1575.jpg",
                     true,
                     listOf(
                         BidRecord(
-                            UUID.randomUUID() as CordaReference,
+                            cordaReference = UUID.fromString("d1364c88-55d8-47c2-9587-079aca2caf7e") as CordaReference,
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
-                            bidderDisplayName = "O=Bob,L=San Francisco,C=US",
+                            bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(300),
-                            notary = "O=DN Notary,L=London,C=GB",
-                            expiryDate = Date(),
+                            notary = "O=GBP Notary,L=London,C=GB",
+                            expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                             accepted = false
                         ),
                         BidRecord(
-                            UUID.randomUUID() as CordaReference,
+                            cordaReference = UUID.fromString("446404fb-e093-43e2-9664-9555bd8497ff") as CordaReference,
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
-                            bidderDisplayName = "O=Bob,L=San Francisco,C=US",
-                            amountAndCurrency = GBP(300),
-                            notary = "O=DN Notary,L=London,C=GB",
-                            expiryDate = Date(),
+                            bidderDisplayName = "Charles",
+                            amountAndCurrency = Amount(299, CBDC()),
+                            notary = "O=CBDC Notary,L=London,C=GB",
+                            expiryDate = Date(Calendar.getInstance().apply { set(2021,9,22) }.timeInMillis),
                             accepted = false
                         )
                     )
+                ),
+                AvailableArtwork(
+                    artworkId = UUID.fromString("12d7859a-f425-47d4-9c12-aa3700efd963") as ArtworkId,
+                    description = "Summer set on the Beach",
+                    url = "https://render.fineartamerica.com/images/rendered/default/print/8/6.5/break/images-medium-5/summerset-sailboats-paul-brent.jpg",
+                    listed = true,
+                    bids = listOf(
+                        BidRecord(
+                            cordaReference = UUID.fromString("b80e93dd-1a6b-4678-81fe-84b27acdd951") as CordaReference,
+                            bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
+                            bidderDisplayName = "Charles",
+                            amountAndCurrency = Amount(3999, CBDC()),
+                            notary = "O=CBDC Notary,L=London,C=GB",
+                            expiryDate = Date(Calendar.getInstance().apply { set(2021,8,30) }.timeInMillis),
+                            accepted = false
+                        )
+                    )
+                ),
+                AvailableArtwork(
+                    artworkId = UUID.fromString("4f7f68b5-a143-4eb5-b8ab-27a9cf645eb9") as ArtworkId,
+                    description = "American Gothic",
+                    url = "https://www.galerie-sakura.com/media/main/produit/32f978fb9eb0a9685bfe4031af7b98dc6faf23c2.jpg",
+                    listed = true,
+                    bids = listOf( // multiple bob bids
+                        BidRecord(
+                            cordaReference = UUID.fromString("939d6b8c-c0b6-4a95-983c-87e7fb003084") as CordaReference,
+                            bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
+                            bidderDisplayName = "Bob",
+                            amountAndCurrency = GBP(300),
+                            notary = "O=GBP Notary,L=London,C=GB",
+                            expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
+                            accepted = false
+                        ),
+                        BidRecord(
+                            cordaReference = UUID.fromString("e70e16fd-b648-416b-b8a1-8bd795f7ec81") as CordaReference,
+                            bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
+                            bidderDisplayName = "Bob",
+                            amountAndCurrency = GBP(300),
+                            notary = "O=GBP Notary,L=London,C=GB",
+                            expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
+                            accepted = false
+                        ),
+                        BidRecord(
+                            cordaReference = UUID.fromString("fb3c71bc-bad3-4a48-9585-41a3a9c8e5b2") as CordaReference,
+                            bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
+                            bidderDisplayName = "Charles",
+                            amountAndCurrency = Amount(3999, CBDC()),
+                            notary = "O=CBDC Notary,L=London,C=GB",
+                            expiryDate = Date(Calendar.getInstance().apply { set(2021,8,30) }.timeInMillis),
+                            accepted = false
+                        )
+                    )
+                ),
+                AvailableArtwork(
+                    artworkId = UUID.fromString("b10e7602-348f-4257-85aa-311915347931") as ArtworkId,
+                    description = "In the car",
+                    url = "https://www.invaluable.com/blog/wp-content/uploads/2017/10/Invaluable-Roy-Lichtenstein-Hero.jpg",
+                    listed = true,
+                    bids = emptyList()
                 )
             )
         )
@@ -105,7 +164,7 @@ class MockController {
         logger.info("MOCK Request to finalise artwork transfer by $galleryParty for tx: $unsignedArtworkTransferTx")
         return asResponse(
             ProofOfTransferOfOwnership(
-                UUID.randomUUID() as CordaReference,
+                UUID.fromString("e00171b6-a0d0-4b04-9ee5-812885a0bd03") as CordaReference,
                 random63BitValue().toString(),
                 TransactionSignature(secureRandomBytes(8)),
                 TransactionSignature(secureRandomBytes(8))
@@ -253,7 +312,7 @@ class MockController {
                     associatedFlow = "com.r3.gallery.workflows.IssuedArtworkFlow",
                     network = CordaRPCNetwork.AUCTION.name,
                     x500 = "O=Alice,L=London,C=GB",
-                    logRecordId =  "d145ac7f-6e16-49dc-99c2-f72ca0f39eb01",
+                    logRecordId =  "fbba958b-8837-4216-aede-9e7313ba82e0",
                     timestamp = "15:17:08.132263",
                     message =  "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"
                 ),
@@ -261,7 +320,7 @@ class MockController {
                     associatedFlow = "com.r3.gallery.workflows.BidOnArtworkFlow",
                     network = CordaRPCNetwork.GBP.name,
                     x500 = "O=Bob,L=San Francisco,C=US",
-                    logRecordId =  "d145ac7f-6e16-49dc-99c2-f72ca0f39eb02",
+                    logRecordId =  "a18a3bb7-1da9-4e72-b595-417f61451a84",
                     timestamp = "16:17:08.132333",
                     message = "Something has happened here on [83HFJKF8736YHG09SDJ]"
                 ),
@@ -277,7 +336,7 @@ class MockController {
                     associatedFlow = "com.r3.gallery.workflows.FinaliseArtworkTransfer",
                     network = CordaRPCNetwork.AUCTION.name,
                     x500 = "O=Alice,L=London,C=GB",
-                    logRecordId =  "ac7fd145-6e16-49dc-99c2-f39eb2ca001f7",
+                    logRecordId =  "50a7c868-c9c7-406c-8d98-14606734aac5",
                     timestamp = "15:17:08.132263",
                     message =  "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"
                 ),

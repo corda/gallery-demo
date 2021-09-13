@@ -280,7 +280,8 @@ task buildFrontEndAndSpringService(type: DeploymentTask) {
 task buildAll(type: Task, dependsOn: [
         'buildNamespaceAndCreds',
         'buildAllNetworks',
-        'buildFrontEndAndSpringService'
+        'buildFrontEndAndSpringService',
+        'buildMockFrontEndAndSpringService'
 ]) {
     group = "deployment k8s"
 }

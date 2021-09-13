@@ -1,6 +1,6 @@
 package com.r3.gallery.broker.corda.client.config
 
-import com.r3.gallery.api.AvailableArtworksResponse
+import com.r3.gallery.api.AvailableArtwork
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.api.Participant
@@ -27,7 +27,7 @@ class SerializationConfig {
         mapper.addMixIn(LogUpdateEntry::class.java, LogUpdateEntryMixin::class.java)
         mapper.addMixIn(Participant::class.java, ParticipantMixin::class.java)
         mapper.addMixIn(NetworkBalancesResponse.Balance::class.java, BalanceMixin::class.java)
-        mapper.addMixIn(AvailableArtworksResponse::class.java, AvailableArtworkResponseMixin::class.java)
+        mapper.addMixIn(AvailableArtwork::class.java, AvailableArtworkMixin::class.java)
         val converter = MappingJackson2HttpMessageConverter()
         converter.objectMapper = mapper
         return converter

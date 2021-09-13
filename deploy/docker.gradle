@@ -2,6 +2,12 @@ import kotlin.Triple
 import org.apache.commons.lang3.RandomStringUtils
 
 // Global scope props
+rootProject.ext.'corda.artifactory.username' = project.findProperty("corda.artifactory.username")
+        ?: System.getenv("CORDA_ARTIFACTORY_USERNAME")
+
+rootProject.ext.'corda.artifactory.password' = project.findProperty("corda.artifactory.password")
+        ?: System.getenv("CORDA_ARTIFACTORY_PASSWORD")
+
 rootProject.ext.'docker.push.username' = project.findProperty("docker.push.username")
         ?: System.getenv("DOCKER_PUSH_USERNAME") ?: "r3payments"
 
@@ -76,12 +82,12 @@ task createAndPushDockerImages(type: ImageTask, dependsOn: 'copyImageSources') {
     ]
     imageToBuildArgsMap = [
             "$frontend_docker_image_name":[
-                    "CORDA_ARTIFACTORY_USERNAME":System.getenv("CORDA_ARTIFACTORY_USERNAME"),
-                    "CORDA_ARTIFACTORY_PASSWORD":System.getenv("CORDA_ARTIFACTORY_PASSWORD")
+                    "CORDA_ARTIFACTORY_USERNAME": rootProject.ext.'corda.artifactory.username',
+                    "CORDA_ARTIFACTORY_PASSWORD": rootProject.ext.'corda.artifactory.password'
             ],
             "$mock_frontend_docker_image_name":[
-                    "CORDA_ARTIFACTORY_USERNAME":System.getenv("CORDA_ARTIFACTORY_USERNAME"),
-                    "CORDA_ARTIFACTORY_PASSWORD":System.getenv("CORDA_ARTIFACTORY_PASSWORD"),
+                    "CORDA_ARTIFACTORY_USERNAME": rootProject.ext.'corda.artifactory.username',
+                    "CORDA_ARTIFACTORY_PASSWORD": rootProject.ext.'corda.artifactory.password',
                     "REACT_APP_API_HOST":"http://mock-gallery-webappapi.cordapayments-sandbox.com"
             ]
     ] as Map
