@@ -14,7 +14,7 @@ internal class BalanceSerializer : JsonSerializer<Balance>() {
         gen.writeStartObject()
         gen.writeStringField("currencyCode", value.currencyCode)
         gen.writeNumberField("encumberedFunds", value.encumberedFunds.toDecimal())
-        gen.writeNumberField("availableFunds", value.encumberedFunds.toDecimal())
+        gen.writeNumberField("availableFunds", value.availableFunds.toDecimal())
         gen.writeEndObject()
     }
 }
