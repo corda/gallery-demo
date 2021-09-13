@@ -238,7 +238,7 @@ class MockController {
     /**
      * Log returns progressUpdates for Node Level state-machine updates
      */
-    @GetMapping("/log")
+    @GetMapping("/network/log")
     fun log(): ResponseEntity<List<LogUpdateEntry>> {
         logger.info("MOCK Request for logs")
         return asResponse(
