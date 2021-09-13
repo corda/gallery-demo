@@ -74,7 +74,7 @@ class LogService(proxiesAndNetwork: List<Pair<CordaRPCOps, CordaRPCNetwork>>) {
         return Pair(lastIndex, updatesSubList.map { (smInfo, update, network) ->
             LogUpdateEntry(
                 associatedFlow = smInfo.flowLogicClassName,
-                network = network.netName,
+                network = network.name,
                 x500 = smInfo.invocationContext.actor?.owningLegalIdentity?.toString() ?: "",
                 logRecordId = smInfo.invocationContext.trace.invocationId.value,
                 timestamp = smInfo.invocationContext.trace.invocationId.timestamp.toString(),
