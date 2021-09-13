@@ -316,7 +316,7 @@ task buildMockFrontEndAndSpringService(type: DeploymentTask) {
             ledgerRegCred as String,
             deployedNamespace as String,
             "mock-gallery",
-            frontend_docker_image_name as String,
+            mock_frontend_docker_image_name as String,
             imageSuffix as String
     )
 

@@ -25,6 +25,7 @@ if (rootProject.ext.'deploy.env' != "PROD") {
 project.ext {
     setProperty("docker_push_registry", "r3payments.azurecr.io")
     setProperty("frontend_docker_image_name", "${docker_push_registry}/ledger-gallery-frontend")
+    setProperty("mock_frontend_docker_image_name", "${docker_push_registry}/ledger-gallery-mock-frontend")
     setProperty("gallery_cordapp_docker_image_name", "${docker_push_registry}/ledger-gallery-cordapp")
     setProperty("gallery_webappapi_docker_image_name", "${docker_push_registry}/ledger-gallery-webappapi")
 }
@@ -69,11 +70,19 @@ task createAndPushDockerImages(type: ImageTask, dependsOn: 'copyImageSources') {
     group = "deployment k8s"
     resourceImageAndVersion = [
             new Triple(new File(project.buildDir, "dockerBuild/frontend"),frontend_docker_image_name, rootProject.ext.'image.suffix'),
+            new Triple(new File(project.buildDir, "dockerBuild/frontend"), mock_frontend_docker_image_name, rootProject.ext.'image.suffix'),
             new Triple(new File(project.buildDir, "dockerBuild/galleryCordapp"), gallery_cordapp_docker_image_name, rootProject.ext.'image.suffix'),
             new Triple(new File(project.buildDir, "dockerBuild/spring-api"), gallery_webappapi_docker_image_name, rootProject.ext.'image.suffix')
     ]
-    imageToBuildArgsMap = ["$frontend_docker_image_name":[
-            "CORDA_ARTIFACTORY_USERNAME":System.getenv("CORDA_ARTIFACTORY_USERNAME"),
-            "CORDA_ARTIFACTORY_PASSWORD":System.getenv("CORDA_ARTIFACTORY_PASSWORD")
-    ]] as Map
+    imageToBuildArgsMap = [
+            "$frontend_docker_image_name":[
+                    "CORDA_ARTIFACTORY_USERNAME":System.getenv("CORDA_ARTIFACTORY_USERNAME"),
+                    "CORDA_ARTIFACTORY_PASSWORD":System.getenv("CORDA_ARTIFACTORY_PASSWORD")
+            ],
+            "$mock_frontend_docker_image_name":[
+                    "CORDA_ARTIFACTORY_USERNAME":System.getenv("CORDA_ARTIFACTORY_USERNAME"),
+                    "CORDA_ARTIFACTORY_PASSWORD":System.getenv("CORDA_ARTIFACTORY_PASSWORD"),
+                    "REACT_APP_API_HOST":"http://mock-gallery-webappapi.cordapayments-sandbox.com"
+            ]
+    ] as Map
 }
