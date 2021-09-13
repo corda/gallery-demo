@@ -44,7 +44,8 @@ class FrontEndDeployment implements Iterable<Object> {
                                                       String identifier,
                                                       String imageName,
                                                       String imageVersion,
-                                                      String namespace
+                                                      String namespace,
+                                                      List<V1EnvVar> env = null
     ) {
 
         def frontendDeployment = new V1DeploymentBuilder()
@@ -79,9 +80,8 @@ class FrontEndDeployment implements Iterable<Object> {
                 .withPorts(
                         new V1ContainerPortBuilder().withName("frontendhttp").withContainerPort(6005).build(),
                 )
-                .withEnv(
-                        new V1EnvVarBuilder().withName("PARTICIPANT_ROLE").withValue(identifier).build()
-                ).withLivenessProbe(
+                .withEnv(env)
+                .withLivenessProbe(
                         new V1ProbeBuilder()
                                 .withInitialDelaySeconds(120)
                                 .withPeriodSeconds(10)
