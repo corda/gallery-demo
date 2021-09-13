@@ -49,8 +49,6 @@ class NetworkToolsService {
 
         networkClients.add(artNetworkBidderCS)
         networkClients.add(artNetworkGalleryCS)
-
-        initializeLogService()
     }
 
     /**
@@ -133,8 +131,11 @@ class NetworkToolsService {
 
     /**
      * Log returns progressUpdates for Node Level state-machine updates
+     *
+     * initialisation of logService and connections on first call
      */
     fun getLogs(): List<LogUpdateEntry> {
+        if (!this::logService.isInitialized) initializeLogService()
         val result = logService.getProgressUpdates(logIdx)
         logIdx = result.first // set indexing for next fetch
         return result.second
