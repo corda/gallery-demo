@@ -9,13 +9,16 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
 import net.corda.client.rpc.CordaRPCConnection
+import net.corda.client.rpc.RPCException
 import net.corda.core.internal.hash
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
+@ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @Component
 class NetworkToolsService {
     companion object {
@@ -54,12 +57,18 @@ class NetworkToolsService {
      * Setup the logging service for the associated connection services
      */
     private fun initializeLogService() {
-        val proxiesAndNetwork = networkClients.runPerConnectionService {
+        val proxiesAndNetwork = networkClients.runPerConnectionService connect@{
             val network = it.associatedNetwork
 
-            it.allConnections()?.map { rpc ->
-                Pair(rpc.proxy, network!!)
-            }!!
+            return@connect try {
+                it.allConnections()?.map { rpc ->
+                    Pair(rpc.proxy, network!!)
+                }!!
+            } catch (rpcE: RPCException) {
+                logger.error("Unable to connect to a target node through LogService: $rpcE")
+                listOf()
+            }
+
         }.flatten()
 
         logService = LogService(proxiesAndNetwork)

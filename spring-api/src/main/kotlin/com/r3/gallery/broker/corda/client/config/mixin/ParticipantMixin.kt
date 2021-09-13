@@ -14,7 +14,7 @@ internal class ParticipantSerializer : JsonSerializer<Participant>() {
     override fun serialize(value: Participant, gen: JsonGenerator, serializers: SerializerProvider) {
         gen.writeStartObject()
         gen.writeStringField("displayName", value.displayName)
-        gen.writeStartArray()
+        gen.writeArrayFieldStart("networkIds")
         for (networkId in value.networkIds) {
             gen.writeStartObject()
             gen.writeStringField("network", networkId.network)
