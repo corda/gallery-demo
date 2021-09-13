@@ -33,6 +33,8 @@ typealias TokenParty = String
 
 /**
  * Log entry templated for UI output.
+ * - message can/should include formatting tokens for resolving the
+ * display on the frontend.
  */
 data class LogUpdateEntry(
     val associatedFlow: String,
@@ -44,7 +46,7 @@ data class LogUpdateEntry(
 )
 
 /**
- * Participant entry - represents a detailed view of a
+ * Participant entry represents a detailed view of a
  * party (ArtworkParty, TokenParty)
  */
 data class Participant(
@@ -52,11 +54,13 @@ data class Participant(
     val networkIds: List<NetworkId>,
     val type: AuctionRole
 )  {
+    // A deconstruct of Certificate and Key data for a network
     data class NetworkId(
         val network: String,
         val x500: String,
         val publicKey: String
     )
+    // Role across the solution
     enum class AuctionRole { BIDDER, GALLERY }
 }
 
@@ -70,7 +74,7 @@ data class Balance(
 )
 
 /**
- * AvailableArtworksResponse
+ * Response object for available artwork requests
  */
 data class AvailableArtworksResponse(
     val artworkId: ArtworkId,
@@ -79,8 +83,9 @@ data class AvailableArtworksResponse(
     val listed: Boolean,
     val bids: List<BidRecord>
 ) {
+    // A record of a bid placed against a single artworkId
     data class BidRecord(
-        val cordaReference: CordaReference,
+        val cordaReference: CordaReference, // UNIQUE
         val bidderPublicKey: String,
         val bidderDisplayName: ArtworkParty,
         val amountAndCurrency: Amount<TokenType>, // will expand to amount, currencyCode
