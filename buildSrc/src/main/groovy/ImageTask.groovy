@@ -7,7 +7,7 @@ import org.gradle.api.tasks.TaskAction
  */
 class ImageTask extends DefaultTask {
     protected List<Triple<File, String, String>> resourceImageAndVersion
-    protected Map<String, Map<String, String>> imageToBuildArgsMap = null
+    protected Map<String, Map<String, String>> imageToBuildArgsMap
 
     @TaskAction
     def buildImage() {
