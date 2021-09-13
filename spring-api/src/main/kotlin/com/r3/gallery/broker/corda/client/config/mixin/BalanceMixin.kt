@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.r3.gallery.api.Balance
+import com.r3.gallery.api.NetworkBalancesResponse.Balance
 
 @JsonSerialize(using = BalanceSerializer::class)
 abstract class BalanceMixin

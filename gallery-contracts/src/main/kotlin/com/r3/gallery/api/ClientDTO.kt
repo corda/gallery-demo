@@ -65,13 +65,21 @@ data class Participant(
 }
 
 /**
- * Represents a balance for an asset class
+ * Returns balances across network
  */
-data class Balance(
-    val currencyCode: String,
-    val encumberedFunds: Amount<TokenType>,
-    val availableFunds: Amount<TokenType>
-)
+data class NetworkBalancesResponse(
+    val x500: String,
+    val partyBalances: List<Balance>
+) {
+    /**
+     * Represents a balance for an asset class
+     */
+    data class Balance(
+        val currencyCode: String,
+        val encumberedFunds: Amount<TokenType>,
+        val availableFunds: Amount<TokenType>
+    )
+}
 
 /**
  * Response object for available artwork requests

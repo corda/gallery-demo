@@ -130,48 +130,54 @@ class MockController {
 
     @GetMapping("/network/balance")
     fun balance(
-        @RequestParam("party") party: ArtworkParty
-    ) : ResponseEntity<List<Balance>> {
+        @RequestParam("party", required = false) party: ArtworkParty?
+    ) : ResponseEntity<List<NetworkBalancesResponse>> {
         logger.info("MOCK Request for balance of parties across network")
-        val response: List<Balance>
-
-        // mock balances depending on party
-        when (party) {
-            "O=Alice,L=London,C=GB" -> {
-                response = listOf(
-                    Balance(
+        val balances: Map<String, List<NetworkBalancesResponse.Balance>> =
+            mapOf(
+                Pair("O=Alice,L=London,C=GB", listOf(
+                    NetworkBalancesResponse.Balance(
                         GBP.tokenIdentifier,
                         GBP(0),
                         GBP(80)
                     ),
-                    Balance(
+                    NetworkBalancesResponse.Balance(
                         CBDC().tokenIdentifier,
                         Amount(0, CBDC()),
                         Amount(30, CBDC())
                     )
-                )
-            }
-            "O=Bob,L=San Francisco,C=US" -> {
-                response = listOf(
-                    Balance(
+                )),
+                Pair("O=Bob,L=San Francisco,C=US", listOf(
+                    NetworkBalancesResponse.Balance(
                         GBP.tokenIdentifier,
                         GBP(80),
                         GBP(100)
                     )
-                )
-            }
-            else -> {
-                response = listOf(
-                    Balance(
+                )),
+                Pair("O=Charlie,L=Mumbai,C=IN", listOf(
+                    NetworkBalancesResponse.Balance(
                         CBDC().tokenIdentifier,
                         Amount(0, CBDC()),
                         Amount(3000, CBDC())
                     )
-                )
-            }
-        }
+                ))
+            )
 
-        return asResponse(response)
+        return asResponse(
+            if (party != null) { // filter if party provided
+                listOf(NetworkBalancesResponse(
+                    x500 = party,
+                    partyBalances = balances[party]!!
+                ))
+            } else {
+                balances.map {
+                    NetworkBalancesResponse(
+                        x500 = it.key,
+                        partyBalances = it.value
+                    )
+                }
+            }
+        )
     }
     class CBDC : TokenType("CBDC", 2)
 
