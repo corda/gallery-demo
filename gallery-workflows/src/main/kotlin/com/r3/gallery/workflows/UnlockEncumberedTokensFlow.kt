@@ -22,7 +22,7 @@ import java.time.Duration
  * @property lockStateAndRef the lock state [StateAndRef<LockState>] to unlock.
  * @property requiredSignature the [TransactionSignature] required to unlock the lock state.
  */
-@StartableByService
+@StartableByRPC
 @InitiatingFlow
 class UnlockEncumberedTokensFlow(
     private val lockStateRef: StateRef,

@@ -4,9 +4,11 @@ import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.states.LockState
+import com.r3.gallery.states.LockStateBase
 import com.r3.gallery.utils.generateWireTransactionMerkleTree
 import com.r3.gallery.utils.getDependencies
 import com.r3.gallery.utils.getLockState
+import com.r3.gallery.utils.getLockStateBase
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.crypto.MerkleTree
@@ -25,12 +27,12 @@ class CreateDraftTransferOfOwnershipFlow2(
     val artworkLinearId: UniqueIdentifier,
     val partyToTransferTo: Party,
     val validityInMinutes: Long = 10
-) : FlowLogic<Pair<WireTransaction, LockState>>() {
+) : FlowLogic<Pair<WireTransaction, LockStateBase>>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): Pair<WireTransaction, LockState> {
+    override fun call(): Pair<WireTransaction, LockStateBase> {
 
         val artworkStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
         val artworkStateAndRef =
@@ -57,7 +59,7 @@ class CreateDraftTransferOfOwnershipFlow2(
             subFlow(SendTransactionFlow(session, validatedTxDependency))
         }
 
-        val lockState = session.receive<LockState>().unwrap { it }
+        val lockState = session.receive<LockStateBase>().unwrap { it }
 
         return Pair(wireTx, lockState.copy())
     }
@@ -82,7 +84,7 @@ class SendDraftTransferOfOwnershipFlow2Handler(val otherSession: FlowSession) : 
             throw FlowException("Failed to validate the proposed transaction or one of its dependencies")
         }
 
-        val lockState = wireTx.getLockState(serviceHub, ourIdentity, otherSession.counterparty)
+        val lockState = wireTx.getLockStateBase(serviceHub, ourIdentity, otherSession.counterparty)
 
         otherSession.send(lockState)
     }

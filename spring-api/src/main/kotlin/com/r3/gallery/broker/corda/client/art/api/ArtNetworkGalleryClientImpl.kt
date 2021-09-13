@@ -97,7 +97,7 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
             transactionId = UUID.randomUUID(),
             transactionHash = TransactionHash(),
             previousOwnerSignature = TransactionSignature(ByteArray(0)),
-            notarySignature = TransactionSignature(signedTx.getNotaryTransactionSignature().bytes),
+            notarySignature = TransactionSignature(signedTx.getNotaryTransactionSignature().serialize().bytes),
         )
     }
 

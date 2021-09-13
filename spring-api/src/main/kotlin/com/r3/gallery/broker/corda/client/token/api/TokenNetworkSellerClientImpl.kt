@@ -5,6 +5,7 @@ import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.workflows.UnlockEncumberedTokensFlow
+import com.r3.gallery.workflows.UnlockEncumberedTokensFlow2
 import net.corda.core.contracts.StateRef
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.serialization.SerializedBytes
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import java.lang.Exception
 import javax.annotation.PostConstruct
 
 
@@ -39,7 +41,6 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
         private val network = CordaRPCNetwork.GBP
     }
 
-    @Suppress("CAST_NEVER_SUCCEEDS")
     override fun claimTokens(
         sellerParty: TokenParty,
         encumberedTokens: EncumberedTokens,
@@ -47,9 +48,13 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
     ): CordaReference {
         logger.info("Starting UnlockEncumberedTokensFlow flow via $sellerParty")
         val lockStateRef = SerializedBytes<StateRef>(encumberedTokens.bytes).deserialize()
-        val requiredSignature = SerializedBytes<TransactionSignature>(proofOfTransfer.notarySignature.bytes).deserialize()
+        val requiredSignature: TransactionSignature = try { SerializedBytes<TransactionSignature>(proofOfTransfer.notarySignature.bytes).deserialize() }
+        catch(e: Exception) {
+            val msg = e.message
+            throw e
+        }
         val signedTx = tokenNetworkSellerCS.startFlow(sellerParty, UnlockEncumberedTokensFlow::class.java, lockStateRef, requiredSignature)
-        return UUID.randomUUID() as CordaReference // TODO:
+        return CordaReference.randomUUID()
     }
 
     override fun releaseTokens(

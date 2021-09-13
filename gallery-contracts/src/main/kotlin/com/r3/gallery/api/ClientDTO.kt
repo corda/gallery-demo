@@ -43,6 +43,7 @@ data class ArtworkOwnership(
 
 typealias TransactionHash = String
 
+@CordaSerializable
 data class TransactionSignature(val bytes: ByteArray) {
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
@@ -53,6 +54,7 @@ data class TransactionSignature(val bytes: ByteArray) {
     override fun hashCode(): Int = bytes.contentHashCode()
 }
 
+@CordaSerializable
 data class LockStateRef(val bytes: ByteArray) {
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
@@ -63,11 +65,18 @@ data class LockStateRef(val bytes: ByteArray) {
     override fun hashCode(): Int = bytes.contentHashCode()
 }
 
+@CordaSerializable
 data class ProofOfTransferOfOwnership(
     val transactionId: CordaReference,
     val transactionHash: TransactionHash,
     val previousOwnerSignature: TransactionSignature,
     val notarySignature: TransactionSignature
+)
+
+@CordaSerializable
+data class StateRefAndSignature(
+    val encumberedTokens: EncumberedTokens,
+    val proofOfTransfer: ProofOfTransferOfOwnership
 )
 
 @CordaSerializable

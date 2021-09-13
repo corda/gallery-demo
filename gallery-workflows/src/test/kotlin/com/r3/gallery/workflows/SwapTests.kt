@@ -271,6 +271,53 @@ class SwapTests {
     }
 
     @Test
+    fun `swap steps with four parties x-net`() {
+
+        val galleryParty = gallery.info.chooseIdentity()
+        val bidderParty = bidder.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+
+        val artworkId = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.USD, buyerParty)).apply {
+            network.runNetwork()
+        }
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkId.cordaReference.toString())
+        val draft = gallery.startFlow(CreateDraftTransferOfOwnershipFlow2(artworkLinearId, bidderParty)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artTransferTx = draft.first
+        val lockState = draft.second
+
+        val lockStateRef =
+            buyer.startFlow(OfferEncumberedTokensFlow2(lockState, sellerParty, 10.USD)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val signedArtTransferTx = gallery.startFlow(SignAndFinalizeTransferOfOwnership(artTransferTx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
+
+        seller.startFlow(UnlockEncumberedTokensFlow(lockStateRef, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artworkItemGallery = queryArtworkState(gallery, false)
+        assertNull(artworkItemGallery)
+
+        val artworkItemBidder = queryArtworkState(bidder, false)
+        assertNotNull(artworkItemBidder)
+//        assertEquals(buyer1Party, buyer1.services.identityService.wellKnownPartyFromAnonymous(artworkItemB!!.owner))
+//
+//        val aBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+//        val bBalance = buyer1.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+    }
+
+    @Test
     fun `can perform swap over x-network`() {
         val artworkId = issueArtwork(seller)
         val sellerParty = seller.info.chooseIdentity()

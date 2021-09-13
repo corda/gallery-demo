@@ -6,6 +6,7 @@ import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.LockState
+import com.r3.gallery.states.LockStateBase
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow2
 import com.r3.gallery.workflows.token.IssueTokensFlow
@@ -72,7 +73,7 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
         val sellerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, seller)
         val encumberedAmount = Amount(amount.toLong(), FiatCurrency.getInstance("GBP"))
         //val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
-        val lockState = SerializedBytes<LockState>(lockedOn.lockBytes).deserialize()
+        val lockState = SerializedBytes<LockStateBase>(lockedOn.lockBytes).deserialize()
         val lockStateRef = tokenNetworkBuyerCS.startFlow(buyer, OfferEncumberedTokensFlow2::class.java, lockState, sellerParty, encumberedAmount)
         return LockStateRef(lockStateRef.serialize().bytes)
     }

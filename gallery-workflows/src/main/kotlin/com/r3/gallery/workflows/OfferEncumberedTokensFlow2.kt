@@ -3,6 +3,7 @@ package com.r3.gallery.workflows
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.gallery.states.LockState
+import com.r3.gallery.states.LockStateBase
 import com.r3.gallery.utils.addMoveTokens
 import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
@@ -24,7 +25,7 @@ import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 @InitiatingFlow
 @StartableByRPC
 class OfferEncumberedTokensFlow2(
-    val lockState: LockState,
+    val lockStateBase: LockStateBase,
     val sellerParty: Party,
     val encumberedAmount: Amount<TokenType>
 ) : FlowLogic<StateRef>() {
@@ -35,6 +36,7 @@ class OfferEncumberedTokensFlow2(
         // Executing on buyer @ token, offers token to seller @ token. The lock state on cbdc-demo was
         // (a @ CN1 + b @ CN2) but supposed to be (a @ CN1 + b' @ CN1), which is equivalent, in our case, to
         // (gallery @ art + buyer @ token) when it should be (gallery @ art + bidder @ art).
+        val lockState = LockState(lockStateBase.txHash, ourIdentity, sellerParty, lockStateBase.controllingNotary, lockStateBase.timeWindow)
         val compositeKey = lockState.getCompositeKey()
         val compositeParty = AnonymousParty(compositeKey)
         serviceHub.identityService.registerKey(compositeKey, ourIdentity)
