@@ -1,11 +1,7 @@
 import { GalleryLot, Participant } from "../models";
 
 export function getParticipantPath(participant: Participant): string {
-  const paths: { [string: string]: string } = {
-    "ParticipantType.GalleryOwner": "gallery",
-    "ParticipantType.Bidder": "bidder",
-  };
-  return `/${paths[participant.type]}/${convertToKebabCase(participant.displayName)}`;
+  return `/${participant.type.toLocaleLowerCase()}/${convertToKebabCase(participant.displayName)}`;
 }
 
 export function timeout(ms: number) {

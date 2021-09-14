@@ -24,7 +24,7 @@ function Bidder() {
         {user && (
           <Row>
             <Column cols={8}>
-              <GalleryShop lots={artworks} x500={user.networkIds[0].x500} />
+              <GalleryShop lots={artworks} x500={user.x500} />
             </Column>
             <Column cols={4}>
               <Wallets user={user} />

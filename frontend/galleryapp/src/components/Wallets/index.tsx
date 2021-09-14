@@ -11,7 +11,6 @@ interface Props {
 function Wallets({ user }: Props) {
   const { getWalletsByUser } = useContext(WalletsContext);
   const wallets = getWalletsByUser(user);
-  const userX500 = user.networkIds[0] ? user.networkIds[0].x500 : "";
 
   return (
     <section className={styles.main}>
@@ -27,7 +26,7 @@ function Wallets({ user }: Props) {
         </thead>
         <tbody>
           {wallets.map((wallet) => (
-            <WalletItem key={wallet.currencyCode} wallet={wallet} x500={userX500} />
+            <WalletItem key={wallet.currencyCode} wallet={wallet} x500={user.x500} />
           ))}
         </tbody>
       </table>

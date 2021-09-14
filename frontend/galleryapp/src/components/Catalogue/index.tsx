@@ -11,7 +11,7 @@ interface Props {
 
 function Catalogue({ lots }: Props) {
   const { getFilteredLogs } = useContext(LogsContext);
-  const logs = getFilteredLogs(null, "auction");
+  const logs = getFilteredLogs(null, "AUCTION");
 
   return (
     <section className={styles.main}>
