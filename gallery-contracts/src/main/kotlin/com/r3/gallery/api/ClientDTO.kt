@@ -43,7 +43,25 @@ data class LogUpdateEntry(
     val logRecordId: String,
     val timestamp: String,
     val message: String
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as LogUpdateEntry
+
+        if (logRecordId != other.logRecordId) return false
+        if (message != other.message) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = logRecordId.hashCode()
+        result = 31 * result + message.hashCode()
+        return result
+    }
+}
 
 /**
  * Participant entry represents a detailed view of a
