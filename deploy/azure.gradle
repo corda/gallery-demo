@@ -4,21 +4,10 @@ import deployments.IngressRule
 import deployments.NotaryDeployment
 
 import java.util.function.BiConsumer
-/**
- * Creates deployment for K8s namespace isolation and ACR credentials for pulling docker images
- */
-task buildNamespaceAndCreds(type: DeploymentTask) {
-    def namespaceDep = kdeployment.buildNamespace(namespaceName)
-    def acrCredentialsDep = new DockerRegistrySecret(
-            namespaceName,
-            ledgerRegCred,
-            docker_push_registry,
-            rootProject.ext.'docker.push.username',
-            rootProject.ext.'docker.push.password'
-    )
-    deployments = [namespaceDep, acrCredentialsDep] as Iterable<Object>
-    fileName = "namespaceAndCredDeployment"
-}
+
+def deployedNamespace = rootProject.ext.'deployed.namespace' as String
+def imageSuffix = rootProject.ext.'image.suffix' as String
+def hostPrefix = rootProject.ext.'host.prefix' as String
 
 /**
  * Creates a deployment for Auction Network
@@ -26,12 +15,12 @@ task buildNamespaceAndCreds(type: DeploymentTask) {
  */
 task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def auctionNetworkServices = kdeployment.buildNMSDeployment.call(
-            namespaceName,
+            deployedNamespace,
             "auction-nms",
             nmsImageName
     )
     def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            namespaceName as String,
+            deployedNamespace,
             "auction-notary",
             "roastario/notary-one:5",
             auctionNetworkServices.getNmsService()
@@ -51,19 +40,19 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
 
             def currentNode = kdeployment.buildNodeStatefulSet.call(
                     ledgerRegCred,
-                    namespaceName as String,
+                    deployedNamespace,
                     auctionNetworkServices.nmsService.metadata.name,
                     "auction-$identifier" as String,
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
-                    project.version as String
+                    imageSuffix as String
             )
             auctionNodeDeployments.add(currentNode)
 
             // add an ingress rule for routing to service
           ingressRules.add(
                     new IngressRule(
-                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            hostPrefix + currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -72,7 +61,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
     } as BiConsumer<String, String>)
 
     def auctionIngress = kdeployment.buildIngressDeployment.call(
-            namespaceName as String,
+            deployedNamespace,
             "auction",
             ingressRules
     )
@@ -87,12 +76,12 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
  */
 task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def gbpNetworkServices = kdeployment.buildNMSDeployment.call(
-            namespaceName,
+            deployedNamespace,
             "gbp-nms",
             nmsImageName
     )
     def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            namespaceName as String,
+            deployedNamespace as String,
             "gbp-notary",
             "roastario/notary-two:5",
             gbpNetworkServices.getNmsService()
@@ -112,19 +101,19 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
 
             def currentNode = kdeployment.buildNodeStatefulSet.call(
                     ledgerRegCred,
-                    namespaceName as String,
+                    deployedNamespace as String,
                     gbpNetworkServices.nmsService.metadata.name,
                     "gbp-$identifier",
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
-                    project.version as String
+                    imageSuffix as String
             )
             gbpNodeDeployments.add(currentNode)
 
             // add an ingress rule for routing to service
             ingressRules.add(
                     new IngressRule(
-                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            hostPrefix + currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -133,7 +122,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
     } as BiConsumer<String, String>)
 
     def gbpIngress = kdeployment.buildIngressDeployment.call(
-            namespaceName as String,
+            deployedNamespace as String,
             "gbp",
             ingressRules
     )
@@ -148,12 +137,12 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
  */
 task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def cbdcNetworkServices = kdeployment.buildNMSDeployment.call(
-            namespaceName,
+            deployedNamespace,
             "cbdc-nms",
             nmsImageName
     )
     def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            namespaceName as String,
+            deployedNamespace as String,
             "cbdc-notary",
             "roastario/notary-three:5",
             cbdcNetworkServices.getNmsService()
@@ -173,19 +162,19 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
 
             def currentNode = kdeployment.buildNodeStatefulSet.call(
                     ledgerRegCred,
-                    namespaceName as String,
+                    deployedNamespace as String,
                     cbdcNetworkServices.nmsService.metadata.name,
                     "cbdc-$identifier",
                     node.get("x500") as String,
                     gallery_cordapp_docker_image_name as String,
-                    project.version as String
+                    imageSuffix as String
             )
             cbdcNodeDeployments.add(currentNode)
 
             // add an ingress rule for routing to service
             ingressRules.add(
                     new IngressRule(
-                            currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            hostPrefix + currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -194,7 +183,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
     } as BiConsumer<String, String>)
 
     def cbdcIngress = kdeployment.buildIngressDeployment.call(
-            namespaceName as String,
+            deployedNamespace as String,
             "cbdc",
             ingressRules
     )
@@ -204,13 +193,155 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
 }
 
 /**
+ * Creates deployment for K8s namespace isolation and ACR credentials for pulling docker images
+ */
+task buildNamespaceAndCreds(type: DeploymentTask) {
+    def namespaceDep = kdeployment.buildNamespace(deployedNamespace)
+    def acrCredentialsDep = new DockerRegistrySecret(
+            deployedNamespace,
+            ledgerRegCred,
+            docker_push_registry,
+            rootProject.ext.'docker.push.username',
+            rootProject.ext.'docker.push.password'
+    )
+    deployments = [namespaceDep, acrCredentialsDep] as Iterable<Object>
+    fileName = "namespaceAndCredDeployment"
+}
+
+/**
  * Builds all networks in single task
  */
 task buildAllNetworks(type: Task, dependsOn: [
-        'buildNamespaceAndCreds',
         'buildAuctionNetwork',
         'buildGbpNetwork',
         'buildCbdcNetwork'
 ]) {
     group = "deployment k8s"
+}
+
+/**
+ * Mid-layer; Frontend and Orchestration Spring services
+ */
+task buildFrontEndAndSpringService(type: DeploymentTask) {
+    def springService = kdeployment.buildWebAppDeployment.call(
+            ledgerRegCred,
+            deployedNamespace,
+            "gallery",
+            gallery_webappapi_docker_image_name as String,
+            imageSuffix as String,
+            [ // environment variables for application.properties overrides
+                    "RPC_USERNAME": "rpcUser",
+                    "RPC_PASSWORD": "test",
+                    "AUCTION_ALICE_RPC_URL": "auction-alice-node:10201",
+                    "AUCTION_BOB_RPC_URL": "auction-bob-node:10201",
+                    "AUCTION_CHARLIE_RPC_URL": "auction-charlie-node:10201",
+                    "GBP_ALICE_RPC_URL": "gbp-alice-node:10201",
+                    "GBP_BOB_RPC_URL": "gbp-bob-node:10201",
+                    "CBDC_ALICE_RPC_URL": "cbdc-alice-node:10201",
+                    "CBDC_CHARLIE_RPC_URL": "cbdc-charlie-node:10201"
+            ]
+    )
+    def frontEnd = kdeployment.buildFrontEndDeployment.call(
+            ledgerRegCred as String,
+            deployedNamespace as String,
+            "gallery",
+            frontend_docker_image_name as String,
+            imageSuffix as String
+    )
+
+    // create ingress rules for web and front-end
+    List<IngressRule> ingressRules = new ArrayList()
+    ingressRules.add(
+            new IngressRule(
+                    hostPrefix + springService.getWebAppDeployment().metadata.name + ingressHostSuffix,
+                    80,
+                    springService.webAppService
+            )
+    )
+    ingressRules.add(
+            new IngressRule(
+                    hostPrefix + "swaps" + ingressHostSuffix,
+                    80,
+                    frontEnd.frontEndService
+            )
+    )
+    def frontEndIngress = kdeployment.buildIngressDeployment.call(
+        deployedNamespace as String,
+        "frontend",
+        ingressRules
+    )
+    deployments = [springService, frontEnd, frontEndIngress] as Iterable<Object>
+    fileName = "frontEndAndSpring"
+}
+
+/**
+ * Top level task to generate yaml for all services.
+ */
+task buildAll(type: Task, dependsOn: [
+        'buildNamespaceAndCreds',
+        'buildAllNetworks',
+        'buildFrontEndAndSpringService',
+        'buildMockFrontEndAndSpringService'
+]) {
+    group = "deployment k8s"
+}
+
+/**
+ * Parallel Spring-Mock deployment
+ */
+task buildMockFrontEndAndSpringService(type: DeploymentTask) {
+    def springService = kdeployment.buildWebAppDeployment.call(
+            ledgerRegCred,
+            deployedNamespace,
+            "mock-gallery",
+            gallery_webappapi_docker_image_name as String,
+            imageSuffix as String,
+            [ // environment variables for application.properties overrides
+              "RPC_USERNAME": "rpcUser",
+              "RPC_PASSWORD": "test",
+              "AUCTION_ALICE_RPC_URL": "auction-alice-node:10201",
+              "AUCTION_BOB_RPC_URL": "auction-bob-node:10201",
+              "AUCTION_CHARLIE_RPC_URL": "auction-charlie-node:10201",
+              "GBP_ALICE_RPC_URL": "gbp-alice-node:10201",
+              "GBP_BOB_RPC_URL": "gbp-bob-node:10201",
+              "CBDC_ALICE_RPC_URL": "cbdc-alice-node:10201",
+              "CBDC_CHARLIE_RPC_URL": "cbdc-charlie-node:10201",
+              "MOCK_CONTROLLER_ENABLED": "true"
+            ]
+    )
+
+    def webappApiTargetHost = hostPrefix + springService.getWebAppDeployment().metadata.name + ingressHostSuffix
+    def frontendTargetHost = "mock" + hostPrefix + "swaps" + ingressHostSuffix
+
+    def frontEnd = kdeployment.buildFrontEndDeployment.call(
+            ledgerRegCred as String,
+            deployedNamespace as String,
+            "mock-gallery",
+            mock_frontend_docker_image_name as String,
+            imageSuffix as String
+    )
+
+    // create ingress rules for web and front-end
+    List<IngressRule> ingressRules = new ArrayList()
+    ingressRules.add(
+            new IngressRule(
+                    webappApiTargetHost,
+                    80,
+                    springService.webAppService
+            )
+    )
+    ingressRules.add(
+            new IngressRule(
+                    frontendTargetHost,
+                    80,
+                    frontEnd.frontEndService
+            )
+    )
+    def frontEndIngress = kdeployment.buildIngressDeployment.call(
+            deployedNamespace as String,
+            "mock-frontend",
+            ingressRules
+    )
+    deployments = [springService, frontEnd, frontEndIngress] as Iterable<Object>
+    fileName = "mockFrontEndAndSpring"
 }

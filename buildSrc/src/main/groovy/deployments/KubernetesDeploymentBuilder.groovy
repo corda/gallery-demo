@@ -220,33 +220,23 @@ class KubernetesDeployment {
         String regcred,
         String namespace,
         String identifier,
-        Object node,
-        String image,
-        List<String> webAppArgsList = null,
+        String imageName,
+        String imageVersion,
         Map<String, String> envStr = null,
         Integer webAppPort = 8080 ->
-            // check node param is of valid type
-            if (!(node instanceof NodeDeployment) && !(node instanceof NodeStatefulSet))
-                throw new IllegalArgumentException("invalid node param")
-
-            // set args or default
-            List<String> webAppArgs = webAppArgsList ?: ["--config.rpc.username=rpcUser",
-                                                         "--server.port=8080",
-                                                         "--config.rpc.password=${NodeDeployment.RPC_PASSWORD}",
-                                                         "--config.rpc.host=${node.nodeService.metadata.name}",
-                                                         "--config.rpc.port=${NodeDeployment.RPC_PORT}"]
-
             List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
-            return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, image, webAppArgs, env, webAppPort)
+            return WebAppDeployment.buildWebappDeployment(regcred, namespace, identifier, imageName, imageVersion, env, webAppPort)
     }
 
     def buildFrontEndDeployment = {
         String regcred,
         String devNamespace,
         String identifier,
-        String imageName
-            ->
-            return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, devNamespace)
+        String imageName,
+        String imageVersion,
+        Map<String, String> envStr = null ->
+            List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
+            return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, imageVersion, devNamespace, env)
     }
 
     def buildIngressDeployment = { String namespace,
@@ -305,6 +295,8 @@ class KubernetesDeployment {
         envVars.entrySet().forEach {
             env.add(new V1EnvVarBuilder().withName(it.key).withValue(it.value).build())
         }
+        // add jdwp debug port env
+        env.add(new V1EnvVarBuilder().withName("JVM_ARGS").withValue("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -XX:MaxHeapFreeRatio=40").build())
         return env
     }
 }

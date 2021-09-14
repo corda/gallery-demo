@@ -1,6 +1,11 @@
 .main {
   padding: 0;
 
+  th,
+  td {
+    padding: 16px 8px;
+  }
+
   > td:first-of-type {
     max-width: 100%;
     padding: 20px;
@@ -14,5 +19,6 @@
   }
 }
 
-.bidsRow {
+.bidRejected {
+  opacity: 0.4;
 }

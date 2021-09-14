@@ -3,6 +3,7 @@ package deployments
 import io.kubernetes.client.custom.IntOrString
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.models.*
+import org.apache.commons.lang3.RandomStringUtils
 
 import java.util.function.Consumer
 
@@ -43,7 +44,9 @@ class FrontEndDeployment implements Iterable<Object> {
     static FrontEndDeployment buildFrontEndDeployment(String regcred,
                                                       String identifier,
                                                       String imageName,
-                                                      String namespace
+                                                      String imageVersion,
+                                                      String namespace,
+                                                      List<V1EnvVar> env = null
     ) {
 
         def frontendDeployment = new V1DeploymentBuilder()
@@ -67,20 +70,22 @@ class FrontEndDeployment implements Iterable<Object> {
                 .endStrategy()
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels([run: identifier + "-frontend"])
+                .withLabels([
+                        run: identifier + "-frontend",
+                        restartRandomId: RandomStringUtils.randomAlphabetic(6).toLowerCase()
+                ])
                 .endMetadata()
                 .withNewSpec()
                 .withImagePullSecrets(new V1LocalObjectReferenceBuilder().withName(regcred).build())
                 .addNewContainer()
                 .withName(identifier + "-frontend")
-                .withImage("${imageName}")
+                .withImage("${imageName}:${imageVersion}")
                 .withImagePullPolicy("Always")
                 .withPorts(
                         new V1ContainerPortBuilder().withName("frontendhttp").withContainerPort(6005).build(),
                 )
-                .withEnv(
-                        new V1EnvVarBuilder().withName("PARTICIPANT_ROLE").withValue(identifier).build()
-                ).withLivenessProbe(
+                .withEnv(env)
+                .withLivenessProbe(
                         new V1ProbeBuilder()
                                 .withInitialDelaySeconds(120)
                                 .withPeriodSeconds(10)

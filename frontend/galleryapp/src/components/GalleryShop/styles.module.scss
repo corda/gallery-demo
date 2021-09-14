@@ -1,5 +1,5 @@
 .main {
-  h2 {
+  h3 {
     text-align: left;
     margin-bottom: var(--p-4);
   }
@@ -37,6 +37,11 @@
     line-height: 1.2em;
     margin: var(--p-1) 0;
   }
+}
+
+.lotItemSold {
+  pointer-events: none;
+  opacity: 0.4;
 }
 
 .itemImagePlaceholder {

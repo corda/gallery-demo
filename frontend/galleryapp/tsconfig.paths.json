@@ -5,9 +5,11 @@
       "@Api/*": ["./api/*"],
       "@Assets/*": ["./assets/*"],
       "@Components/*": ["./components/*"],
+      "@Config": ["./config.ts"],
       "@Context/*": ["./context/*"],
-      "@Helpers/*": ["./helpers/*"],
+      "@Helpers": ["./helpers/index.ts"],
       "@Hooks/*": ["./hooks/*"],
+      "@Models": ["./models.ts"],
       "@Pages/*": ["./pages/*"],
       "@Services/*": ["./services/*"]
     }

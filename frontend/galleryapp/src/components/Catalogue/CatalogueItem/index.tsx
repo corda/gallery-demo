@@ -1,8 +1,10 @@
 import styles from "./styles.module.scss";
-import { GalleryLot } from "../../../models";
+import { GalleryLot } from "@Models";
 import { useState } from "react";
 import CatalogueItemBids from "@Components/Catalogue/CatalogueItemBids";
 import { ReactComponent as Chevron } from "@Assets/chevronIcon.svg";
+import { Badge } from "@r3/r3-tooling-design-system";
+import { lotSold } from "@Helpers";
 
 interface Props {
   lot: GalleryLot;
@@ -10,6 +12,7 @@ interface Props {
 
 function CatalogueItem({ lot }: Props) {
   const [isToggled, setToggled] = useState(false);
+  const sold = lotSold(lot);
 
   return (
     <>
@@ -17,14 +20,18 @@ function CatalogueItem({ lot }: Props) {
         <td className={`${styles.chevron} ${isToggled ? styles.open : ""}`}>
           <Chevron />
         </td>
-        <td>{lot.displayName}</td>
-        <td>{lot.id}</td>
-        <td>{lot.reservePrice}</td>
+        <td>
+          <div className={styles.lotDetail}>
+            <img className={styles.thumbnail} src={lot.url} alt={lot.description} />
+            {lot.description}
+          </div>
+        </td>
+        <td>{lot.artworkId}</td>
         <td>{lot.bids.length}</td>
-        <td>TBC</td>
+        <td>{sold ? <Badge variant="green">Sold</Badge> : <Badge variant="gray">Open</Badge>}</td>
       </tr>
 
-      {isToggled && <CatalogueItemBids bids={lot.bids} />}
+      {isToggled && <CatalogueItemBids bids={lot.bids} lotId={lot.artworkId} open={!sold} />}
     </>
   );
 }

@@ -4,6 +4,7 @@ import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*
  */
 @CrossOrigin
 @RestController
+@ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @RequestMapping("/gallery")
 class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryClient) {
     companion object {

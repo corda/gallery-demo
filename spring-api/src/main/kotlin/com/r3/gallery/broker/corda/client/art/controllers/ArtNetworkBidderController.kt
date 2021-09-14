@@ -6,6 +6,7 @@ import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*
  */
 @CrossOrigin
 @RestController
+@ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @RequestMapping("/bidder")
 class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClient) {
     companion object {
