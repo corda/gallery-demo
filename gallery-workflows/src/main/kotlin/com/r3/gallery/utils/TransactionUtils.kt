@@ -70,10 +70,10 @@ fun WireTransaction.getLockState(serviceHub: ServiceHub, creator: Party, receive
     // TODO: should this have same window or not? If there's an expiry on this
     return LockState(
         SignableData(id, signatureMetadata),
-        creator,
-        receiver,
         notaryIdentity,
         timeWindow!!,
+        creator,
+        receiver,
         listOf(receiver, creator)
     )
 }

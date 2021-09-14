@@ -21,8 +21,7 @@ import net.corda.core.transactions.TransactionBuilder
 import java.security.PublicKey
 
 @Suspendable
-internal fun addMoveTokens(
-    transactionBuilder: TransactionBuilder,
+internal fun TransactionBuilder.addMoveTokens(
     serviceHub: ServiceHub,
     partiesAndAmounts: List<PartyAndAmount<TokenType>>,
     changeHolder: AbstractParty,
@@ -34,10 +33,9 @@ internal fun addMoveTokens(
         partiesAndAmounts.toPairs(),
         changeHolder,
         TokenQueryBy(),
-        transactionBuilder.lockId
+        this.lockId
     )
-    return addMoveTokens(
-        txBuilder = transactionBuilder,
+    return this.addMoveTokens(
         inputs = inputs,
         outputs = outputs,
         additionalKeys,
@@ -46,8 +44,7 @@ internal fun addMoveTokens(
 }
 
 @Suspendable
-internal fun addMoveTokens(
-    txBuilder: TransactionBuilder,
+internal fun TransactionBuilder.addMoveTokens(
     inputs: List<StateAndRef<AbstractToken>>,
     outputs: List<AbstractToken>,
     additionalKeys: List<PublicKey>,
@@ -64,7 +61,7 @@ internal fun addMoveTokens(
 
     var previousEncumbrance = outputs.size
 
-    txBuilder.apply {
+    this.apply {
         // Add a notary to the transaction.
         notary = inputs.map { it.state.notary }.toSet().single()
         outputGroups.forEach { (issuedTokenType: IssuedTokenType, outputStates: List<AbstractToken>) ->
@@ -107,7 +104,7 @@ internal fun addMoveTokens(
         }
     }
 
-    addTokenTypeJar(inputs.map { it.state.data } + outputs, txBuilder)
+    addTokenTypeJar(inputs.map { it.state.data } + outputs, this)
 
-    return txBuilder
+    return this
 }

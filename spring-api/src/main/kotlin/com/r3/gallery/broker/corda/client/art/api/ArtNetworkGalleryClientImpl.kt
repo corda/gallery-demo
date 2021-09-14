@@ -6,21 +6,20 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.utils.getNotaryTransactionSignature
-import com.r3.gallery.workflows.CreateDraftTransferOfOwnershipFlow
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
 import com.r3.gallery.workflows.artwork.FindArtworkFlow
 import com.r3.gallery.workflows.artwork.FindOwnedArtworksFlow
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
-import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.internal.toX500Name
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.serialize
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
-import java.util.*
 import javax.annotation.PostConstruct
 
 @Component
@@ -47,9 +46,14 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId) : ArtworkOwnership {
+    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
-        return artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId)
+        val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId)
+        return ArtworkOwnership(
+            state.linearId.id,
+            state.artworkId,
+            state.owner.nameOrNull()!!.toX500Name().toString()
+        )
     }
 
     /**
@@ -57,21 +61,8 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
      */
     override fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
         logger.info("Starting ListAvailableArtworks flow via $galleryParty")
-        return artNetworkGalleryCS.startFlow(galleryParty, FindOwnedArtworksFlow::class.java).map { it.state.data.artworkId }
-    }
-
-    /**
-     * Create an unsigned transaction that would transfer an artwork owned by the gallery,
-     * identified by [galleryOwnership], to the given bidder.
-     *
-     * @return The unsigned fulfilment transaction
-     */
-    override fun createArtworkTransferTx(galleryParty: ArtworkParty, bidderParty: ArtworkParty, galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx {
-        logger.info("Starting CreateArtworkTransferTx flow via $galleryParty with bidder: $bidderParty for ownership $galleryOwnership")
-        val partyToTransferTo = artNetworkGalleryCS.wellKnownPartyFromName(galleryParty, bidderParty)
-        val artworkLinearId = UniqueIdentifier.fromString(galleryOwnership.cordaReference.toString())
-        val unsignedTx = artNetworkGalleryCS.startFlow(galleryParty, CreateDraftTransferOfOwnershipFlow::class.java, artworkLinearId, partyToTransferTo)
-        return UnsignedArtworkTransferTx(unsignedTx.serialize().bytes)
+        return artNetworkGalleryCS.startFlow(galleryParty, FindOwnedArtworksFlow::class.java)
+            .map { it.state.data.artworkId }
     }
 
     /**
@@ -80,15 +71,18 @@ class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
      *
      * @return Proof that ownership of the artwork has been transferred.
      */
-    override fun finaliseArtworkTransferTx(galleryParty: ArtworkParty, unsignedArtworkTransferTx: UnsignedArtworkTransferTx): ProofOfTransferOfOwnership {
-        logger.info("Starting finaliseArtworkTransferTx flow via $galleryParty")
-        val unsignedTx = SerializedBytes<WireTransaction>(unsignedArtworkTransferTx.transactionBytes).deserialize()
-        val signedTx = artNetworkGalleryCS.startFlow(galleryParty, SignAndFinalizeTransferOfOwnership::class.java, unsignedTx)
+    override fun finaliseArtworkTransferTx(
+        galleryParty: ArtworkParty,
+        unsignedArtworkTransferTx: UnsignedArtworkTransferTx
+    ): ProofOfTransferOfOwnership {
+        logger.info("Starting SignAndFinalizeTransferOfOwnership flow via $galleryParty")
+        val unsignedTx: WireTransaction =
+            SerializedBytes<WireTransaction>(unsignedArtworkTransferTx.transactionBytes).deserialize()
+        val signedTx: SignedTransaction =
+            artNetworkGalleryCS.startFlow(galleryParty, SignAndFinalizeTransferOfOwnership::class.java, unsignedTx)
         return ProofOfTransferOfOwnership(
-            transactionId = UUID.randomUUID(),
-            transactionHash = TransactionHash(),
-            previousOwnerSignature = TransactionSignature(ByteArray(0)),
-            notarySignature = TransactionSignature(signedTx.getNotaryTransactionSignature().bytes),
+            transactionHash = signedTx.id.toString(),
+            notarySignature = TransactionSignature(signedTx.getNotaryTransactionSignature().serialize().bytes)
         )
     }
 

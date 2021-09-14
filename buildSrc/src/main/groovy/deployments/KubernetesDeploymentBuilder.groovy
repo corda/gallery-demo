@@ -233,9 +233,10 @@ class KubernetesDeployment {
         String devNamespace,
         String identifier,
         String imageName,
-        String imageVersion
-            ->
-            return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, imageVersion, devNamespace)
+        String imageVersion,
+        Map<String, String> envStr = null ->
+            List<V1EnvVar> env = envStr ? mapToEnvList(envStr) : null
+            return FrontEndDeployment.buildFrontEndDeployment(regcred, identifier, imageName, imageVersion, devNamespace, env)
     }
 
     def buildIngressDeployment = { String namespace,

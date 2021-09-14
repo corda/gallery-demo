@@ -1,11 +1,14 @@
 package com.r3.gallery.utils
 
 import co.paralleluniverse.fibers.Suspendable
+import net.corda.core.crypto.CompositeKey
 import net.corda.core.flows.FlowSession
 import net.corda.core.identity.AbstractParty
+import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
 import net.corda.core.node.ServiceHub
 import net.corda.core.node.services.IdentityService
+import java.security.PublicKey
 
 @Suspendable
 fun List<AbstractParty>.toWellKnownParties(services: ServiceHub): List<Party> {
@@ -30,4 +33,16 @@ fun requireSessionsForParticipants(participants: Collection<Party>, sessions: Li
         val missing = participants - sessionParties
         "There should be a flow session for all state participants. Sessions are missing for $missing."
     }
+}
+
+@Suspendable
+fun ServiceHub.registerCompositeKey(ourParty: Party, otherParty: Party): PublicKey {
+    val compositeKey = CompositeKey.Builder()
+        .addKey(ourParty.owningKey, weight = 1)
+        .addKey(otherParty.owningKey, weight = 1)
+        .build(1)
+
+    identityService.registerKey(compositeKey, ourParty)
+
+    return compositeKey
 }

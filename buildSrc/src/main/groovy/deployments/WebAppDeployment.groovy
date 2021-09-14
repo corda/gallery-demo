@@ -3,6 +3,7 @@ package deployments
 import io.kubernetes.client.custom.IntOrString
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.models.*
+import org.apache.commons.lang3.RandomStringUtils
 
 import java.util.function.Consumer
 
@@ -81,7 +82,10 @@ class WebAppDeployment implements Iterable<Object> {
                 .endStrategy()
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels([run: "${apiId}-webappapi".toString()])
+                .withLabels([
+                        run: "${apiId}-webappapi".toString(),
+                        restartRandomId: RandomStringUtils.randomAlphabetic(6).toLowerCase()
+                ])
                 .endMetadata()
                 .withNewSpec()
                 .withImagePullSecrets(new V1LocalObjectReferenceBuilder().withName(regcred).build())

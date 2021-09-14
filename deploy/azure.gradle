@@ -275,13 +275,73 @@ task buildFrontEndAndSpringService(type: DeploymentTask) {
 }
 
 /**
- * UI Deployment - Nginx backed React frontend for cross network interaction and demo
+ * Top level task to generate yaml for all services.
  */
-
 task buildAll(type: Task, dependsOn: [
         'buildNamespaceAndCreds',
         'buildAllNetworks',
-        'buildFrontEndAndSpringService'
+        'buildFrontEndAndSpringService',
+        'buildMockFrontEndAndSpringService'
 ]) {
     group = "deployment k8s"
+}
+
+/**
+ * Parallel Spring-Mock deployment
+ */
+task buildMockFrontEndAndSpringService(type: DeploymentTask) {
+    def springService = kdeployment.buildWebAppDeployment.call(
+            ledgerRegCred,
+            deployedNamespace,
+            "mock-gallery",
+            gallery_webappapi_docker_image_name as String,
+            imageSuffix as String,
+            [ // environment variables for application.properties overrides
+              "RPC_USERNAME": "rpcUser",
+              "RPC_PASSWORD": "test",
+              "AUCTION_ALICE_RPC_URL": "auction-alice-node:10201",
+              "AUCTION_BOB_RPC_URL": "auction-bob-node:10201",
+              "AUCTION_CHARLIE_RPC_URL": "auction-charlie-node:10201",
+              "GBP_ALICE_RPC_URL": "gbp-alice-node:10201",
+              "GBP_BOB_RPC_URL": "gbp-bob-node:10201",
+              "CBDC_ALICE_RPC_URL": "cbdc-alice-node:10201",
+              "CBDC_CHARLIE_RPC_URL": "cbdc-charlie-node:10201",
+              "MOCK_CONTROLLER_ENABLED": "true"
+            ]
+    )
+
+    def webappApiTargetHost = hostPrefix + springService.getWebAppDeployment().metadata.name + ingressHostSuffix
+    def frontendTargetHost = "mock" + hostPrefix + "swaps" + ingressHostSuffix
+
+    def frontEnd = kdeployment.buildFrontEndDeployment.call(
+            ledgerRegCred as String,
+            deployedNamespace as String,
+            "mock-gallery",
+            mock_frontend_docker_image_name as String,
+            imageSuffix as String
+    )
+
+    // create ingress rules for web and front-end
+    List<IngressRule> ingressRules = new ArrayList()
+    ingressRules.add(
+            new IngressRule(
+                    webappApiTargetHost,
+                    80,
+                    springService.webAppService
+            )
+    )
+    ingressRules.add(
+            new IngressRule(
+                    frontendTargetHost,
+                    80,
+                    frontEnd.frontEndService
+            )
+    )
+    def frontEndIngress = kdeployment.buildIngressDeployment.call(
+            deployedNamespace as String,
+            "mock-frontend",
+            ingressRules
+    )
+    deployments = [springService, frontEnd, frontEndIngress] as Iterable<Object>
+    fileName = "mockFrontEndAndSpring"
 }

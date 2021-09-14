@@ -29,6 +29,44 @@
     "x500": "O=Alice,L=London,C=GB",
     "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb04",
     "timestamp": "15:17:08.132263",
-    "message": "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"
+    "message": "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]",
+    "completed":  {
+      "associatedStage": "tx3",
+      "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb01",
+      "states": [
+        {
+          "properties": {
+            "assetType": "CBDC",
+            "amount": 250,
+            "issuer": "O=Bob,L=San Francisco,C=US",
+            "owner": "CompositeKey C(O=Bob,L=San Francisco,C=US,O=Alice,L=London,C=GB)"
+          },
+          "participants": ["O=Bob,L=San Francisco,C=US"]
+        },
+        {
+          "properties": {
+            "creator": "O=Bob,L=San Francisco,C=US",
+            "eventualOwner": "O=Alice,L=London,C=GB",
+            "txHash": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
+            "controllingNotary": "O=CBDC Notary,L=London,C=GB",
+            "timeWindow": "2015-06-02T21:34:33.616Z"
+          },
+          "participants": ["O=Alice,L=London,C=GB", "O=Bob,L=San Francisco,C=US"]
+        },
+        {
+          "properties": {
+            "assetType": "CBDC",
+            "amount": 250,
+            "issuer": "O=Bob,L=San Francisco,C=US",
+            "owner": "C(O=Alice,L=London,C=GB)"
+          },
+          "participants": ["O=Alice,L=London,C=GB"]
+        }
+      ],
+      "signers": {
+        "O=Alice,L=London,C=GB": true,
+        "O=CBDC Notary,L=London,C=GB": false
+      }
+    }
   }
 ]
