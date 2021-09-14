@@ -4,6 +4,8 @@ import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.*
 import com.r3.gallery.api.AvailableArtwork.BidRecord
+import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkBidderController
+import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkGalleryController
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import net.corda.core.contracts.Amount
@@ -156,22 +158,14 @@ class MockController {
         return asResponse(UnsignedArtworkTransferTx(secureRandomBytes(8)))
     }
 
-    @PostMapping("/gallery/finalise-artwork-transfer", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun finaliseArtworkTransfer(
+    @PostMapping("/accept-bid", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun acceptBid(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
-        @RequestBody unsignedArtworkTransferTx: UnsignedArtworkTransferTx // CordaReference
-    ) : ResponseEntity<ProofOfTransferOfOwnership> {
-        logger.info("MOCK Request to finalise artwork transfer by $galleryParty for tx: $unsignedArtworkTransferTx")
-        return asResponse(
-            ProofOfTransferOfOwnership(
-                UUID.fromString("e00171b6-a0d0-4b04-9ee5-812885a0bd03") as CordaReference,
-                random63BitValue().toString(),
-                TransactionSignature(secureRandomBytes(8)),
-                TransactionSignature(secureRandomBytes(8))
-            )
-        )
+        @RequestParam("cordaReference") cordaReference: CordaReference
+    ) : ResponseEntity<Unit> {
+        logger.info("MOCK Request by $galleryParty to accept bid from $cordaReference")
+        return asResponse(Unit)
     }
-
 
     //--- MOCK BIDDER ENDPOINTS
 
@@ -182,6 +176,18 @@ class MockController {
         @RequestParam("currency") currency: String
     ) : ResponseEntity<Unit> {
         logger.info("MOCK Request by $bidderParty to issue tokens for $amount $currency")
+        return asResponse(Unit)
+    }
+
+    @PutMapping("/bid")
+    fun bid(
+        @RequestParam("bidderParty") bidderParty: ArtworkParty,
+        @RequestParam("artworkId") artworkId: ArtworkId,
+        @RequestParam("amount") amount: Long,
+        @RequestParam("currency") currency: String = "GBP",
+        @RequestParam("expiryDate") expiry: String
+    ) : ResponseEntity<Unit> {
+        logger.info("Request by $bidderParty to bid on $artworkId in amount of $amount $currency")
         return asResponse(Unit)
     }
 
