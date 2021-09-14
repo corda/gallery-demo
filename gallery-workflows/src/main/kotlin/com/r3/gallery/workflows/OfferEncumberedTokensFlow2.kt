@@ -3,17 +3,17 @@ package com.r3.gallery.workflows
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.gallery.states.LockState
-import com.r3.gallery.states.LockStateBase
+import com.r3.gallery.states.VerifiedWireTransaction
 import com.r3.gallery.utils.addMoveTokens
+import com.r3.gallery.utils.registerCompositeKey
 import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.InsufficientBalanceException
-import net.corda.core.contracts.StateRef
-import net.corda.core.crypto.CompositeKey
 import net.corda.core.flows.*
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
@@ -25,21 +25,17 @@ import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 @InitiatingFlow
 @StartableByRPC
 class OfferEncumberedTokensFlow2(
-    val lockStateBase: LockStateBase,
+    val verifiedDraftTx: VerifiedWireTransaction,
     val sellerParty: Party,
     val encumberedAmount: Amount<TokenType>
-) : FlowLogic<StateRef>() {
+) : FlowLogic<SignedTransaction>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): StateRef {
-        // Executing on buyer @ token, offers token to seller @ token. The lock state on cbdc-demo was
-        // (a @ CN1 + b @ CN2) but supposed to be (a @ CN1 + b' @ CN1), which is equivalent, in our case, to
-        // (gallery @ art + buyer @ token) when it should be (gallery @ art + bidder @ art).
-        val lockState = LockState(lockStateBase.txHash, ourIdentity, sellerParty, lockStateBase.controllingNotary, lockStateBase.timeWindow)
-        val compositeKey = lockState.getCompositeKey()
+    override fun call(): SignedTransaction {
+        val lockState = LockState(verifiedDraftTx, ourIdentity, sellerParty)
+        val compositeKey = serviceHub.registerCompositeKey(ourIdentity, sellerParty)
         val compositeParty = AnonymousParty(compositeKey)
-        serviceHub.identityService.registerKey(compositeKey, ourIdentity)
 
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
          val txBuilder = try {
@@ -62,10 +58,7 @@ class OfferEncumberedTokensFlow2(
         // TODO: discuss what "will not be needed for X-Network, as no additional signers! - DELETE"
         signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(sellerParty)))
 
-        val stx = subFlow(FinalityFlow(signedTx, initiateFlow(sellerParty)))
-        val lockStateRef = stx.tx.outRefsOfType(LockState::class.java).single()
-
-        return lockStateRef.ref
+        return subFlow(FinalityFlow(signedTx, initiateFlow(sellerParty)))
     }
 }
 
@@ -77,12 +70,7 @@ class OfferEncumberedTokensFlow2(
 class OfferEncumberedTokensFlow2Handler(val otherSession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
-        val compositeKey = CompositeKey.Builder()
-            .addKey(ourIdentity.owningKey, weight = 1)
-            .addKey(otherSession.counterparty.owningKey, weight = 1)
-            .build(1)
-
-        serviceHub.identityService.registerKey(compositeKey, ourIdentity)
+        serviceHub.registerCompositeKey(ourIdentity, otherSession.counterparty)
 
         subFlow(
             ReceiveFinalityFlow(

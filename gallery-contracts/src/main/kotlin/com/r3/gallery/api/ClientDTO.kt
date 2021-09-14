@@ -1,6 +1,5 @@
 package com.r3.gallery.api
 
-import com.r3.gallery.states.LockState
 import net.corda.core.serialization.CordaSerializable
 import java.util.*
 
@@ -73,6 +72,7 @@ data class ProofOfTransferOfOwnership(
     val notarySignature: TransactionSignature
 )
 
+
 @CordaSerializable
 data class StateRefAndSignature(
     val encumberedTokens: EncumberedTokens,
@@ -89,6 +89,63 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
 
     override fun hashCode(): Int = transactionBytes.contentHashCode()
 }
+
+@CordaSerializable
+data class VerifiedUnsignedArtworkTransferTx(
+    val transactionBytes: ByteArray,
+    val controllingNotaryBytes: ByteArray,
+    val signatureMetadataBytes: ByteArray
+) {
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other is VerifiedUnsignedArtworkTransferTx -> {
+            transactionBytes.contentEquals(other.transactionBytes) &&
+                    controllingNotaryBytes.contentEquals(other.controllingNotaryBytes) &&
+                    signatureMetadataBytes.contentEquals(other.signatureMetadataBytes)
+        }
+        else -> false
+    }
+
+    override fun hashCode(): Int {
+        return 31 * transactionBytes.contentHashCode() + controllingNotaryBytes.contentHashCode() + signatureMetadataBytes.contentHashCode()
+    }
+}
+
+@CordaSerializable
+data class TokenReleaseData(
+    val encumberedTokensTxBytes: ByteArray,
+    val requiredSignatureBytes: ByteArray
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as TokenReleaseData
+
+        if (!encumberedTokensTxBytes.contentEquals(other.encumberedTokensTxBytes)) return false
+        if (!requiredSignatureBytes.contentEquals(other.requiredSignatureBytes)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = encumberedTokensTxBytes.contentHashCode()
+        result = 31 * result + requiredSignatureBytes.contentHashCode()
+        return result
+    }
+}
+
+@CordaSerializable
+data class SignedTokenTransferTx(val transactionBytes: ByteArray) {
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other is SignedTokenTransferTx -> transactionBytes.contentEquals(other.transactionBytes)
+        else -> false
+    }
+
+    override fun hashCode(): Int = transactionBytes.contentHashCode()
+}
+
 
 @CordaSerializable
 data class UnsignedArtworkTransferTxAndLock(val transactionBytes: ByteArray, val lockBytes: ByteArray) {

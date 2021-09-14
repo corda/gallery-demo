@@ -6,44 +6,38 @@ import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.crypto.SignableData
+import net.corda.core.crypto.SignatureMetadata
 import net.corda.core.identity.AbstractParty
 import net.corda.core.identity.Party
 import net.corda.core.serialization.CordaSerializable
+import net.corda.core.transactions.WireTransaction
 import java.security.PublicKey
 
 @CordaSerializable
-data class LockStateBase(
-    val txHash: SignableData,
+data class VerifiedWireTransaction(
+    val tx: WireTransaction,
     val controllingNotary: Party,
-    val timeWindow: TimeWindow,
+    val notarySignatureMetadata: SignatureMetadata
 ) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as LockStateBase
-        if (txHash != other.txHash) return false
-        if (controllingNotary != other.controllingNotary) return false
-        if (timeWindow != other.timeWindow) return false
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = txHash.hashCode()
-        result = 31 * result + controllingNotary.hashCode()
-        result = 31 * result + timeWindow.hashCode()
-        return result
-    }
+    val txHash get() = SignableData(tx.id, notarySignatureMetadata)
+    val timeWindow get() = tx.timeWindow!!
 }
 
 @BelongsToContract(LockContract::class)
 data class LockState(
     val txHash: SignableData,
-    val creator: Party,
-    val receiver: Party,
     val controllingNotary: Party,
     val timeWindow: TimeWindow,
+    val creator: Party,
+    val receiver: Party,
     override val participants: List<AbstractParty> = listOf(creator, receiver)
 ) : ContractState {
+
+    constructor(
+        verifiedDraftTx: VerifiedWireTransaction,
+        creator: Party,
+        receiver: Party
+    ) : this(verifiedDraftTx.txHash, verifiedDraftTx.controllingNotary, verifiedDraftTx.timeWindow, creator, receiver)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

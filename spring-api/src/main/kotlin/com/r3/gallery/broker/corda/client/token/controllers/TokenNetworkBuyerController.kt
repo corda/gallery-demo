@@ -1,9 +1,6 @@
 package com.r3.gallery.broker.corda.client.token.controllers
 
-import com.r3.gallery.api.EncumberedTokens
-import com.r3.gallery.api.TokenParty
-import com.r3.gallery.api.UnsignedArtworkTransferTx
-import com.r3.gallery.api.UnsignedArtworkTransferTxAndLock
+import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkBidderController
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
@@ -49,10 +46,10 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("sellerParty") sellerParty: TokenParty,
         @RequestParam("amount") amount: Int,
-        @RequestBody unsignedArtworkTransferTxAndLock: UnsignedArtworkTransferTxAndLock
-    ) : ResponseEntity<EncumberedTokens> {
+        @RequestBody verifiedUnsignedArtworkTransferTx: VerifiedUnsignedArtworkTransferTx
+    ) : ResponseEntity<SignedTokenTransferTx> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
-        val encumberedTokens = buyerClient.transferEncumberedTokens2(buyerParty, sellerParty, amount, unsignedArtworkTransferTxAndLock)
-        return asResponse(encumberedTokens)
+        val signedTokenTransferTx = buyerClient.transferEncumberedTokens2(buyerParty, sellerParty, amount, verifiedUnsignedArtworkTransferTx)
+        return asResponse(signedTokenTransferTx)
     }
 }

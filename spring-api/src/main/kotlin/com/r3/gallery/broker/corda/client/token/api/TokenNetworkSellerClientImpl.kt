@@ -10,6 +10,7 @@ import net.corda.core.contracts.StateRef
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
+import net.corda.core.transactions.SignedTransaction
 import org.jgroups.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -48,12 +49,20 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
     ): CordaReference {
         logger.info("Starting UnlockEncumberedTokensFlow flow via $sellerParty")
         val lockStateRef = SerializedBytes<StateRef>(encumberedTokens.bytes).deserialize()
-        val requiredSignature: TransactionSignature = try { SerializedBytes<TransactionSignature>(proofOfTransfer.notarySignature.bytes).deserialize() }
-        catch(e: Exception) {
-            val msg = e.message
-            throw e
-        }
+        val requiredSignature: SerializedBytes<TransactionSignature>(proofOfTransfer.notarySignature.bytes).deserialize()
         val signedTx = tokenNetworkSellerCS.startFlow(sellerParty, UnlockEncumberedTokensFlow::class.java, lockStateRef, requiredSignature)
+        return CordaReference.randomUUID()
+    }
+
+    override fun claimTokens2(
+        sellerParty: TokenParty,
+        tokenReleaseData: TokenReleaseData
+    ): CordaReference {
+        logger.info("Starting UnlockEncumberedTokensFlow flow via $sellerParty")
+        val encumberedTokensTx = SerializedBytes<SignedTransaction>(tokenReleaseData.encumberedTokensTxBytes).deserialize()
+        val requiredSignature = SerializedBytes<TransactionSignature>(tokenReleaseData.requiredSignatureBytes).deserialize()
+        val signedTx = tokenNetworkSellerCS.startFlow(sellerParty, UnlockEncumberedTokensFlow2::class.java, encumberedTokensTx.id, requiredSignature)
+        // TODO: return corda reference or equivalent
         return CordaReference.randomUUID()
     }
 

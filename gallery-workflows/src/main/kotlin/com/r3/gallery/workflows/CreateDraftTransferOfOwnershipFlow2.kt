@@ -3,15 +3,14 @@ package com.r3.gallery.workflows
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.states.ArtworkState
-import com.r3.gallery.states.LockState
-import com.r3.gallery.states.LockStateBase
+import com.r3.gallery.states.VerifiedWireTransaction
 import com.r3.gallery.utils.generateWireTransactionMerkleTree
 import com.r3.gallery.utils.getDependencies
-import com.r3.gallery.utils.getLockState
-import com.r3.gallery.utils.getLockStateBase
 import net.corda.core.contracts.TimeWindow
 import net.corda.core.contracts.UniqueIdentifier
+import net.corda.core.crypto.Crypto
 import net.corda.core.crypto.MerkleTree
+import net.corda.core.crypto.SignatureMetadata
 import net.corda.core.flows.*
 import net.corda.core.identity.Party
 import net.corda.core.transactions.TransactionBuilder
@@ -27,12 +26,12 @@ class CreateDraftTransferOfOwnershipFlow2(
     val artworkLinearId: UniqueIdentifier,
     val partyToTransferTo: Party,
     val validityInMinutes: Long = 10
-) : FlowLogic<Pair<WireTransaction, LockStateBase>>() {
+) : FlowLogic<Pair<WireTransaction, VerifiedWireTransaction>>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): Pair<WireTransaction, LockStateBase> {
+    override fun call(): Pair<WireTransaction, VerifiedWireTransaction> {
 
         val artworkStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
         val artworkStateAndRef =
@@ -59,14 +58,14 @@ class CreateDraftTransferOfOwnershipFlow2(
             subFlow(SendTransactionFlow(session, validatedTxDependency))
         }
 
-        val lockState = session.receive<LockStateBase>().unwrap { it }
+        val lockState = session.receive<VerifiedWireTransaction>().unwrap { it }
 
         return Pair(wireTx, lockState.copy())
     }
 }
 
 @InitiatedBy(CreateDraftTransferOfOwnershipFlow2::class)
-class SendDraftTransferOfOwnershipFlow2Handler(val otherSession: FlowSession) : FlowLogic<Unit>() {
+class CreateDraftTransferOfOwnershipFlow2Handler(val otherSession: FlowSession) : FlowLogic<Unit>() {
 
     override val progressTracker = ProgressTracker()
 
@@ -80,13 +79,23 @@ class SendDraftTransferOfOwnershipFlow2Handler(val otherSession: FlowSession) : 
             txMerkleTree
         ) && verifySharedTx(wireTx)
 
-        if(!txOk) {
+        if (!txOk) {
             throw FlowException("Failed to validate the proposed transaction or one of its dependencies")
         }
 
-        val lockState = wireTx.getLockStateBase(serviceHub, ourIdentity, otherSession.counterparty)
+        with(wireTx) {
+            val notaryIdentity = serviceHub.identityService.partyFromKey(notary!!.owningKey)
+                ?: throw IllegalArgumentException("Unable to retrieve party for notary key: ${notary!!.owningKey}")
+            val notaryInfo = serviceHub.networkMapCache.getNodeByLegalIdentity(notary!!)
+                ?: throw IllegalArgumentException("Unable to retrieve notaryInfo for notary: $notary")
+            val signatureMetadata =
+                SignatureMetadata(
+                    notaryInfo.platformVersion,
+                    Crypto.findSignatureScheme(notary!!.owningKey).schemeNumberID
+                )
 
-        otherSession.send(lockState)
+            otherSession.send(VerifiedWireTransaction(wireTx, notaryIdentity, signatureMetadata))
+        }
     }
 
     @Suspendable

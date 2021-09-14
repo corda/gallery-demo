@@ -1,7 +1,6 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.corda.lib.tokens.contracts.states.AbstractToken
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.r3.gallery.contracts.LockContract
 import com.r3.gallery.states.LockState
@@ -11,7 +10,6 @@ import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.StateRef
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.flows.*
-import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
