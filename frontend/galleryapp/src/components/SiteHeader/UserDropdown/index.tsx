@@ -9,7 +9,7 @@ interface Props {
   currentUser: Participant | null;
   userList: Participant[] | null;
 }
-function UserDropdown({ currentUser, userList }: Props) {
+function UserDropdown({ userList }: Props) {
   const history = useHistory();
 
   return (
@@ -20,7 +20,7 @@ function UserDropdown({ currentUser, userList }: Props) {
         positionY="bottom"
         trigger={
           <div className={styles.trigger}>
-            {currentUser && <span className={styles.username}>{currentUser.displayName}</span>}
+            {/*{currentUser && <span className={styles.username}>{currentUser.displayName}</span>}*/}
             <IconCustom className="h-5" icon="Account" />
           </div>
         }

@@ -27,12 +27,11 @@ export const WalletsProvider: FC = ({ children }) => {
   function getWalletsByUser(user: Participant): Wallet[] {
     if (!user.networkIds[0]) return [];
 
-    const networkId = user.networkIds[0].x500;
-    const bs = balances.find((balance) => balance.artworkParty === networkId);
+    const bs = balances.find((balance) => balance.x500 === user.x500);
 
     if (!bs) return [];
 
-    return bs.balances;
+    return bs.partyBalances;
   }
 
   return (

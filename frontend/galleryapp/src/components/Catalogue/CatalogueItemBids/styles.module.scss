@@ -22,3 +22,17 @@
 .bidRejected {
   opacity: 0.4;
 }
+
+.bidPending {
+  opacity: 0.3;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}

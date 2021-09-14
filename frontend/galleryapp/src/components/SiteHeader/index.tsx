@@ -8,9 +8,7 @@ import UserDropdown from "@Components/SiteHeader/UserDropdown";
 import FlowsDropdown from "@Components/SiteHeader/FlowsDropdown";
 
 function SiteHeader() {
-  const { list, getUser } = useContext(UsersContext);
-  const { id } = useParams<RouterParams>();
-  const user = getUser(id);
+  const { list } = useContext(UsersContext);
 
   return (
     <TopNavBar
@@ -24,7 +22,7 @@ function SiteHeader() {
       }
       right={
         <>
-          <UserDropdown currentUser={user} userList={list} />
+          <UserDropdown currentUser={null} userList={list} />
         </>
       }
       title="Cross Chain Swap Demo"

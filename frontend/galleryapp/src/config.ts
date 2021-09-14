@@ -12,9 +12,9 @@ const config: Config = {
   gallery: "gallery-id",
   apiHost: process.env.REACT_APP_API_HOST
     ? process.env.REACT_APP_API_HOST
-    : "http://localhost:1337",
+    : "http://mock-gallery-webappapi.cordapayments-sandbox.com",
   networks: {
-    auction: {
+    AUCTION: {
       color: "#00a37e",
     },
     CBDC: {

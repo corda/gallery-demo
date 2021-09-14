@@ -9,15 +9,17 @@ import { UsersProvider } from "@Context/users";
 import { WalletsProvider } from "@Context/wallets";
 import { LogsProvider } from "@Context/logs";
 import { ArtworksProvider } from "@Context/artworks";
+import SiteHeader from "@Components/SiteHeader";
 
 function App() {
   return (
     <div className="App">
       <UsersProvider>
-        <LogsProvider>
-          <WalletsProvider>
-            <ArtworksProvider>
-              <Router>
+        <Router>
+          <SiteHeader />
+          <LogsProvider>
+            <WalletsProvider>
+              <ArtworksProvider>
                 <Switch>
                   <Route exact path="/">
                     <Home />
@@ -29,10 +31,10 @@ function App() {
                     <Bidder />
                   </Route>
                 </Switch>
-              </Router>
-            </ArtworksProvider>
-          </WalletsProvider>
-        </LogsProvider>
+              </ArtworksProvider>
+            </WalletsProvider>
+          </LogsProvider>
+        </Router>
       </UsersProvider>
     </div>
   );

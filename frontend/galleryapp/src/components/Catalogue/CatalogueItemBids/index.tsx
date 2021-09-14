@@ -1,6 +1,7 @@
 import styles from "./styles.module.scss";
 import { Bid } from "@Models";
-import { Badge, Button } from "@r3/r3-tooling-design-system";
+import { Badge, Button, Loader } from "@r3/r3-tooling-design-system";
+import { useState } from "react";
 
 interface Props {
   bids: Bid[];
@@ -20,10 +21,23 @@ function getStatus(bidAccepted: boolean, biddingOpen: boolean) {
 }
 
 function CatalogueItemBids({ bids, open }: Props) {
+  const [bidAccepted, setBidAccepted] = useState(false);
+  const pendingState = bidAccepted && open;
+
+  function handleBidAcceptance(bid: Bid) {
+    setBidAccepted(true);
+  }
+
   return (
     <tr className={styles.main}>
       <td colSpan={6} className={styles.bidsRow}>
-        <div>
+        {pendingState ? (
+          <div className={styles.spinner}>
+            <Loader size="small" />
+          </div>
+        ) : null}
+
+        <div className={pendingState ? styles.bidPending : ""}>
           {!bids.length ? (
             <h6>No bids have been placed yet.</h6>
           ) : (
@@ -61,7 +75,11 @@ function CatalogueItemBids({ bids, open }: Props) {
                     <td>{getStatus(bid.accepted, open)}</td>
                     {open ? (
                       <td>
-                        <Button size="small" variant="tertiary">
+                        <Button
+                          size="small"
+                          variant="tertiary"
+                          onClick={() => handleBidAcceptance(bid)}
+                        >
                           Accept
                         </Button>
                       </td>

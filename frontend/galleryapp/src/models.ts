@@ -5,7 +5,6 @@ export enum ParticipantType {
 
 export interface NetworkId {
   network: string;
-  x500: string;
   publicKey: string;
 }
 
@@ -13,11 +12,13 @@ export interface Participant {
   displayName: string;
   networkIds: NetworkId[];
   type: string;
+  x500: string;
 }
 
 export interface Balance {
   artworkParty: string;
-  balances: Wallet[];
+  partyBalances: Wallet[];
+  x500: string;
 }
 
 export interface Wallet {
