@@ -69,7 +69,7 @@ class MockController {
                             amountAndCurrency = GBP(300),
                             notary = "O=GBP Notary,L=London,C=GB",
                             expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
-                            accepted = false
+                            accepted = true
                         ),
                         BidRecord(
                             cordaReference = UUID.fromString("446404fb-e093-43e2-9664-9555bd8497ff") as CordaReference,
@@ -118,7 +118,7 @@ class MockController {
                             cordaReference = UUID.fromString("e70e16fd-b648-416b-b8a1-8bd795f7ec81") as CordaReference,
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "Bob",
-                            amountAndCurrency = GBP(300),
+                            amountAndCurrency = GBP(493),
                             notary = "O=GBP Notary,L=London,C=GB",
                             expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                             accepted = false
@@ -159,7 +159,7 @@ class MockController {
     @PostMapping("/gallery/finalise-artwork-transfer", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun finaliseArtworkTransfer(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
-        @RequestBody unsignedArtworkTransferTx: UnsignedArtworkTransferTx
+        @RequestBody unsignedArtworkTransferTx: UnsignedArtworkTransferTx // CordaReference
     ) : ResponseEntity<ProofOfTransferOfOwnership> {
         logger.info("MOCK Request to finalise artwork transfer by $galleryParty for tx: $unsignedArtworkTransferTx")
         return asResponse(
