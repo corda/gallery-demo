@@ -1,8 +1,8 @@
 package com.r3.gallery.broker.corda.client.token.controllers
 
-import com.r3.gallery.api.EncumberedTokens
 import com.r3.gallery.api.TokenParty
-import com.r3.gallery.api.UnsignedArtworkTransferTx
+import com.r3.gallery.api.TransactionHash
+import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkBidderController
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
@@ -26,20 +26,23 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     fun issueTokens(
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("amount") amount: Long,
-        @RequestParam("currency") currency: String) : ResponseEntity<Unit> {
+        @RequestParam("currency") currency: String
+    ): ResponseEntity<Unit> {
         logger.info("Request by $buyerParty to issue $amount $currency to self")
         buyerClient.issueTokens(buyerParty, amount, currency)
         return asResponse(Unit)
     }
 
     @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun transferEncumberedTokens(
+    fun transferEncumberedTokens2(
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("sellerParty") sellerParty: TokenParty,
         @RequestParam("amount") amount: Int,
-        @RequestBody unsignedArtworkTransferTx: UnsignedArtworkTransferTx) : ResponseEntity<EncumberedTokens> {
+        @RequestBody validatedUnsignedArtworkTransferTx: ValidatedUnsignedArtworkTransferTx
+    ): ResponseEntity<TransactionHash> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
-        val encumberedTokens = buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, unsignedArtworkTransferTx)
-        return asResponse(encumberedTokens)
+        val signedTokenTransferTxId =
+            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, validatedUnsignedArtworkTransferTx)
+        return asResponse(signedTokenTransferTxId)
     }
 }

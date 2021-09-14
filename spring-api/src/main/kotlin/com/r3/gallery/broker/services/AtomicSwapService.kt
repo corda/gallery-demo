@@ -1,6 +1,8 @@
 package com.r3.gallery.broker.services
 
 import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.UnsignedArtworkTransferTx
+import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
@@ -11,6 +13,7 @@ const val GALLERY = "gallery"
 
 open class AtomicSwapService(
     @Autowired val galleryClient: ArtNetworkGalleryClient,
+    @Autowired val bidderClient: ArtNetworkBidderClient,
     @Autowired val buyerClient: TokenNetworkBuyerClient,
     @Autowired val sellerClient: TokenNetworkSellerClient,
     @Autowired val identityRegistry: IdentityRegistry
@@ -24,10 +27,13 @@ open class AtomicSwapService(
         val buyerParty = identityRegistry.getTokenParty(bidderName)
 
         val ownership = galleryClient.getOwnership(galleryParty, artworkId)
-        val unsignedTx = galleryClient.createArtworkTransferTx(galleryParty, bidderParty, ownership)
-        val encumberedTokens = buyerClient.transferEncumberedTokens(buyerParty, sellerParty, bidAmount, unsignedTx)
+        val validatedUnsignedTx =
+            bidderClient.requestDraftTransferOfOwnership(bidderParty, galleryParty, ownership.cordaReference)
+        val encumberedTokens =
+            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, bidAmount, validatedUnsignedTx)
 
-        return BidReceipt(bidderName, artworkId, unsignedTx, encumberedTokens)
+        val unsignedArtworkTransferTx = UnsignedArtworkTransferTx(validatedUnsignedTx.transactionBytes)
+        return BidReceipt(bidderName, artworkId, unsignedArtworkTransferTx, encumberedTokens)
     }
 
     /**
@@ -37,17 +43,18 @@ open class AtomicSwapService(
      */
     fun awardArtwork(bid: BidReceipt): SaleReceipt {
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
-        val tokenTxId = sellerClient.claimTokens(sellerParty, bid.encumberedTokens, proofOfTransfer)
+        val tokenTxId = sellerClient.claimTokens(sellerParty, bid.encumberedTokens, proofOfTransfer.notarySignature)
 
-        return SaleReceipt(bid.bidderName, bid.artworkId, proofOfTransfer.transactionId, tokenTxId)
+        return SaleReceipt(bid.bidderName, bid.artworkId, proofOfTransfer.transactionHash, tokenTxId)
     }
 
     fun cancelBid(bid: BidReceipt): CancellationReceipt {
-        val tokenTxId = sellerClient.releaseTokens(
-            sellerParty,
-            identityRegistry.getTokenParty(bid.bidderName),
-            bid.encumberedTokens)
-
-        return CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
+        TODO("Not yet implemented")
+//        val tokenTxId = sellerClient.releaseTokens(
+//            sellerParty,
+//            identityRegistry.getTokenParty(bid.bidderName),
+//            bid.encumberedTokens)
+//
+//        return CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
     }
 }

@@ -5,11 +5,10 @@ import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.workflows.UnlockEncumberedTokensFlow
-import net.corda.core.contracts.StateRef
-import net.corda.core.crypto.TransactionSignature
+import com.r3.gallery.api.TransactionSignature
+import net.corda.core.crypto.SecureHash
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
-import org.jgroups.util.UUID
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -39,17 +38,21 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
         private val network = CordaRPCNetwork.GBP
     }
 
-    @Suppress("CAST_NEVER_SUCCEEDS")
     override fun claimTokens(
         sellerParty: TokenParty,
-        encumberedTokens: EncumberedTokens,
-        proofOfTransfer: ProofOfTransferOfOwnership
-    ): CordaReference {
-        logger.info("Starting UnlockEncumberedTokensFlow flow via $sellerParty")
-        val lockStateRef = SerializedBytes<StateRef>(encumberedTokens.bytes).deserialize()
-        val requiredSignature = SerializedBytes<TransactionSignature>(proofOfTransfer.notarySignature.bytes).deserialize()
-        val signedTx = tokenNetworkSellerCS.startFlow(sellerParty, UnlockEncumberedTokensFlow::class.java, lockStateRef, requiredSignature)
-        return UUID.randomUUID() as CordaReference // TODO:
+        encumberedTokens: TransactionHash,
+        notarySignature: TransactionSignature
+    ): TransactionHash {
+        logger.info("Starting UnlockEncumberedTokensFlow2 flow via $sellerParty")
+        val encumberedTokensTxId = SecureHash.parse(encumberedTokens)
+        val requiredSignature = SerializedBytes<net.corda.core.crypto.TransactionSignature>(notarySignature.bytes).deserialize()
+        val signedTx = tokenNetworkSellerCS.startFlow(
+            sellerParty,
+            UnlockEncumberedTokensFlow::class.java,
+            encumberedTokensTxId,
+            requiredSignature
+        )
+        return signedTx.id.toString()
     }
 
     override fun releaseTokens(

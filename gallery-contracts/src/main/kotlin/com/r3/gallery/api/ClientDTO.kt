@@ -107,7 +107,6 @@ data class AvailableArtwork(
  * Represents a state on the art network, identified by [cordaReference], which grants ownership
  * of the artwork identified by [artworkId] to the owner identified by [artworkOwner]
  */
-@CordaSerializable
 data class ArtworkOwnership(
     val cordaReference: CordaReference,
     val artworkId: ArtworkId,
@@ -126,24 +125,13 @@ data class TransactionSignature(val bytes: ByteArray) {
     override fun hashCode(): Int = bytes.contentHashCode()
 }
 
-data class LockStateRef(val bytes: ByteArray) {
-    override fun equals(other: Any?): Boolean = when {
-        this === other -> true
-        other is LockStateRef -> bytes.contentEquals(other.bytes)
-        else -> false
-    }
-
-    override fun hashCode(): Int = bytes.contentHashCode()
-}
-
 data class ProofOfTransferOfOwnership(
-    val transactionId: CordaReference,
+    //val transactionId: CordaReference,
     val transactionHash: TransactionHash,
-    val previousOwnerSignature: TransactionSignature,
+    //val previousOwnerSignature: TransactionSignature,
     val notarySignature: TransactionSignature
 )
 
-@CordaSerializable
 data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun equals(other: Any?): Boolean = when {
         this === other -> true
@@ -154,8 +142,32 @@ data class UnsignedArtworkTransferTx(val transactionBytes: ByteArray) {
     override fun hashCode(): Int = transactionBytes.contentHashCode()
 }
 
-//typealias EncumberedTokens = CordaReference
-typealias EncumberedTokens = LockStateRef
+data class ValidatedUnsignedArtworkTransferTx(
+    val transactionBytes: ByteArray,
+    val controllingNotaryBytes: ByteArray,
+    val signatureMetadataBytes: ByteArray
+) {
+    override fun equals(other: Any?): Boolean = when {
+        this === other -> true
+        other is ValidatedUnsignedArtworkTransferTx -> {
+            transactionBytes.contentEquals(other.transactionBytes) &&
+                    controllingNotaryBytes.contentEquals(other.controllingNotaryBytes) &&
+                    signatureMetadataBytes.contentEquals(other.signatureMetadataBytes)
+        }
+        else -> false
+    }
+
+    override fun hashCode(): Int {
+        return 31 * transactionBytes.contentHashCode() + controllingNotaryBytes.contentHashCode() + signatureMetadataBytes.contentHashCode()
+    }
+}
+
+data class TokenReleaseData(
+    val encumberedTokens: TransactionHash,
+    val notarySignature: TransactionSignature
+)
+
+typealias EncumberedTokens = CordaReference
 
 enum class CordaRPCNetwork(val netName: String) {
     AUCTION("auction"),
