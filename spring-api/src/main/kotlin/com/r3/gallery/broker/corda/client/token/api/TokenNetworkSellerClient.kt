@@ -4,13 +4,9 @@ import com.r3.gallery.api.*
 
 interface TokenNetworkSellerClient {
 
-    fun claimTokens(
-        sellerParty: TokenParty,
-        encumberedTokens: EncumberedTokens,
-        proofOfTransfer: ProofOfTransferOfOwnership
-    ): CordaReference
-
-    fun claimTokens2(sellerParty: TokenParty, tokenReleaseData: TokenReleaseData): CordaReference
+    fun claimTokens(sellerParty: TokenParty,
+                    encumberedTokens: TransactionHash,
+                    notarySignature: TransactionSignature): TransactionHash
 
     fun releaseTokens(
         sellerParty: TokenParty,

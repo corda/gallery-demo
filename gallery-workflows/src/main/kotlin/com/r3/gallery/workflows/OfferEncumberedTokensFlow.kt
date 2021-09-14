@@ -3,19 +3,18 @@ package com.r3.gallery.workflows
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.gallery.states.LockState
+import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
 import com.r3.gallery.utils.addMoveTokens
-import com.r3.gallery.utils.getLockState
+import com.r3.gallery.utils.registerCompositeKey
 import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.InsufficientBalanceException
-import net.corda.core.contracts.StateRef
-import net.corda.core.crypto.CompositeKey
+import net.corda.core.crypto.SecureHash
 import net.corda.core.flows.*
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
 import net.corda.core.transactions.TransactionBuilder
-import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
 import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 
@@ -26,27 +25,26 @@ import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 @InitiatingFlow
 @StartableByRPC
 class OfferEncumberedTokensFlow(
-    val proposedSwapTx: WireTransaction,
-    val proposingParty: Party,
+    val sellerParty: Party,
+    val verifiedDraftTx: ValidatedDraftTransferOfOwnership,
     val encumberedAmount: Amount<TokenType>
-) : FlowLogic<StateRef>() {
+) : FlowLogic<SecureHash>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): StateRef {
-        val lockState = proposedSwapTx.getLockState(serviceHub, ourIdentity, proposingParty)
-        val compositeKey = lockState.getCompositeKey()
+    override fun call(): SecureHash {
+        val compositeKey = serviceHub.registerCompositeKey(ourIdentity, sellerParty)
         val compositeParty = AnonymousParty(compositeKey)
-        serviceHub.identityService.registerKey(compositeKey, ourIdentity)
+        val lockState = LockState(verifiedDraftTx, ourIdentity, sellerParty)
 
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
-        val txBuilder = try {
+         val txBuilder = try {
             with(TransactionBuilder(notary = notary)) {
                 addMoveTokens(
                     serviceHub,
                     listOf(PartyAndAmount1(compositeParty, encumberedAmount)),
                     ourIdentity,
-                    listOf(proposingParty).map { it.owningKey },
+                    listOf(sellerParty).map { it.owningKey },
                     lockState
                 )
                 setTimeWindow(lockState.timeWindow)
@@ -58,12 +56,9 @@ class OfferEncumberedTokensFlow(
         txBuilder.verify(serviceHub)
         var signedTx = serviceHub.signInitialTransaction(txBuilder, listOf(ourIdentity.owningKey))
         // TODO: discuss what "will not be needed for X-Network, as no additional signers! - DELETE"
-        signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(proposingParty)))
+        signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(sellerParty)))
 
-        val stx = subFlow(FinalityFlow(signedTx, initiateFlow(proposingParty)))
-        val lockStateRef = stx.tx.outRefsOfType(LockState::class.java).single()
-
-        return lockStateRef.ref
+        return subFlow(FinalityFlow(signedTx, initiateFlow(sellerParty))).id
     }
 }
 
@@ -75,12 +70,7 @@ class OfferEncumberedTokensFlow(
 class OfferEncumberedTokensFlowHandler(val otherSession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
-        val compositeKey = CompositeKey.Builder()
-            .addKey(ourIdentity.owningKey, weight = 1)
-            .addKey(otherSession.counterparty.owningKey, weight = 1)
-            .build(1)
-
-        serviceHub.identityService.registerKey(compositeKey, ourIdentity)
+        serviceHub.registerCompositeKey(ourIdentity, otherSession.counterparty)
 
         subFlow(
             ReceiveFinalityFlow(

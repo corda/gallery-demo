@@ -14,7 +14,7 @@ import net.corda.core.transactions.WireTransaction
 import java.security.PublicKey
 
 @CordaSerializable
-data class VerifiedWireTransaction(
+data class ValidatedDraftTransferOfOwnership(
     val tx: WireTransaction,
     val controllingNotary: Party,
     val notarySignatureMetadata: SignatureMetadata
@@ -34,10 +34,16 @@ data class LockState(
 ) : ContractState {
 
     constructor(
-        verifiedDraftTx: VerifiedWireTransaction,
+        validatedDraftTransfer: ValidatedDraftTransferOfOwnership,
         creator: Party,
         receiver: Party
-    ) : this(verifiedDraftTx.txHash, verifiedDraftTx.controllingNotary, verifiedDraftTx.timeWindow, creator, receiver)
+    ) : this(
+        validatedDraftTransfer.txHash,
+        validatedDraftTransfer.controllingNotary,
+        validatedDraftTransfer.timeWindow,
+        creator,
+        receiver
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -68,4 +74,3 @@ data class LockState(
         return result
     }
 }
-

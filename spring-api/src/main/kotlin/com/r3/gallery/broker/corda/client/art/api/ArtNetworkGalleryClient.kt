@@ -18,20 +18,6 @@ interface ArtNetworkGalleryClient {
     fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
 
     /**
-     * Create an unsigned transaction that would transfer an artwork owned by the gallery,
-     * identified by [galleryOwnership], to the given bidder.
-     *
-     * @return The unsigned fulfilment transaction
-     */
-    fun createArtworkTransferTx(galleryParty: ArtworkParty,
-                                        bidderParty: ArtworkParty,
-                                        galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTx
-
-    fun createArtworkTransferTx2(galleryParty: ArtworkParty,
-                                bidderParty: ArtworkParty,
-                                galleryOwnership: ArtworkOwnership): UnsignedArtworkTransferTxAndLock
-
-    /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]
      *

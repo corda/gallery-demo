@@ -1,6 +1,8 @@
 package com.r3.gallery.broker.corda.client.token.controllers
 
-import com.r3.gallery.api.*
+import com.r3.gallery.api.TokenParty
+import com.r3.gallery.api.TransactionHash
+import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkBidderController
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
@@ -24,32 +26,23 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     fun issueTokens(
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("amount") amount: Long,
-        @RequestParam("currency") currency: String) : ResponseEntity<Unit> {
+        @RequestParam("currency") currency: String
+    ): ResponseEntity<Unit> {
         logger.info("Request by $buyerParty to issue $amount $currency to self")
         buyerClient.issueTokens(buyerParty, amount, currency)
         return asResponse(Unit)
     }
 
     @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun transferEncumberedTokens(
-        @RequestParam("buyerParty") buyerParty: TokenParty,
-        @RequestParam("sellerParty") sellerParty: TokenParty,
-        @RequestParam("amount") amount: Int,
-        @RequestBody unsignedArtworkTransferTx: UnsignedArtworkTransferTx) : ResponseEntity<EncumberedTokens> {
-        logger.info("Request by $buyerParty to issue tokens for $amount")
-        val encumberedTokens = buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, unsignedArtworkTransferTx)
-        return asResponse(encumberedTokens)
-    }
-
-    @PostMapping("/transfer-encumbered-tokens2", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun transferEncumberedTokens2(
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("sellerParty") sellerParty: TokenParty,
         @RequestParam("amount") amount: Int,
-        @RequestBody verifiedUnsignedArtworkTransferTx: VerifiedUnsignedArtworkTransferTx
-    ) : ResponseEntity<SignedTokenTransferTx> {
+        @RequestBody validatedUnsignedArtworkTransferTx: ValidatedUnsignedArtworkTransferTx
+    ): ResponseEntity<TransactionHash> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
-        val signedTokenTransferTx = buyerClient.transferEncumberedTokens2(buyerParty, sellerParty, amount, verifiedUnsignedArtworkTransferTx)
-        return asResponse(signedTokenTransferTx)
+        val signedTokenTransferTxId =
+            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, validatedUnsignedArtworkTransferTx)
+        return asResponse(signedTokenTransferTxId)
     }
 }

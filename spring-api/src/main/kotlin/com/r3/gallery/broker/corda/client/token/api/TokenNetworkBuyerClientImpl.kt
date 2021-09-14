@@ -5,24 +5,20 @@ import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
-import com.r3.gallery.states.VerifiedWireTransaction
+import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
-import com.r3.gallery.workflows.OfferEncumberedTokensFlow2
-import com.r3.gallery.workflows.OfferEncumberedTokensFlow3
 import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.crypto.SignatureMetadata
 import net.corda.core.identity.Party
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
-import net.corda.core.serialization.serialize
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
-import kotlin.math.sign
 
 @Component
 class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
@@ -42,6 +38,7 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
 
     companion object {
         private val logger = LoggerFactory.getLogger(TokenNetworkBuyerClientImpl::class.java)
+
         // TODO: properly setup token networks
         private val network = CordaRPCNetwork.GBP
     }
@@ -56,30 +53,22 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
         buyer: TokenParty,
         seller: TokenParty,
         amount: Int,
-        lockedOn: UnsignedArtworkTransferTx
-    ): EncumberedTokens {
-        logger.info("Starting OfferEncumberedTokensFlow flow via $buyer with seller: $seller")
-        val sellerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, seller)
-        val encumberedAmount = Amount(amount.toLong(), FiatCurrency.getInstance("GBP"))
-        val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
-        val lockStateRef = tokenNetworkBuyerCS.startFlow(buyer, OfferEncumberedTokensFlow::class.java, wireTx, sellerParty, encumberedAmount)
-        return LockStateRef(lockStateRef.serialize().bytes)
-    }
-
-    override fun transferEncumberedTokens2(
-        buyer: TokenParty,
-        seller: TokenParty,
-        amount: Int,
-        lockedOn: VerifiedUnsignedArtworkTransferTx
-    ): SignedTokenTransferTx {
-        logger.info("Starting OfferEncumberedTokensFlow2 flow via $buyer with seller: $seller")
+        lockedOn: ValidatedUnsignedArtworkTransferTx
+    ): TransactionHash {
+        logger.info("Starting OfferEncumberedTokensFlow3 flow via $buyer with seller: $seller")
         val sellerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, seller)
         val encumberedAmount = Amount(amount.toLong(), FiatCurrency.getInstance("GBP"))
         val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
         val controllingNotary = SerializedBytes<Party>(lockedOn.controllingNotaryBytes).deserialize()
         val signatureMetadata = SerializedBytes<SignatureMetadata>(lockedOn.signatureMetadataBytes).deserialize()
-        val verifiedDraftTx = VerifiedWireTransaction(wireTx, controllingNotary, signatureMetadata)
-        val tx = tokenNetworkBuyerCS.startFlow(buyer, OfferEncumberedTokensFlow3::class.java, sellerParty, verifiedDraftTx, encumberedAmount)
-        return SignedTokenTransferTx(tx.serialize().bytes)
+        val verifiedDraftTx = ValidatedDraftTransferOfOwnership(wireTx, controllingNotary, signatureMetadata)
+        val tx = tokenNetworkBuyerCS.startFlow(
+            buyer,
+            OfferEncumberedTokensFlow::class.java,
+            sellerParty,
+            verifiedDraftTx,
+            encumberedAmount
+        )
+        return tx.toString()
     }
 }

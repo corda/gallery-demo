@@ -3,7 +3,7 @@ package com.r3.gallery.workflows
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.states.ArtworkState
-import com.r3.gallery.states.VerifiedWireTransaction
+import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
 import com.r3.gallery.utils.generateWireTransactionMerkleTree
 import com.r3.gallery.utils.getDependencies
 import net.corda.core.contracts.TimeWindow
@@ -25,12 +25,12 @@ import java.time.Instant
 class RequestDraftTransferOfOwnershipFlow(
     val galleryParty: Party,
     val artworkLinearId: UniqueIdentifier
-) : FlowLogic<VerifiedWireTransaction>() {
+) : FlowLogic<ValidatedDraftTransferOfOwnership>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): VerifiedWireTransaction {
+    override fun call(): ValidatedDraftTransferOfOwnership {
 
         val session = initiateFlow(galleryParty)
         val wireTx = session.sendAndReceive<WireTransaction>(artworkLinearId).unwrap { it }
@@ -51,7 +51,7 @@ class RequestDraftTransferOfOwnershipFlow(
             Crypto.findSignatureScheme(notaryIdentity.owningKey).schemeNumberID
         )
 
-        return VerifiedWireTransaction(wireTx, notaryIdentity, signatureMetadata)
+        return ValidatedDraftTransferOfOwnership(wireTx, notaryIdentity, signatureMetadata)
     }
 
     @Suspendable
@@ -121,7 +121,7 @@ class RequestDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) 
 
         val artworkStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
         val artworkStateAndRef =
-            // HACK: we lookup for both IDs to overcome some design/implementation issues
+            // HACK: we look-up for both IDs to overcome some design/implementation issues
             requireNotNull(artworkStates.states.singleOrNull { it.state.data.linearId == artworkLinearId || it.state.data.artworkId == artworkLinearId.id }) {
                 "Unable to find an artwork state by the id: $artworkLinearId"
             }
