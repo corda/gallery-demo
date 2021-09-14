@@ -267,7 +267,7 @@ class MockController {
                     type = Participant.AuctionRole.GALLERY
                 ),
                 Participant(
-                    displayName = "Bob GBP",
+                    displayName = "Bob",
                     x500 = "O=Bob,L=San Francisco,C=US",
                     networkIds = listOf(
                         Participant.NetworkId(
@@ -282,7 +282,7 @@ class MockController {
                     type = Participant.AuctionRole.BIDDER
                 ),
                 Participant(
-                    displayName = "Charlie CBDC",
+                    displayName = "Charlie",
                     x500 = "O=Charlie,L=Mumbai,C=IN",
                     networkIds = listOf(
                         Participant.NetworkId(
