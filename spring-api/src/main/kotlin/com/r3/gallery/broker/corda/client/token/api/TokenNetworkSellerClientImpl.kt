@@ -49,7 +49,7 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
     ): CordaReference {
         logger.info("Starting UnlockEncumberedTokensFlow flow via $sellerParty")
         val lockStateRef = SerializedBytes<StateRef>(encumberedTokens.bytes).deserialize()
-        val requiredSignature: SerializedBytes<TransactionSignature>(proofOfTransfer.notarySignature.bytes).deserialize()
+        val requiredSignature = SerializedBytes<TransactionSignature>(proofOfTransfer.notarySignature.bytes).deserialize()
         val signedTx = tokenNetworkSellerCS.startFlow(sellerParty, UnlockEncumberedTokensFlow::class.java, lockStateRef, requiredSignature)
         return CordaReference.randomUUID()
     }

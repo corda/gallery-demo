@@ -18,7 +18,7 @@ import net.corda.core.transactions.TransactionBuilder
  * @property lockStateAndRef the lock state [StateAndRef<LockState>] to unlock.
  * @property notarySignature the [TransactionSignature] required to unlock the lock state.
  */
-@StartableByService
+@StartableByRPC
 @InitiatingFlow
 class UnlockEncumberedTokensFlow2(
     private val encumberedTxHash: SecureHash,
