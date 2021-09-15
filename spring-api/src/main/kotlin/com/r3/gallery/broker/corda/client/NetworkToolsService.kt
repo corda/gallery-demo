@@ -1,17 +1,17 @@
 package com.r3.gallery.broker.corda.client
 
-import com.r3.gallery.api.CordaRPCNetwork
-import com.r3.gallery.api.LogUpdateEntry
-import com.r3.gallery.api.Participant
+import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.broker.services.exceptions.LogInitializationError
+import com.r3.gallery.workflows.webapp.tokennetwork.GetBalanceFlow
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.client.rpc.RPCException
 import net.corda.core.internal.hash
+import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -27,7 +27,8 @@ class NetworkToolsService {
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
-    private var networkClients: MutableList<ConnectionService> = ArrayList()
+    private lateinit var networkClients: List<ConnectionService>
+    private lateinit var tokenClients: List<ConnectionService>
     private lateinit var logService: LogService
     private var logIdx: LogRetrievalIdx = 0
 
@@ -39,6 +40,14 @@ class NetworkToolsService {
     @Qualifier("ArtNetworkBidderProperties")
     private lateinit var artNetworkBidderProperties: ClientProperties
 
+    @Autowired
+    @Qualifier("TokenNetworkBuyerProperties")
+    private lateinit var tokenNetworkBuyerProperties: ClientProperties
+
+    @Autowired
+    @Qualifier("TokenNetworkSellerProperties")
+    private lateinit var tokenNetworkSellerProperties: ClientProperties
+
     // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
@@ -48,8 +57,11 @@ class NetworkToolsService {
         val artNetworkBidderCS = ConnectionServiceImpl(artNetworkBidderProperties)
         artNetworkBidderCS.associatedNetwork = CordaRPCNetwork.AUCTION
 
-        networkClients.add(artNetworkBidderCS)
-        networkClients.add(artNetworkGalleryCS)
+        val tokenNetworkBuyerCS = ConnectionServiceImpl(tokenNetworkBuyerProperties)
+        val tokenNetworkSellerCS = ConnectionServiceImpl(tokenNetworkSellerProperties)
+
+        networkClients = listOf(artNetworkBidderCS, artNetworkGalleryCS, tokenNetworkBuyerCS, tokenNetworkSellerCS)
+        tokenClients = listOf(tokenNetworkBuyerCS, tokenNetworkSellerCS)
     }
 
     /**
@@ -145,5 +157,27 @@ class NetworkToolsService {
         val result = logService.getProgressUpdates(logIdx)
         logIdx = result.first // set indexing for next fetch
         return result.second
+    }
+
+    /**
+     * Returns Balances of all parties
+     */
+    fun getBalance(): List<NetworkBalancesResponse> {
+        val allBalances = tokenClients.runPerConnectionService {
+            it.allConnections()!!.map { rpc ->
+                val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
+                val currentBalance = rpc.proxy.startFlowDynamic(
+                    GetBalanceFlow::class.java
+                ).returnValue.getOrThrow()
+                Pair(x500, currentBalance)
+            }
+        }.flatten()
+        return allBalances.groupBy { it.first }
+            .entries.map {
+                NetworkBalancesResponse(
+                    x500 = it.key.toString(),
+                    partyBalances = it.value.map { balance -> balance.second }
+                )
+            }
     }
 }

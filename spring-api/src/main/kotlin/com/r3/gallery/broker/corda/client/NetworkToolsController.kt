@@ -1,6 +1,7 @@
 package com.r3.gallery.broker.corda.client
 
 import com.r3.gallery.api.LogUpdateEntry
+import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.api.Participant
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
@@ -33,6 +34,7 @@ class NetworkToolsController(@Autowired private val networkToolsService: Network
     fun participants(
         @RequestParam("networks", required = false) networks: List<String>?
     ): ResponseEntity<List<Participant>> {
+        logger.info("Request for all participants")
         return asResponse(networkToolsService.participants(networks))
     }
 
@@ -41,6 +43,16 @@ class NetworkToolsController(@Autowired private val networkToolsService: Network
      */
     @GetMapping("/log")
     fun log(): ResponseEntity<List<LogUpdateEntry>> {
+        logger.info("Request for logs")
         return asResponse(networkToolsService.getLogs())
+    }
+
+    /**
+     * Get balances across all parties and networks
+     */
+    @GetMapping("/balance")
+    fun balance(): ResponseEntity<List<NetworkBalancesResponse>> {
+        logger.info("Request for balance of parties across network")
+        return asResponse(networkToolsService.getBalance())
     }
 }
