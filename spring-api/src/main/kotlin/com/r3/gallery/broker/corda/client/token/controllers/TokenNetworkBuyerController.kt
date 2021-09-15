@@ -33,6 +33,7 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         return asResponse(Unit)
     }
 
+    // TODO: Move to BidService placeBid (request-draft-transfer / transfer-encumbered tokens)
     @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun transferEncumberedTokens2(
         @RequestParam("buyerParty") buyerParty: TokenParty,

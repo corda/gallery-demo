@@ -23,6 +23,19 @@ class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClien
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
+    @PutMapping("/bid")
+    fun bid(
+        @RequestParam("bidderParty") bidderParty: ArtworkParty,
+        @RequestParam("artworkId") artworkId: ArtworkId,
+        @RequestParam("amount") amount: Long,
+        @RequestParam("currency") currency: String = "GBP",
+        @RequestParam("expiryDate") expiry: String // "2014-01-01T23:28:56.782Z"
+    ) : ResponseEntity<Unit> {
+        logger.info("Request by $bidderParty to bid on $artworkId in amount of $amount $currency")
+        TODO("send to bidService")
+    }
+
+    // TODO: Move to BidService placeBid (request-draft-transfer / transfer-encumbered tokens)
     @PutMapping("/request-draft-transfer")
     fun requestDraftTransfer(
         @RequestParam("bidderParty") bidderParty: ArtworkParty,

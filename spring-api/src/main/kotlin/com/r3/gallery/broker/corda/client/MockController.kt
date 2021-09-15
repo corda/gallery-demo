@@ -4,12 +4,9 @@ import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.*
 import com.r3.gallery.api.AvailableArtwork.BidRecord
-import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkBidderController
-import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkGalleryController
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import net.corda.core.contracts.Amount
-import net.corda.core.crypto.random63BitValue
 import net.corda.core.crypto.secureRandomBytes
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -187,7 +184,7 @@ class MockController {
         @RequestParam("currency") currency: String = "GBP",
         @RequestParam("expiryDate") expiry: String
     ) : ResponseEntity<Unit> {
-        logger.info("Request by $bidderParty to bid on $artworkId in amount of $amount $currency")
+        logger.info("MOCK Request by $bidderParty to bid on $artworkId in amount of $amount $currency")
         return asResponse(Unit)
     }
 
