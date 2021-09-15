@@ -60,6 +60,6 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
         buyer: TokenParty,
         encumberedTokens: TransactionHash
     ): TransactionHash {
-
+        TODO("Implemented in the TokenNetworkBuyerClientImpl")
     }
 }
