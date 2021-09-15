@@ -49,12 +49,12 @@ open class AtomicSwapService(
     }
 
     fun cancelBid(bid: BidReceipt): CancellationReceipt {
-        TODO("Not yet implemented")
-//        val tokenTxId = sellerClient.releaseTokens(
-//            sellerParty,
-//            identityRegistry.getTokenParty(bid.bidderName),
-//            bid.encumberedTokens)
-//
-//        return CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
+
+        val tokenTxId = sellerClient.releaseTokens(
+            sellerParty,
+            identityRegistry.getTokenParty(bid.bidderName),
+            bid.encumberedTokens)
+
+        return CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
     }
 }

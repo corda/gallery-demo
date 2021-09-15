@@ -9,6 +9,7 @@ import com.r3.gallery.utils.registerCompositeKey
 import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.InsufficientBalanceException
+import net.corda.core.contracts.TimeWindow
 import net.corda.core.flows.*
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
@@ -35,19 +36,22 @@ class OfferEncumberedTokensFlow(
     override fun call(): SignedTransaction {
         val compositeKey = serviceHub.registerCompositeKey(ourIdentity, sellerParty)
         val compositeParty = AnonymousParty(compositeKey)
-        val lockState = LockState(verifiedDraftTx, ourIdentity, sellerParty)
+
+        val txUntilTime = TimeWindow.untilOnly(
+            verifiedDraftTx.timeWindow.untilTime!!.plusSeconds(30)
+        )
 
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
-         val txBuilder = try {
+        val txBuilder = try {
             with(TransactionBuilder(notary = notary)) {
                 addMoveTokens(
                     serviceHub,
                     listOf(PartyAndAmount1(compositeParty, encumberedAmount)),
                     ourIdentity,
                     listOf(sellerParty).map { it.owningKey },
-                    lockState
+                    LockState(verifiedDraftTx, ourIdentity, sellerParty)
                 )
-                setTimeWindow(lockState.timeWindow)
+                setTimeWindow(txUntilTime)
             }
         } catch (e: InsufficientBalanceException) {
             throw FlowException("Offered amount ($encumberedAmount) exceeds balance", e)

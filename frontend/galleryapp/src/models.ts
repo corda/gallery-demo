@@ -5,7 +5,6 @@ export enum ParticipantType {
 
 export interface NetworkId {
   network: string;
-  x500: string;
   publicKey: string;
 }
 
@@ -13,14 +12,16 @@ export interface Participant {
   displayName: string;
   networkIds: NetworkId[];
   type: string;
+  x500: string;
 }
 
 export interface Balance {
   artworkParty: string;
-  balances: Wallet[];
+  partyBalances: Token[];
+  x500: string;
 }
 
-export interface Wallet {
+export interface Token {
   currencyCode: string;
   encumberedFunds: number;
   availableFunds: number;
@@ -52,6 +53,19 @@ export interface Log {
   associatedFlow?: string;
   network: string;
   x500: string;
+  completed?: FlowData;
+}
+
+export interface FlowData {
+  associatedStage: string;
+  logRecordId: string;
+  states: FlowState[]
+  signers : {[index: string]: boolean}
+}
+
+export interface FlowState {
+  properties: {[index: string]: string}
+  participants: string[];
 }
 
 export interface RouterParams {
@@ -77,4 +91,17 @@ export interface FlowNodeData {
   };
   participants: string[];
   handles?: NodeHandle[];
+}
+
+export interface PostBidParams {
+  bidderParty: string;
+  artworkId: string;
+  amount: string;
+  currency: string;
+  expiryDate: string;
+}
+
+export interface PostBidAcceptanceParams {
+  galleryParty: string;
+  cordaReference: string;
 }

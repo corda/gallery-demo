@@ -1,37 +1,38 @@
 import styles from "./styles.module.scss";
 import { ReactComponent as UmlIcon } from "@Assets/umlIcon.svg";
 import { Dropdown, Modal, Option } from "@r3/r3-tooling-design-system";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import templateOne from "@Components/FlowDiagram/templates/one";
 import templateTwo from "@Components/FlowDiagram/templates/two";
 import templateThree from "@Components/FlowDiagram/templates/three";
 import templateFour from "@Components/FlowDiagram/templates/four";
 import FlowDiagram from "@Components/FlowDiagram";
+import { LogsContext } from "@Context/logs";
 
-const flows = [
-  {
-    title: "Flow 1",
-    template: templateOne,
-  },
-  {
-    title: "Flow 2",
-    template: templateTwo,
-  },
-  {
-    title: "Flow 3",
-    template: templateThree,
-  },
-  {
-    title: "Flow 4",
-    template: templateFour,
-  },
-];
+const templates: { [index: string]: any } = {
+  RequestDraftTransferOfOwnershipFlow: templateOne,
+  OfferEncumberedTokensFlow: templateTwo,
+  SignAndFinalizeTransferOfOwnership: templateThree,
+  UnlockEncumberedTokensFlow: templateFour,
+};
 
 function FlowsDropdown() {
   const [toggledModal, setToggleModal] = useState(false);
-  const [selectedFlow, setSelectedFlow] = useState(0);
+  const [selectedFlow, setSelectedFlow] = useState<any>();
+  const { logs } = useContext(LogsContext);
 
-  const handleLogClick = (templateNumber: number) => {
+  const completedFlows = logs
+    .filter((log) => !!log.completed)
+    .map((log) => {
+      //@ts-ignore .at() method doesnt seem to be supported in typescript
+      const stageName: string = log.completed!.associatedStage.split(".").at(-1);
+      return {
+        title: stageName,
+        template: templates[stageName](log.completed),
+      };
+    });
+
+  const handleLogClick = (templateNumber: any) => {
     setSelectedFlow(templateNumber);
     setToggleModal(true);
   };
@@ -40,7 +41,6 @@ function FlowsDropdown() {
     <>
       <div className={styles.main}>
         <Dropdown
-          closeOnSelectOption
           positionX="right"
           positionY="bottom"
           trigger={
@@ -49,11 +49,12 @@ function FlowsDropdown() {
             </button>
           }
         >
-          {flows.map((flow, i) => (
+          {completedFlows.map((flow, i) => (
             <Option
+              key={flow.title}
               value={flow.title}
               onClick={() => {
-                handleLogClick(i);
+                handleLogClick(flow);
               }}
             >
               {flow.title}
@@ -61,17 +62,19 @@ function FlowsDropdown() {
           ))}
         </Dropdown>
       </div>
-      <Modal
-        className={styles.modal}
-        closeOnOutsideClick
-        onClose={() => setToggleModal(false)}
-        size="large"
-        title={flows[selectedFlow].title}
-        withBackdrop
-        open={toggledModal}
-      >
-        <FlowDiagram template={flows[selectedFlow].template} />
-      </Modal>
+      {selectedFlow && (
+        <Modal
+          className={styles.modal}
+          closeOnOutsideClick
+          onClose={() => setToggleModal(false)}
+          size="large"
+          title={selectedFlow.title}
+          withBackdrop
+          open={toggledModal}
+        >
+          <FlowDiagram template={selectedFlow.template} />
+        </Modal>
+      )}
     </>
   );
 }

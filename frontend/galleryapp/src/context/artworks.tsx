@@ -1,7 +1,7 @@
 import React, { createContext, FC, useState } from "react";
 import { GalleryLot } from "@Models";
 import useInterval from "@Hooks/useInterval";
-import getGallery from "@Api/getGallery";
+import {getGallery} from "@Api";
 import { isEqual } from "lodash";
 
 interface ArtworksContextInterface {

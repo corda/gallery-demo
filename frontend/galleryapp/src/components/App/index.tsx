@@ -6,7 +6,7 @@ import Home from "@Pages/Home";
 import Gallery from "@Pages/Gallery";
 import Bidder from "@Pages/Bidder";
 import { UsersProvider } from "@Context/users";
-import { WalletsProvider } from "@Context/wallets";
+import { TokensProvider } from "@Context/tokens";
 import { LogsProvider } from "@Context/logs";
 import { ArtworksProvider } from "@Context/artworks";
 
@@ -15,7 +15,7 @@ function App() {
     <div className="App">
       <UsersProvider>
         <LogsProvider>
-          <WalletsProvider>
+          <TokensProvider>
             <ArtworksProvider>
               <Router>
                 <Switch>
@@ -31,7 +31,7 @@ function App() {
                 </Switch>
               </Router>
             </ArtworksProvider>
-          </WalletsProvider>
+          </TokensProvider>
         </LogsProvider>
       </UsersProvider>
     </div>

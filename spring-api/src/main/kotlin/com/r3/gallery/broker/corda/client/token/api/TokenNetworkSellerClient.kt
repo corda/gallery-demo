@@ -13,7 +13,7 @@ interface TokenNetworkSellerClient {
         sellerParty: TokenParty,
         buyer: TokenParty,
         currency: String,
-        encumberedTokens: EncumberedTokens
-    ): CordaReference
+        encumberedTokens: TransactionHash
+    ): TransactionHash
 
 }

@@ -37,6 +37,10 @@
     line-height: 1.2em;
     margin: var(--p-1) 0;
   }
+
+  span {
+    white-space: nowrap;
+  }
 }
 
 .lotItemSold {
@@ -47,4 +51,8 @@
 .itemImagePlaceholder {
   width: 64px;
   fill: var(--color-medium-light-gray-200);
+}
+
+.lotItemBadge {
+  line-height: 1.4em;
 }

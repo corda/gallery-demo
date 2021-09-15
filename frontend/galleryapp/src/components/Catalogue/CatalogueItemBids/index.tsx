@@ -1,6 +1,10 @@
 import styles from "./styles.module.scss";
-import { Bid } from "@Models";
-import { Badge, Button } from "@r3/r3-tooling-design-system";
+import { Bid, RouterParams } from "@Models";
+import { Badge, Button, Loader } from "@r3/r3-tooling-design-system";
+import { useContext, useState } from "react";
+import { postBidAcceptance } from "@Api";
+import { useParams } from "react-router-dom";
+import { UsersContext } from "@Context/users";
 
 interface Props {
   bids: Bid[];
@@ -20,10 +24,32 @@ function getStatus(bidAccepted: boolean, biddingOpen: boolean) {
 }
 
 function CatalogueItemBids({ bids, open }: Props) {
+  const { getUser } = useContext(UsersContext);
+  const [bidAccepted, setBidAccepted] = useState(false);
+  const pendingState = bidAccepted && open;
+  const { id } = useParams<RouterParams>();
+  const user = getUser(id);
+
+  function handleBidAcceptance(bid: Bid) {
+    if (user) {
+      setBidAccepted(true);
+      postBidAcceptance({
+        galleryParty: user.x500,
+        cordaReference: bid.cordaReference,
+      });
+    }
+  }
+
   return (
     <tr className={styles.main}>
       <td colSpan={6} className={styles.bidsRow}>
-        <div>
+        {pendingState ? (
+          <div className={styles.spinner}>
+            <Loader size="small" />
+          </div>
+        ) : null}
+
+        <div className={pendingState ? styles.bidPending : ""}>
           {!bids.length ? (
             <h6>No bids have been placed yet.</h6>
           ) : (
@@ -61,7 +87,11 @@ function CatalogueItemBids({ bids, open }: Props) {
                     <td>{getStatus(bid.accepted, open)}</td>
                     {open ? (
                       <td>
-                        <Button size="small" variant="tertiary">
+                        <Button
+                          size="small"
+                          variant="tertiary"
+                          onClick={() => handleBidAcceptance(bid)}
+                        >
                           Accept
                         </Button>
                       </td>

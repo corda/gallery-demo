@@ -19,7 +19,6 @@ class TokenNetworkSellerClientImpl(
 
     companion object {
         private val logger = LoggerFactory.getLogger(TokenNetworkSellerClientImpl::class.java)
-        private val network = CordaRPCNetwork.GBP
     }
 
     override fun claimTokens(
@@ -28,7 +27,7 @@ class TokenNetworkSellerClientImpl(
         encumberedTokens: TransactionHash,
         notarySignature: TransactionSignature
     ): TransactionHash {
-        logger.info("Starting UnlockEncumberedTokensFlow2 flow via $sellerParty")
+        logger.info("Starting UnlockEncumberedTokensFlow flow via $sellerParty")
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val encumberedTokensTxId = SecureHash.parse(encumberedTokens)
@@ -46,11 +45,8 @@ class TokenNetworkSellerClientImpl(
         sellerParty: TokenParty,
         buyer: TokenParty,
         currency: String,
-        encumberedTokens: EncumberedTokens
-    ): CordaReference {
-        logger.info("Starting release tokens flow via $sellerParty")
-        val connService = connectionManager.connectToCurrencyNetwork(currency)
-
-        TODO("Not yet implemented")
+        encumberedTokens: TransactionHash
+    ): TransactionHash {
+        TODO("Implemented in the TokenNetworkBuyerClientImpl")
     }
 }

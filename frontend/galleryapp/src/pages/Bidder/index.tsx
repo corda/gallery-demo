@@ -1,5 +1,5 @@
 import { Column, Container, Row } from "@r3/r3-tooling-design-system";
-import Wallets from "@Components/Wallets";
+import Wallets from "@Components/Token";
 import GalleryShop from "@Components/GalleryShop";
 import Collection from "@Components/Collection";
 import { useParams } from "react-router-dom";
@@ -24,7 +24,7 @@ function Bidder() {
         {user && (
           <Row>
             <Column cols={8}>
-              <GalleryShop lots={artworks} x500={user.networkIds[0].x500} />
+              <GalleryShop lots={artworks} x500={user.x500} />
             </Column>
             <Column cols={4}>
               <Wallets user={user} />

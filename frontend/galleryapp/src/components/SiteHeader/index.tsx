@@ -1,11 +1,12 @@
 import { TopNavBar } from "@r3/r3-tooling-design-system";
+import styles from "./styles.module.scss";
 import React, { useContext } from "react";
-import { useParams } from "react-router-dom";
 import { UsersContext } from "@Context/users";
-import { RouterParams } from "@Models";
 import logo from "@Assets/logo.svg";
 import UserDropdown from "@Components/SiteHeader/UserDropdown";
 import FlowsDropdown from "@Components/SiteHeader/FlowsDropdown";
+import { useParams } from "react-router-dom";
+import { RouterParams } from "@Models";
 
 function SiteHeader() {
   const { list, getUser } = useContext(UsersContext);
@@ -13,22 +14,13 @@ function SiteHeader() {
   const user = getUser(id);
 
   return (
-    <TopNavBar
-      logoAlt="R3"
-      logoWidth="33px"
-      logo={logo}
-      center={
-        <>
-          <FlowsDropdown />
-        </>
-      }
-      right={
-        <>
-          <UserDropdown currentUser={user} userList={list} />
-        </>
-      }
-      title="Cross Chain Swap Demo"
-    />
+    <header>
+      <TopNavBar logoAlt="R3" logoWidth="33px" logo={logo} title="Cross Chain Swap Demo" />
+      <div className={styles.dropdowns}>
+        <FlowsDropdown />
+        <UserDropdown currentUser={user} userList={list} />
+      </div>
+    </header>
   );
 }
 
