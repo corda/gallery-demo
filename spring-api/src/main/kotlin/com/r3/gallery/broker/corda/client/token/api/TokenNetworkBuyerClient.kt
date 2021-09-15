@@ -10,4 +10,6 @@ interface TokenNetworkBuyerClient {
                                  seller: TokenParty,
                                  amount: Int,
                                  lockedOn: ValidatedUnsignedArtworkTransferTx): TransactionHash
+
+    fun releaseTokens(buyer: TokenParty, encumberedTokens: TransactionHash): TransactionHash
 }

@@ -43,18 +43,18 @@ open class AtomicSwapService(
      */
     fun awardArtwork(bid: BidReceipt): SaleReceipt {
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
-        val tokenTxId = sellerClient.claimTokens(sellerParty, bid.encumberedTokens, proofOfTransfer.notarySignature)
+        val tokenTxId = sellerClient. claimTokens(sellerParty, bid.encumberedTokens, proofOfTransfer.notarySignature)
 
         return SaleReceipt(bid.bidderName, bid.artworkId, proofOfTransfer.transactionHash, tokenTxId)
     }
 
     fun cancelBid(bid: BidReceipt): CancellationReceipt {
-        TODO("Not yet implemented")
-//        val tokenTxId = sellerClient.releaseTokens(
-//            sellerParty,
-//            identityRegistry.getTokenParty(bid.bidderName),
-//            bid.encumberedTokens)
-//
-//        return CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
+
+        val tokenTxId = sellerClient.releaseTokens(
+            sellerParty,
+            identityRegistry.getTokenParty(bid.bidderName),
+            bid.encumberedTokens)
+
+        return CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
     }
 }

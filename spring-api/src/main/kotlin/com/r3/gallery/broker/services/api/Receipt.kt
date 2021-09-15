@@ -31,6 +31,6 @@ sealed class Receipt {
     data class CancellationReceipt(
         override val bidderName: String,
         override val artworkId: ArtworkId,
-        val transferTxId: CordaReference
+        val transferTxId: TransactionHash
     ) : Receipt()
 }

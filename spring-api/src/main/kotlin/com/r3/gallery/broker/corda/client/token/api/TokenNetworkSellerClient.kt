@@ -11,7 +11,7 @@ interface TokenNetworkSellerClient {
     fun releaseTokens(
         sellerParty: TokenParty,
         buyer: TokenParty,
-        encumberedTokens: EncumberedTokens
-    ): CordaReference
+        encumberedTokens: TransactionHash
+    ): TransactionHash
 
 }
