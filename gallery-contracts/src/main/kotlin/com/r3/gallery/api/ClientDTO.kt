@@ -63,6 +63,7 @@ data class LogUpdateEntry(
 
         if (logRecordId != other.logRecordId) return false
         if (message != other.message) return false
+        if (completed != other.completed) return false
 
         return true
     }

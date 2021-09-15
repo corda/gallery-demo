@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 import rx.Subscription
 import java.time.Instant
 import java.util.*
-import javax.annotation.PostConstruct
+import kotlin.collections.HashSet
 
 typealias ProgressUpdateSubscription = Subscription
 typealias LogRetrievalIdx = Int
@@ -28,10 +28,10 @@ typealias LogRetrievalIdx = Int
 class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
     private val stateMachineSubscriptions: MutableList<Subscription> = ArrayList()
-    private val progressSubscriptions: MutableMap<StateMachineRunId, ProgressUpdateSubscription> = HashMap()
+    private val progressSubscriptions: MutableSet<Pair<StateMachineRunId, ProgressUpdateSubscription>> = HashSet()
     private val progressUpdates: MutableList<LogUpdateEntry> =  ArrayList()
+    var isInitialized: Boolean = false
 
-    @PostConstruct
     fun initSubscriptions() {
         listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp).forEach {
             val currentNetwork = it.associatedNetwork
@@ -56,7 +56,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                 // avoid duplicates
                                 if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
                             }
-                        }.also { pSub -> progressSubscriptions.putIfAbsent(smUpdateInfo.id, pSub!!) }
+                        }.also { pSub -> progressSubscriptions.add(Pair(smUpdateInfo.id, pSub!!)) }
                     }
                     if (smUpdate is StateMachineUpdate.Removed) {
                         val logRecordId = smUpdate.id.toString()
@@ -64,7 +64,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                         if ( // filter for target completions
                             associatedFlow.contains("RequestDraftTransferOfOwnershipFlow") ||
                             associatedFlow.contains("OfferEncumberedTokensFlow") ||
-                            associatedFlow.contains("SignAndFinalizeTransferOfOwnership") ||
+                            associatedFlow.contains("SignAndFinalize") ||
                             associatedFlow.contains("UnlockEncumberedTokensFlow") ||
                             associatedFlow.contains("IssueTokensFlow")
                         ) {
@@ -118,9 +118,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
      * Unsubscribes and removes all progress subscriptions under a StateMachineRunId
      */
     private fun removeProgressSubscriptions() {
-        progressSubscriptions.filterValues { it.isUnsubscribed }.keys.forEach {
-            progressSubscriptions.remove(it)
-        }
+        progressSubscriptions.removeIf { it.second.isUnsubscribed }
     }
 
     /**

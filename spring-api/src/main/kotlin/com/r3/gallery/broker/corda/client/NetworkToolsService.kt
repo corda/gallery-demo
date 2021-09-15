@@ -105,6 +105,7 @@ class NetworkToolsService(
      * available for logService to correctly init.
      */
     fun getLogs(): List<LogUpdateEntry> {
+        if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
         val result = logService.getProgressUpdates(logIdx)
         logIdx = result.first // set indexing for next fetch
         return result.second
