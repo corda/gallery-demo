@@ -58,7 +58,7 @@ class ArtNetworkBidderClientImpl : ArtNetworkBidderClient {
 
         with(validatedDraftTx) {
             return ValidatedUnsignedArtworkTransferTx(
-                second.serialize().bytes,
+                second.tx.serialize().bytes,
                 second.controllingNotary.serialize().bytes,
                 second.notarySignatureMetadata.serialize().bytes
             )

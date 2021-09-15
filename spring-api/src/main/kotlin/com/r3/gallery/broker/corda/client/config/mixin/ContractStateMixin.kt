@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.r3.gallery.api.LogUpdateEntry
 import net.corda.core.contracts.ContractState
 import net.corda.core.identity.Party
 import kotlin.reflect.KClass
