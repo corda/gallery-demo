@@ -1,5 +1,6 @@
 package com.r3.gallery.workflows
 
+import com.r3.corda.lib.tokens.money.FiatCurrency
 import com.r3.corda.lib.tokens.money.USD
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.states.ArtworkState
@@ -17,6 +18,7 @@ import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import java.util.concurrent.Future
 
@@ -35,9 +37,6 @@ class SwapTests {
             MockNetworkNotarySpec(CordaX500Name("Notary", "Zurich", "CH"))
         )
 
-//        val (networkSendManuallyPumped, threadPerNode, servicePeerAllocationStrategy, notarySpecs, networkParameters, cordappsForAllNodes) = MockNetworkParameters().withNotarySpecs(
-//            Arrays.asList()
-//        )
         network = MockNetwork(
             MockNetworkParameters(
                 cordappsForAllNodes = listOf(
@@ -112,9 +111,52 @@ class SwapTests {
         val buyerBalance = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
     }
 
+    @Test
+    @Ignore("Need to parametrize swap tx TimeWindow expiration or LockCommand.Release")
+    fun `redeem steps between four parties`() {
+
+        val galleryParty = gallery.info.chooseIdentity()
+        val bidderParty = bidder.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+
+        val artworkState = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.USD, buyerParty)).apply {
+            network.runNetwork()
+        }
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkState.linearId.toString())
+        val verifiedDraftTx =
+            bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+
+        val signedTokensOfferTxId =
+            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.USD)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+
+        val signedRedeemTx = buyer.startFlow(RedeemEncumberedTokensFlow(signedTokensOfferTxId)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val buyerBalanceAfterRedeem = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+
+        assertTrue(buyerBalanceAfterOffer < buyerInitialBalance)
+        assertTrue(buyerBalanceAfterRedeem == buyerInitialBalance)
+    }
+
+
+    @Test
+    fun `test currency`() {
+        FiatCurrency.getInstance("CBDC")
+    }
+
     private fun issueArtwork(node: StartedMockNode): ArtworkState {
-        //val epoch = Instant.now().epochSecond
-        //val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
         val flow = IssueArtworkFlow(ArtworkId.randomUUID())
         val future: Future<ArtworkState> = node.startFlow(flow)
         network.runNetwork()

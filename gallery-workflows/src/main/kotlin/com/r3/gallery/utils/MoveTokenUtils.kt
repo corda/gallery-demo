@@ -43,6 +43,7 @@ internal fun TransactionBuilder.addMoveTokens(
     )
 }
 
+@JvmOverloads
 @Suspendable
 internal fun TransactionBuilder.addMoveTokens(
     inputs: List<StateAndRef<AbstractToken>>,
