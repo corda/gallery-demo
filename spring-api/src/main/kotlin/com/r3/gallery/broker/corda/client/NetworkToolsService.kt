@@ -9,10 +9,8 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
-import com.r3.gallery.broker.services.exceptions.LogInitializationError
 import com.r3.gallery.workflows.webapp.tokennetwork.GetBalanceFlow
 import net.corda.client.rpc.CordaRPCConnection
-import net.corda.client.rpc.RPCException
 import net.corda.core.internal.hash
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
@@ -23,7 +21,10 @@ import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @Component
-class NetworkToolsService(@Autowired private val connectionManager: ConnectionManager) {
+class NetworkToolsService(
+    @Autowired private val connectionManager: ConnectionManager,
+    @Autowired private val logService: LogService
+) {
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsService::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
@@ -31,36 +32,12 @@ class NetworkToolsService(@Autowired private val connectionManager: ConnectionMa
 
     private lateinit var networkClients: List<ConnectionService>
     private lateinit var tokenClients: List<ConnectionService>
-    private lateinit var logService: LogService
     private var logIdx: LogRetrievalIdx = 0
 
-    // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
         networkClients = listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp)
         tokenClients = listOf(connectionManager.cbdc, connectionManager.gbp)
-    }
-
-    /**
-     * Setup the logging service for the associated connection services
-     */
-    private fun initializeLogService() {
-        val proxiesAndNetwork = networkClients.runPerConnectionService connect@{
-            val network = it.associatedNetwork
-
-            return@connect try {
-                it.allConnections()?.map { rpc ->
-                    Pair(rpc.proxy, network)
-                }!!
-            } catch (rpcE: RPCException) {
-                val issue = "Unable to connect to a target node: $rpcE"
-                logger.error(issue)
-                throw LogInitializationError(issue)
-            }
-
-        }.flatten()
-
-        logService = LogService(proxiesAndNetwork)
     }
 
     /**
@@ -128,9 +105,6 @@ class NetworkToolsService(@Autowired private val connectionManager: ConnectionMa
      * available for logService to correctly init.
      */
     fun getLogs(): List<LogUpdateEntry> {
-        if (!this::logService.isInitialized) {
-            initializeLogService()
-        }
         val result = logService.getProgressUpdates(logIdx)
         logIdx = result.first // set indexing for next fetch
         return result.second
