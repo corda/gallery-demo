@@ -176,7 +176,7 @@ class MockController {
         return asResponse(Unit)
     }
 
-    @PutMapping("/bid")
+    @PutMapping("/bidder/bid")
     fun bid(
         @RequestParam("bidderParty") bidderParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: ArtworkId,

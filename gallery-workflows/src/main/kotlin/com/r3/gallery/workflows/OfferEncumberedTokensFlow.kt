@@ -9,11 +9,11 @@ import com.r3.gallery.utils.registerCompositeKey
 import com.r3.gallery.workflows.internal.CollectSignaturesForComposites
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.InsufficientBalanceException
-import net.corda.core.crypto.SecureHash
 import net.corda.core.flows.*
 import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
@@ -28,11 +28,11 @@ class OfferEncumberedTokensFlow(
     val sellerParty: Party,
     val verifiedDraftTx: ValidatedDraftTransferOfOwnership,
     val encumberedAmount: Amount<TokenType>
-) : FlowLogic<SecureHash>() {
+) : FlowLogic<SignedTransaction>() {
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): SecureHash {
+    override fun call(): SignedTransaction {
         val compositeKey = serviceHub.registerCompositeKey(ourIdentity, sellerParty)
         val compositeParty = AnonymousParty(compositeKey)
         val lockState = LockState(verifiedDraftTx, ourIdentity, sellerParty)
@@ -58,7 +58,7 @@ class OfferEncumberedTokensFlow(
         // TODO: discuss what "will not be needed for X-Network, as no additional signers! - DELETE"
         signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(sellerParty)))
 
-        return subFlow(FinalityFlow(signedTx, initiateFlow(sellerParty))).id
+        return subFlow(FinalityFlow(signedTx, initiateFlow(sellerParty)))
     }
 }
 

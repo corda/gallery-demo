@@ -25,12 +25,12 @@ import java.time.Instant
 class RequestDraftTransferOfOwnershipFlow(
     val galleryParty: Party,
     val artworkLinearId: UniqueIdentifier
-) : FlowLogic<ValidatedDraftTransferOfOwnership>() {
+) : FlowLogic<Pair<WireTransaction, ValidatedDraftTransferOfOwnership>>() {
 
     override val progressTracker = ProgressTracker()
 
     @Suspendable
-    override fun call(): ValidatedDraftTransferOfOwnership {
+    override fun call(): Pair<WireTransaction, ValidatedDraftTransferOfOwnership> {
 
         val session = initiateFlow(galleryParty)
         val wireTx = session.sendAndReceive<WireTransaction>(artworkLinearId).unwrap { it }
@@ -51,7 +51,7 @@ class RequestDraftTransferOfOwnershipFlow(
             Crypto.findSignatureScheme(notaryIdentity.owningKey).schemeNumberID
         )
 
-        return ValidatedDraftTransferOfOwnership(wireTx, notaryIdentity, signatureMetadata)
+        return Pair(wireTx, ValidatedDraftTransferOfOwnership(wireTx, notaryIdentity, signatureMetadata))
     }
 
     @Suspendable
