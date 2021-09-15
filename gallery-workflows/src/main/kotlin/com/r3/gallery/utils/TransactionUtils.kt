@@ -50,7 +50,7 @@ fun WireTransaction.generateWireTransactionMerkleTree(): MerkleTree {
     val groupHashes: List<SecureHash> by lazy {
         val listOfLeaves = mutableListOf<SecureHash>()
         val allOnesHash = digestService.allOnesHash
-        for (i in 0..componentGroups.map { it.groupIndex }.max()!!) {
+        for (i in 0..componentGroups.maxOf { it.groupIndex }) {
             val root = groupsMerkleRoots[i] ?: allOnesHash
             listOfLeaves.add(root)
         }

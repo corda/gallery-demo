@@ -7,8 +7,10 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
+import com.r3.gallery.workflows.RedeemEncumberedTokensFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.Amount
+import net.corda.core.crypto.SecureHash
 import net.corda.core.crypto.SignatureMetadata
 import net.corda.core.identity.Party
 import net.corda.core.serialization.SerializedBytes
@@ -55,7 +57,7 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
         amount: Int,
         lockedOn: ValidatedUnsignedArtworkTransferTx
     ): TransactionHash {
-        logger.info("Starting OfferEncumberedTokensFlow3 flow via $buyer with seller: $seller")
+        logger.info("Starting OfferEncumberedTokensFlow flow via $buyer with seller: $seller")
         val sellerParty = tokenNetworkBuyerCS.wellKnownPartyFromName(buyer, seller)
         val encumberedAmount = Amount(amount.toLong(), FiatCurrency.getInstance("GBP"))
         val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
@@ -70,5 +72,11 @@ class TokenNetworkBuyerClientImpl : TokenNetworkBuyerClient {
             encumberedAmount
         )
         return tx.toString()
+    }
+
+    override fun releaseTokens(buyer: TokenParty, encumberedTokens: TransactionHash): TransactionHash {
+        val encumberedTxHash = SecureHash.parse(encumberedTokens)
+        val stx = tokenNetworkBuyerCS.startFlow(buyer, RedeemEncumberedTokensFlow::class.java, encumberedTxHash)
+        return stx.id.toString()
     }
 }

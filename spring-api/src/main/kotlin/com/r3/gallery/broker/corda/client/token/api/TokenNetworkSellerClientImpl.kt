@@ -43,7 +43,7 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
         encumberedTokens: TransactionHash,
         notarySignature: TransactionSignature
     ): TransactionHash {
-        logger.info("Starting UnlockEncumberedTokensFlow2 flow via $sellerParty")
+        logger.info("Starting UnlockEncumberedTokensFlow flow via $sellerParty")
         val encumberedTokensTxId = SecureHash.parse(encumberedTokens)
         val requiredSignature = SerializedBytes<net.corda.core.crypto.TransactionSignature>(notarySignature.bytes).deserialize()
         val signedTx = tokenNetworkSellerCS.startFlow(
@@ -58,8 +58,8 @@ class TokenNetworkSellerClientImpl : TokenNetworkSellerClient {
     override fun releaseTokens(
         sellerParty: TokenParty,
         buyer: TokenParty,
-        encumberedTokens: EncumberedTokens
-    ): CordaReference {
-        TODO("Not yet implemented")
+        encumberedTokens: TransactionHash
+    ): TransactionHash {
+        TODO("Implemented in the TokenNetworkBuyerClientImpl")
     }
 }
