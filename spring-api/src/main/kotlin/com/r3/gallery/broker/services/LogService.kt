@@ -28,8 +28,6 @@ class LogService(proxiesAndNetwork: List<Pair<CordaRPCOps, CordaRPCNetwork>>) {
 
     private val stateMachineSubscriptions: MutableList<Subscription> = ArrayList()
     private val progressSubscriptions: MutableMap<StateMachineRunId, ProgressUpdateSubscription> = HashMap()
-//    private val progressUpdateSubscriptions:
-//        MutableList<Triple<StateMachineRunId, CordaRPCNetwork, ProgressUpdateSubscription>> = ArrayList()
     private val progressUpdates: MutableList<LogUpdateEntry> =  ArrayList()
 
     init {
@@ -54,18 +52,7 @@ class LogService(proxiesAndNetwork: List<Pair<CordaRPCOps, CordaRPCNetwork>>) {
                             // avoid duplicates
                             if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
                         }
-//                        updateToLogUpdateEntry(firingX500, smUpdate, it, network)
                     }.also { progressSubscriptions.putIfAbsent(smUpdateInfo.id, it!!) }
-
-//                    smUpdateInfo.progressTrackerStepAndUpdates?.let { pDataFeed ->
-//                        // snapshot
-//                        val puSub = pDataFeed.updates.subscribe { pUpdate ->
-//                            // observable
-//                            updateToLogUpdateEntry(firingX500, smUpdateInfo, pUpdate, network)
-//                        }
-//                        progressUpdateSubscriptions.add(Triple(smUpdateInfo.id, network, puSub))
-//                        progressSubscriptions.putIfAbsent()
-//                    }
                 }
                 if (smUpdate is StateMachineUpdate.Removed) {
                     val logRecordId = smUpdate.id.toString()
@@ -118,40 +105,6 @@ class LogService(proxiesAndNetwork: List<Pair<CordaRPCOps, CordaRPCNetwork>>) {
         }
     }
 
-//    /** transforms to LogUpdateEntry */
-//    private fun updateToLogUpdateEntry(x500: CordaX500Name, smUpdate: StateMachineUpdate, message: String?, network: CordaRPCNetwork) {
-//        if (smUpdate != null && update is String) { // progressUpdate
-//            // filter out structural step changes
-//            if (!update.contains("Structural step change")) {
-//                val updateProposal = LogUpdateEntry(
-//                    associatedFlow = smUpdate.flowLogicClassName,
-//                    network = network.name,
-//                    x500 = x500.toString(),
-//                    logRecordId = smUpdate.id.toString(),
-//                    timestamp = Date.from(Instant.now()).toString(),
-//                    message = update
-//                )
-//                // avoid duplicates
-//                if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
-//            }
-//        } else { // flow completed update
-//            val stx = update as SignedTransaction
-//            progressUpdates.add(
-//                LogUpdateEntry(
-//                    associatedFlow = fetchFlowLogicClassFromLogRecordId(),
-//                    network = network.name,
-//                    x500 = x500.toString(),
-//                    logRecordId = smUpdate.id.toString(),
-//                    timestamp = Date.from(Instant.now()).toString(),
-//                    message = "",
-//                    completed = LogUpdateEntry.FlowCompletionLog(
-//
-//                    )
-//                )
-//            )
-//        }
-//    }
-
     private fun fetchFlowLogicClassFromLogRecordId(id: String): String {
         return progressUpdates.find { it.logRecordId == id }!!.associatedFlow
     }
@@ -160,9 +113,6 @@ class LogService(proxiesAndNetwork: List<Pair<CordaRPCOps, CordaRPCNetwork>>) {
      * Unsubscribes and removes all progress subscriptions under a StateMachineRunId
      */
     private fun removeProgressSubscriptions() {
-//        progressUpdateSubscriptions.filter { it.third.isUnsubscribed }.also {
-//            progressUpdateSubscriptions.removeAll(it)
-//        }
         progressSubscriptions.filterValues { it.isUnsubscribed }.keys.forEach {
             progressSubscriptions.remove(it)
         }

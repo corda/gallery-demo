@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import net.corda.core.contracts.ContractState
+import net.corda.core.identity.AnonymousParty
 import net.corda.core.identity.Party
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
@@ -26,7 +27,7 @@ internal class ContractStateSerializer : JsonSerializer<ContractState>() {
         gen.writeEndObject()
         gen.writeArrayFieldStart("participants")
         for (participant in value.participants) {
-            val party = participant as Party
+            val party = if (participant is AnonymousParty) participant else (participant as Party)
             gen.writeString(party.toString())
         }
         gen.writeEndArray()
