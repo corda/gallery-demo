@@ -83,7 +83,8 @@ task createAndPushDockerImages(type: ImageTask, dependsOn: 'copyImageSources') {
     imageToBuildArgsMap = [
             "$frontend_docker_image_name":[
                     "CORDA_ARTIFACTORY_USERNAME": rootProject.ext.'corda.artifactory.username',
-                    "CORDA_ARTIFACTORY_PASSWORD": rootProject.ext.'corda.artifactory.password'
+                    "CORDA_ARTIFACTORY_PASSWORD": rootProject.ext.'corda.artifactory.password',
+                    "REACT_APP_API_HOST":"http://gallery-webappapi.cordapayments-sandbox.com"
             ],
             "$mock_frontend_docker_image_name":[
                     "CORDA_ARTIFACTORY_USERNAME": rootProject.ext.'corda.artifactory.username',
