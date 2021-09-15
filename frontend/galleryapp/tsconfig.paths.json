@@ -2,12 +2,12 @@
   "compilerOptions": {
     "baseUrl": "./src",
     "paths": {
-      "@Api/*": ["./api/*"],
+      "@Api": ["./api.ts"],
       "@Assets/*": ["./assets/*"],
       "@Components/*": ["./components/*"],
       "@Config": ["./config.ts"],
       "@Context/*": ["./context/*"],
-      "@Helpers": ["./helpers/index.ts"],
+      "@Utils": ["./utils/index.ts"],
       "@Hooks/*": ["./hooks/*"],
       "@Models": ["./models.ts"],
       "@Pages/*": ["./pages/*"],

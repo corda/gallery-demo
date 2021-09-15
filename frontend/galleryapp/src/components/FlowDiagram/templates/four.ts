@@ -1,3 +1,5 @@
+import { FlowData } from "@Models";
+
 const labelStyle = {
   "font-size": "14px",
   "font-weight": "bold",
@@ -5,20 +7,15 @@ const labelStyle = {
   "font-family": "Monaco",
 };
 
-const template = [
+const template = (data: FlowData) => [
   {
     id: "f4_1",
     type: "flow",
     data: {
       title: "NFT State",
       networkType: "nftLedger",
-      properties: {
-        assetType: "ArtWork",
-        issuer: "ArtWorkCorp",
-        amount: "1",
-        owner: "C(Alice_NFT)",
-      },
-      participants: ["C(Alice_NFT)"],
+      properties: data.states[0] ? data.states[0].properties : {},
+      participants: data.states[0] ? data.states[0].participants : [],
       handles: [
         {
           type: "source",
@@ -34,7 +31,7 @@ const template = [
     data: {
       label: "draft Tx",
     },
-    position: { x: 300, y: 50 },
+    position: { x: 450, y: 50 },
   },
   {
     id: "f4_3",
@@ -57,13 +54,13 @@ const template = [
         },
       ],
     },
-    position: { x: 300, y: 92 },
+    position: { x: 450, y: 99 },
   },
   {
     id: "f4_4",
     type: "block",
     data: {
-      label: "C(Alice_NFT)",
+      label: Object.keys(data.signers)[0],
       handles: [
         {
           type: "source",
@@ -71,7 +68,7 @@ const template = [
         },
       ],
     },
-    position: { x: 300, y: 300 },
+    position: { x: 450, y: 300 },
   },
   {
     id: "f4_5",
@@ -79,13 +76,8 @@ const template = [
     data: {
       title: "NFT State",
       networkType: "nftLedger",
-      properties: {
-        assetType: "ArtWork",
-        issuer: "ArtWorkCorp",
-        amount: "1",
-        owner: "C(Bob_NFT)",
-      },
-      participants: ["C(Bob_NFT)"],
+      properties: data.states[1] ? data.states[1].properties : {},
+      participants: data.states[1] ? data.states[1].participants : [],
       handles: [
         {
           type: "target",
@@ -93,7 +85,7 @@ const template = [
         },
       ],
     },
-    position: { x: 600, y: 25 },
+    position: { x: 800, y: 25 },
   },
 
   { id: "f4_e1-3", source: "f4_1", target: "f4_3", animated: false, arrowHeadType: "arrow" },

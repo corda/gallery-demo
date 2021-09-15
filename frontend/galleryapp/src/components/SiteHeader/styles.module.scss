@@ -1,0 +1,10 @@
+.dropdowns {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-column-gap: 32px;
+  align-items: center;
+  height: 64px;
+  position: absolute;
+  top: 0;
+  right: 32px;
+}

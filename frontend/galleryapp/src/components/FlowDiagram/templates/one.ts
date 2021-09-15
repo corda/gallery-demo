@@ -1,3 +1,5 @@
+import { FlowData } from "@Models";
+
 const labelStyle = {
   "font-size": "14px",
   "font-weight": "bold",
@@ -5,20 +7,15 @@ const labelStyle = {
   "font-family": "Monaco",
 };
 
-const template = [
+const template = (data: FlowData) => [
   {
     id: "f1_1",
     type: "flow",
     data: {
       title: "NFT State",
       networkType: "draft",
-      properties: {
-        assetTypeX: "ArtWork",
-        issuer: "ArtWorkCorp",
-        amount: "1",
-        owner: "C(Alice_NFT)",
-      },
-      participants: ["C(Alice_NFT)"],
+      properties: data.states[0] ? data.states[0].properties : {},
+      participants: data.states[0] ? data.states[0].participants : [],
       handles: [
         {
           type: "source",
@@ -35,7 +32,7 @@ const template = [
       label: "draft Tx",
       networkType: "draft",
     },
-    position: { x: 300, y: 50 },
+    position: { x: 450, y: 50 },
   },
   {
     id: "f1_3",
@@ -58,13 +55,13 @@ const template = [
         },
       ],
     },
-    position: { x: 300, y: 92 },
+    position: { x: 450, y: 92 },
   },
   {
     id: "f1_4",
     type: "block",
     data: {
-      label: "C(Alice_NFT)",
+      label: Object.keys(data.signers)[0],
       networkType: "draft",
       handles: [
         {
@@ -73,7 +70,7 @@ const template = [
         },
       ],
     },
-    position: { x: 300, y: 300 },
+    position: { x: 450, y: 300 },
   },
   {
     id: "f1_5",
@@ -81,13 +78,8 @@ const template = [
     data: {
       title: "NFT State",
       networkType: "draft",
-      properties: {
-        assetType: "ArtWork",
-        issuer: "ArtWorkCorp",
-        amount: "1",
-        owner: "C(Bob_NFT)",
-      },
-      participants: ["C(Bob_NFT)"],
+      properties: data.states[1] ? data.states[1].properties : {},
+      participants: data.states[1] ? data.states[1].participants : [],
       handles: [
         {
           type: "target",
@@ -95,7 +87,7 @@ const template = [
         },
       ],
     },
-    position: { x: 600, y: 25 },
+    position: { x: 780, y: 25 },
   },
 
   { id: "f1_e1-3", source: "f1_1", target: "f1_3", animated: false, arrowHeadType: "arrow" },

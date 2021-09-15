@@ -1,9 +1,9 @@
 import { Column, Container, Row } from "@r3/r3-tooling-design-system";
 import Catalogue from "@Components/Catalogue";
-import Wallets from "@Components/Wallets";
+import Wallets from "@Components/Token";
 import { useParams } from "react-router-dom";
 import { RouterParams } from "@Models";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import { UsersContext } from "@Context/users";
 import PageContainer from "@Components/PageContainer";
 import { ArtworksContext } from "@Context/artworks";

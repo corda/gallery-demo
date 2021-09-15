@@ -1,5 +1,5 @@
 import { Dropdown, IconCustom, Option } from "@r3/r3-tooling-design-system";
-import { getParticipantPath } from "@Helpers";
+import { getParticipantPath } from "@Utils";
 import React from "react";
 import { Participant } from "@Models";
 import { useHistory } from "react-router-dom";
@@ -9,7 +9,8 @@ interface Props {
   currentUser: Participant | null;
   userList: Participant[] | null;
 }
-function UserDropdown({ userList }: Props) {
+
+function UserDropdown({ userList, currentUser }: Props) {
   const history = useHistory();
 
   return (
@@ -20,7 +21,7 @@ function UserDropdown({ userList }: Props) {
         positionY="bottom"
         trigger={
           <div className={styles.trigger}>
-            {/*{currentUser && <span className={styles.username}>{currentUser.displayName}</span>}*/}
+            {currentUser && <span className={styles.username}>{currentUser.displayName}</span>}
             <IconCustom className="h-5" icon="Account" />
           </div>
         }

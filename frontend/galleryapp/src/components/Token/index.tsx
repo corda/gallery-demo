@@ -1,16 +1,16 @@
 import styles from "./styles.module.scss";
-import WalletItem from "@Components/Wallets/WalletItem";
+import TokenItem from "@Components/Token/TokenItem";
 import { Participant } from "@Models";
 import { useContext } from "react";
-import { WalletsContext } from "@Context/wallets";
+import { TokensContext } from "@Context/tokens";
 
 interface Props {
   user: Participant;
 }
 
-function Wallets({ user }: Props) {
-  const { getWalletsByUser } = useContext(WalletsContext);
-  const wallets = getWalletsByUser(user);
+function Tokens({ user }: Props) {
+  const { getTokensByUser } = useContext(TokensContext);
+  const tokens = getTokensByUser(user);
 
   return (
     <section className={styles.main}>
@@ -19,14 +19,14 @@ function Wallets({ user }: Props) {
         <thead>
           <tr>
             <th />
-            <th>Asset Type</th>
+            <th>Token Type</th>
             <th>Encumbered</th>
             <th>Total</th>
           </tr>
         </thead>
         <tbody>
-          {wallets.map((wallet) => (
-            <WalletItem key={wallet.currencyCode} wallet={wallet} x500={user.x500} />
+          {tokens.map((token) => (
+            <TokenItem key={token.currencyCode} token={token} x500={user.x500} />
           ))}
         </tbody>
       </table>
@@ -34,4 +34,4 @@ function Wallets({ user }: Props) {
   );
 }
 
-export default Wallets;
+export default Tokens;

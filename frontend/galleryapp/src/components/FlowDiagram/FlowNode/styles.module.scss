@@ -2,7 +2,7 @@
   padding: 0;
   border-radius: 6px;
   border: solid 1px var(--color-medium-light-gray-500);
-  width: 260px;
+  width: 360px;
   text-align: left;
   color: var(--color-medium-light-gray-600);
   font-family: "Monaco", "Courier New", Courier, monospace;
@@ -27,6 +27,7 @@
     }
 
     li {
+      font-size: 13px;
       margin: 0;
       list-style: none;
       line-height: 1.4rem;
