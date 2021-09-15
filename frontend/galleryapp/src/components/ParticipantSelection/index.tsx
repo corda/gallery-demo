@@ -2,7 +2,7 @@ import { Participant } from "@Models";
 import styles from "./styles.module.scss";
 import { DashboardItem } from "@r3/r3-tooling-design-system";
 import { Link } from "react-router-dom";
-import { getParticipantPath } from "@Helpers";
+import { getParticipantPath } from "@Utils";
 
 interface Props {
   participants: Participant[];

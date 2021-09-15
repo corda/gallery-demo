@@ -1,7 +1,10 @@
 import styles from "./styles.module.scss";
-import { Bid } from "@Models";
+import { Bid, RouterParams } from "@Models";
 import { Badge, Button, Loader } from "@r3/r3-tooling-design-system";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { postBidAcceptance } from "@Api";
+import { useParams } from "react-router-dom";
+import { UsersContext } from "@Context/users";
 
 interface Props {
   bids: Bid[];
@@ -21,11 +24,20 @@ function getStatus(bidAccepted: boolean, biddingOpen: boolean) {
 }
 
 function CatalogueItemBids({ bids, open }: Props) {
+  const { getUser } = useContext(UsersContext);
   const [bidAccepted, setBidAccepted] = useState(false);
   const pendingState = bidAccepted && open;
+  const { id } = useParams<RouterParams>();
+  const user = getUser(id);
 
   function handleBidAcceptance(bid: Bid) {
-    setBidAccepted(true);
+    if (user) {
+      setBidAccepted(true);
+      postBidAcceptance({
+        galleryParty: user.x500,
+        cordaReference: bid.cordaReference,
+      });
+    }
   }
 
   return (

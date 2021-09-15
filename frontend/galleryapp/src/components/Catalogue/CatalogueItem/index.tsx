@@ -4,7 +4,7 @@ import { useState } from "react";
 import CatalogueItemBids from "@Components/Catalogue/CatalogueItemBids";
 import { ReactComponent as Chevron } from "@Assets/chevronIcon.svg";
 import { Badge } from "@r3/r3-tooling-design-system";
-import { lotSold } from "@Helpers";
+import { lotSold } from "@Utils";
 
 interface Props {
   lot: GalleryLot;

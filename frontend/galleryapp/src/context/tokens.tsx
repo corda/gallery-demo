@@ -1,22 +1,22 @@
 import React, { createContext, FC, useState } from "react";
-import { Balance, Participant, Wallet } from "@Models";
+import { Balance, Participant, Token } from "@Models";
 import useInterval from "@Hooks/useInterval";
-import getBalances from "@Api/getBalances";
+import {getBalances} from "@Api";
 import { isEqual } from "lodash";
 
-interface WalletsContextInterface {
+interface TokensContextInterface {
   balances: Balance[];
-  getWalletsByUser: (user: Participant) => Wallet[];
+  getTokensByUser: (user: Participant) => Token[];
 }
 
-const contextDefaultValues: WalletsContextInterface = {
+const contextDefaultValues: TokensContextInterface = {
   balances: [],
-  getWalletsByUser: () => [],
+  getTokensByUser: () => [],
 };
 
-export const WalletsContext = createContext<WalletsContextInterface>(contextDefaultValues);
+export const TokensContext = createContext<TokensContextInterface>(contextDefaultValues);
 
-export const WalletsProvider: FC = ({ children }) => {
+export const TokensProvider: FC = ({ children }) => {
   const [balances, setBalances] = useState<Balance[]>(contextDefaultValues.balances);
 
   useInterval(async () => {
@@ -24,7 +24,7 @@ export const WalletsProvider: FC = ({ children }) => {
     if (bs && !isEqual(bs, balances)) setBalances(bs);
   }, 2000);
 
-  function getWalletsByUser(user: Participant): Wallet[] {
+  function getTokensByUser(user: Participant): Token[] {
     if (!user.networkIds[0]) return [];
 
     const bs = balances.find((balance) => balance.x500 === user.x500);
@@ -35,13 +35,13 @@ export const WalletsProvider: FC = ({ children }) => {
   }
 
   return (
-    <WalletsContext.Provider
+    <TokensContext.Provider
       value={{
         balances: balances,
-        getWalletsByUser,
+        getTokensByUser,
       }}
     >
       {children}
-    </WalletsContext.Provider>
+    </TokensContext.Provider>
   );
 };

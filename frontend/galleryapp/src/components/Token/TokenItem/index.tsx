@@ -1,5 +1,5 @@
 import styles from "./styles.module.scss";
-import { Wallet } from "@Models";
+import { Token } from "@Models";
 import { useContext, useState } from "react";
 import { ReactComponent as Chevron } from "@Assets/chevronIcon.svg";
 import ActivityLog from "@Components/ActivityLog";
@@ -7,14 +7,14 @@ import { LogsContext } from "@Context/logs";
 import CurrencyBadge from "@Components/CurrencyBadge";
 
 interface Props {
-  wallet: Wallet;
+  token: Token;
   x500: string;
 }
 
-function WalletItem({ wallet, x500 }: Props) {
+function TokenItem({ token, x500 }: Props) {
   const [isToggled, setToggled] = useState(false);
   const { getFilteredLogs } = useContext(LogsContext);
-  const logs = getFilteredLogs(x500, wallet.currencyCode);
+  const logs = getFilteredLogs(x500, token.currencyCode);
 
   return (
     <>
@@ -23,19 +23,19 @@ function WalletItem({ wallet, x500 }: Props) {
           <Chevron />
         </td>
         <td>
-          <CurrencyBadge currencyCode={wallet.currencyCode}>{wallet.currencyCode}</CurrencyBadge>
+          <CurrencyBadge currencyCode={token.currencyCode}>{token.currencyCode}</CurrencyBadge>
         </td>
-        <td>{wallet.encumberedFunds}</td>
-        <td>{wallet.availableFunds}</td>
+        <td>{token.encumberedFunds}</td>
+        <td>{token.availableFunds}</td>
       </tr>
 
       {isToggled && (
         <td colSpan={4} className={styles.logHolder}>
-          <ActivityLog title="Wallet Audit Log" inline={true} logs={logs} />
+          <ActivityLog title="Token Audit Log" inline={true} logs={logs} />
         </td>
       )}
     </>
   );
 }
 
-export default WalletItem;
+export default TokenItem;

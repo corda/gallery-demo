@@ -3,9 +3,12 @@ import ActivityLog from "@Components/ActivityLog";
 import { Badge } from "@r3/r3-tooling-design-system";
 import GalleryBidModal from "@Components/GalleryShop/GalleryBidModal";
 import { useContext, useState } from "react";
-import { GalleryLot } from "@Models";
+import { Bid, GalleryLot, RouterParams } from "@Models";
 import { LogsContext } from "@Context/logs";
-import { lotSold } from "@Helpers";
+import { getWinningBid, usersBid } from "@Utils";
+import { useParams } from "react-router-dom";
+import { UsersContext } from "@Context/users";
+import { isEqual } from "lodash";
 
 interface Props {
   lots: GalleryLot[];
@@ -13,10 +16,15 @@ interface Props {
 }
 
 function GalleryShop({ lots, x500 }: Props) {
+  const { getUser } = useContext(UsersContext);
   const { getFilteredLogs } = useContext(LogsContext);
   const [bidModalToggle, setBidModalToggle] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GalleryLot | null>(null);
   const logs = getFilteredLogs(x500, "auction");
+  const { id } = useParams<RouterParams>();
+  const user = getUser(id);
+
+  if (!user) return null;
 
   const handleItemClick = (lot: GalleryLot) => {
     setBidModalToggle(true);
@@ -33,14 +41,20 @@ function GalleryShop({ lots, x500 }: Props) {
       <h3>Gallery</h3>
       <ul className={styles.lotList}>
         {lots.map((lot) => (
-          <ShopItem key={lot.artworkId} lot={lot} onClick={() => handleItemClick(lot)} />
+          <ShopItem
+            key={lot.artworkId}
+            lot={lot}
+            onClick={() => handleItemClick(lot)}
+            usersBid={usersBid(lot, user)}
+          />
         ))}
       </ul>
       <ActivityLog title="Gallery activity log" inline={true} logs={logs} />
       <GalleryBidModal
         open={bidModalToggle}
         onClose={() => handleClose()}
-        selectedBid={selectedItem}
+        selectedArtwork={selectedItem}
+        user={user}
       />
     </section>
   );
@@ -49,26 +63,44 @@ function GalleryShop({ lots, x500 }: Props) {
 interface ShopItemProps {
   lot: GalleryLot;
   onClick: () => void;
+  usersBid: Bid | undefined;
 }
 
-function ShopItem({ lot, onClick }: ShopItemProps) {
-  const sold = lotSold(lot);
-
-  function getSoldForPrice(lot: GalleryLot) {
-    const winningBid = lot.bids.find((bid) => bid.accepted);
-    if (!winningBid) return "";
-
-    return `${winningBid.amount} ${winningBid.currencyCode}`;
-  }
+function ShopItem({ lot, onClick, usersBid }: ShopItemProps) {
+  const winningBid = getWinningBid(lot);
 
   return (
-    <li className={`${styles.lotItem} ${sold ? styles.lotItemSold : ""}`} onClick={onClick}>
+    <li className={`${styles.lotItem} ${!!winningBid ? styles.lotItemSold : ""}`} onClick={onClick}>
       <img className={styles.itemImagePlaceholder} src={lot.url} alt={lot.description} />
       <h6>{lot.description}</h6>
-      {sold ? (
-        <Badge variant="green">SOLD ({getSoldForPrice(lot)})</Badge>
-      ) : (
-        <Badge variant="gray">FOR SALE</Badge>
+      {winningBid && isEqual(winningBid, usersBid) && (
+        <Badge variant="green" className={styles.lotItemBadge}>
+          BOUGHT{" "}
+          <span>
+            ({winningBid.amount} {winningBid.currencyCode})
+          </span>
+        </Badge>
+      )}
+      {winningBid && !isEqual(winningBid, usersBid) && (
+        <Badge variant="green" className={styles.lotItemBadge}>
+          SOLD{" "}
+          <span>
+            ({winningBid.amount} {winningBid.currencyCode})
+          </span>
+        </Badge>
+      )}
+      {!winningBid && usersBid && (
+        <Badge variant="gray" className={styles.lotItemBadge}>
+          BID PLACED{" "}
+          <span>
+            ({usersBid.amount} {usersBid.currencyCode})
+          </span>
+        </Badge>
+      )}
+      {!winningBid && !usersBid && (
+        <Badge variant="gray" className={styles.lotItemBadge}>
+          FOR SALE
+        </Badge>
       )}
     </li>
   );

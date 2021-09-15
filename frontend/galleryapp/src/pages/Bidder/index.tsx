@@ -1,5 +1,5 @@
 import { Column, Container, Row } from "@r3/r3-tooling-design-system";
-import Wallets from "@Components/Wallets";
+import Wallets from "@Components/Token";
 import GalleryShop from "@Components/GalleryShop";
 import Collection from "@Components/Collection";
 import { useParams } from "react-router-dom";
