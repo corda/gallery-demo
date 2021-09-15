@@ -9,7 +9,7 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
-import com.r3.gallery.workflows.webapp.tokennetwork.GetBalanceFlow
+import com.r3.gallery.workflows.webapp.GetBalanceFlow
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.internal.hash
 import net.corda.core.utilities.getOrThrow

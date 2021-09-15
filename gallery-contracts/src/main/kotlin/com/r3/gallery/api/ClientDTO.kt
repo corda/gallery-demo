@@ -116,6 +116,7 @@ data class NetworkBalancesResponse(
 /**
  * Response object for available artwork requests
  */
+@CordaSerializable
 data class AvailableArtwork(
     val artworkId: ArtworkId,
     val description: String,
@@ -124,6 +125,7 @@ data class AvailableArtwork(
     val bids: List<BidRecord>
 ) {
     // A record of a bid placed against a single artworkId
+    @CordaSerializable
     data class BidRecord(
         val cordaReference: CordaReference, // UNIQUE
         val bidderPublicKey: String,

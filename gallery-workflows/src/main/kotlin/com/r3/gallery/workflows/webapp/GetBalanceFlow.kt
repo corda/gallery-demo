@@ -1,4 +1,4 @@
-package com.r3.gallery.workflows.webapp.tokennetwork
+package com.r3.gallery.workflows.webapp
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
