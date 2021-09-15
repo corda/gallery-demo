@@ -38,12 +38,13 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     fun transferEncumberedTokens2(
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("sellerParty") sellerParty: TokenParty,
-        @RequestParam("amount") amount: Int,
+        @RequestParam("amount") amount: Long,
+        @RequestParam("currency") currency: String,
         @RequestBody validatedUnsignedArtworkTransferTx: ValidatedUnsignedArtworkTransferTx
     ): ResponseEntity<TransactionHash> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
         val signedTokenTransferTxId =
-            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, validatedUnsignedArtworkTransferTx)
+            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, currency, validatedUnsignedArtworkTransferTx)
         return asResponse(signedTokenTransferTxId)
     }
 }

@@ -1,7 +1,10 @@
 package com.r3.gallery.broker.corda.client
 
-import com.r3.gallery.api.*
-import com.r3.gallery.broker.corda.rpc.config.ClientProperties
+import com.r3.gallery.api.CordaRPCNetwork
+import com.r3.gallery.api.LogUpdateEntry
+import com.r3.gallery.api.NetworkBalancesResponse
+import com.r3.gallery.api.Participant
+import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
@@ -14,14 +17,13 @@ import net.corda.core.internal.hash
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @Component
-class NetworkToolsService {
+class NetworkToolsService(@Autowired private val connectionManager: ConnectionManager) {
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsService::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
@@ -32,32 +34,11 @@ class NetworkToolsService {
     private lateinit var logService: LogService
     private var logIdx: LogRetrievalIdx = 0
 
-    @Autowired
-    @Qualifier("AuctionNetworkProperties")
-    private lateinit var auctionNetworkProperties: ClientProperties
-
-    @Autowired
-    @Qualifier("GbpNetworkProperties")
-    private lateinit var gbpNetworkProperties: ClientProperties
-
-    @Autowired
-    @Qualifier("CbdcNetworkProperties")
-    private lateinit var cbdcNetworkProperties: ClientProperties
-
     // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
-        val auctionNetworkCS = ConnectionServiceImpl(auctionNetworkProperties)
-        auctionNetworkCS.associatedNetwork = CordaRPCNetwork.AUCTION
-
-        val gbpNetworkCS = ConnectionServiceImpl(gbpNetworkProperties)
-        gbpNetworkCS.associatedNetwork = CordaRPCNetwork.GBP
-
-        val cbdcNetworkCS = ConnectionServiceImpl(cbdcNetworkProperties)
-        cbdcNetworkCS.associatedNetwork = CordaRPCNetwork.CBDC
-
-        networkClients = listOf(auctionNetworkCS, gbpNetworkCS, cbdcNetworkCS)
-        tokenClients = listOf(gbpNetworkCS, cbdcNetworkCS)
+        networkClients = listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp)
+        tokenClients = listOf(connectionManager.cbdc, connectionManager.gbp)
     }
 
     /**
@@ -69,7 +50,7 @@ class NetworkToolsService {
 
             return@connect try {
                 it.allConnections()?.map { rpc ->
-                    Pair(rpc.proxy, network!!)
+                    Pair(rpc.proxy, network)
                 }!!
             } catch (rpcE: RPCException) {
                 val issue = "Unable to connect to a target node: $rpcE"
@@ -115,7 +96,7 @@ class NetworkToolsService {
      */
     fun participants(networks: List<String>?) : List<Participant> {
         val allNetworkIds = networkClients.runPerConnectionService {
-            val currentNetwork = it.associatedNetwork!!.netName
+            val currentNetwork = it.associatedNetwork.netName
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
                 .map { nodeInfo ->
                     val x500 = nodeInfo.legalIdentitiesAndCerts.first().name

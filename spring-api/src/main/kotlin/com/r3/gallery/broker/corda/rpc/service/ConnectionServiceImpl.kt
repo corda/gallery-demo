@@ -11,15 +11,22 @@ import net.corda.core.identity.Party
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 import java.lang.IllegalStateException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import javax.annotation.PostConstruct
 import javax.annotation.PreDestroy
 
 /**
  * Generic class for handling RPCClient connections and node interactions
  */
-class ConnectionServiceImpl(private val clientProperties: ClientProperties) : ConnectionService {
+open class ConnectionServiceImpl(
+    private val clientProperties: ClientProperties,
+    override var associatedNetwork: CordaRPCNetwork
+) : ConnectionService {
 
     companion object {
         private val logger = LoggerFactory.getLogger(ConnectionServiceImpl::class.java)
@@ -27,12 +34,6 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
         private const val MINIMUM_SERVER_PROTOCOL_VERSION = 4
         const val TIMEOUT = 30L
     }
-
-    /**
-     * Corda network which this connection service handles RPC towards.
-     * - Should set as quickly as possible after init as needed to resolve rpcConnectionTargets
-     */
-    override var associatedNetwork: CordaRPCNetwork? = null
 
     /**
      * Clients mapped from configurations
@@ -199,10 +200,10 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
      * @return RpcConnectionTarget and checks the target exists through the client list
      */
     private fun getConnectionTarget(networkParty: String): RpcConnectionTarget {
-        return associatedNetwork?.let {
+        return associatedNetwork.let {
             (networkParty + associatedNetwork.toString())
                 .also { idExists(it) } // check validity
-        } ?: throw IllegalStateException("Cannot target a rpc connection without setting the associatedNetwork of ${this::class.simpleName}")
+        }
     }
 
    override fun wellKnownPartyFromName(networkParty: String, name: String): Party? {
@@ -223,3 +224,33 @@ class ConnectionServiceImpl(private val clientProperties: ClientProperties) : Co
     }
 }
 
+@Component
+class AuctionConnectionService(
+    @Autowired
+    @Qualifier("AuctionNetworkProperties")
+    auctionNetworkProperties: ClientProperties
+) : ConnectionServiceImpl(auctionNetworkProperties, CordaRPCNetwork.AUCTION)
+
+@Component
+class GBPConnectionService(
+    @Autowired
+    @Qualifier("GbpNetworkProperties")
+    gbpNetworkProperties: ClientProperties
+) : ConnectionServiceImpl(gbpNetworkProperties, CordaRPCNetwork.GBP)
+
+@Component
+class CBDCConnectionService(
+    @Autowired
+    @Qualifier("CbdcNetworkProperties")
+    cbdcNetworkProperties: ClientProperties
+) : ConnectionServiceImpl(cbdcNetworkProperties, CordaRPCNetwork.CBDC)
+
+@Component
+class ConnectionManager(
+    @Autowired
+    val auction: AuctionConnectionService,
+    @Autowired
+    val gbp: GBPConnectionService,
+    @Autowired
+    val cbdc: CBDCConnectionService
+)

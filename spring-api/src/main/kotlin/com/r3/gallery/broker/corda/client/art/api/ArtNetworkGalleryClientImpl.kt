@@ -1,9 +1,8 @@
 package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.*
-import com.r3.gallery.broker.corda.rpc.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
-import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
@@ -18,24 +17,20 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @Component
-class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
+class ArtNetworkGalleryClientImpl(
+    @Autowired private val connectionManager: ConnectionManager
+) : ArtNetworkGalleryClient {
 
     private lateinit var artNetworkGalleryCS: ConnectionService
-
-    @Autowired
-    @Qualifier("ArtNetworkGalleryProperties")
-    private lateinit var artNetworkGalleryProperties: ClientProperties
 
     // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
-        artNetworkGalleryCS = ConnectionServiceImpl(artNetworkGalleryProperties)
-        artNetworkGalleryCS.associatedNetwork = network
+        artNetworkGalleryCS = connectionManager.auction
     }
 
     companion object {
