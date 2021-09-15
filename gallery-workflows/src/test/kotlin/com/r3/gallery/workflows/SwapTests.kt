@@ -63,7 +63,7 @@ class SwapTests {
     fun `can issue artwork`() {
         //val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
         val flow = IssueArtworkFlow(ArtworkId.randomUUID())
-        val artworkState = seller.startFlow(flow).also { network.runNetwork() }.getOrThrow()
+        seller.startFlow(flow).also { network.runNetwork() }.getOrThrow()
         // TODO
     }
 
@@ -71,7 +71,7 @@ class SwapTests {
     fun `swap steps between four parties`() {
 
         val galleryParty = gallery.info.chooseIdentity()
-        val bidderParty = bidder.info.chooseIdentity()
+        //val bidderParty = bidder.info.chooseIdentity()
         val sellerParty = seller.info.chooseIdentity()
         val buyerParty = buyer.info.chooseIdentity()
 
@@ -107,8 +107,8 @@ class SwapTests {
         val artworkItemBidder = queryArtworkState(bidder, false)
         assertNotNull(artworkItemBidder)
 
-        val sellerBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
-        val buyerBalance = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+//        val sellerBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+//        val buyerBalance = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
     }
 
     @Test
@@ -116,7 +116,7 @@ class SwapTests {
     fun `redeem steps between four parties`() {
 
         val galleryParty = gallery.info.chooseIdentity()
-        val bidderParty = bidder.info.chooseIdentity()
+        //val bidderParty = bidder.info.chooseIdentity()
         val sellerParty = seller.info.chooseIdentity()
         val buyerParty = buyer.info.chooseIdentity()
 
@@ -140,7 +140,7 @@ class SwapTests {
 
         val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
 
-        val signedRedeemTx = buyer.startFlow(RedeemEncumberedTokensFlow(signedTokensOfferTxId)).apply {
+        buyer.startFlow(RedeemEncumberedTokensFlow(signedTokensOfferTxId)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -148,12 +148,6 @@ class SwapTests {
 
         assertTrue(buyerBalanceAfterOffer < buyerInitialBalance)
         assertTrue(buyerBalanceAfterRedeem == buyerInitialBalance)
-    }
-
-
-    @Test
-    fun `test currency`() {
-        FiatCurrency.getInstance("CBDC")
     }
 
     private fun issueArtwork(node: StartedMockNode): ArtworkState {
