@@ -35,7 +35,6 @@ class ArtNetworkGalleryClientImpl(
 
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryClientImpl::class.java)
-        private val network = CordaRPCNetwork.AUCTION
     }
 
     /**

@@ -54,10 +54,11 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     @PostMapping("/release-encumbered-tokens")
     fun transferEncumberedTokens(
         @RequestParam("buyerParty") buyerParty: TokenParty,
+        @RequestParam("currency") currency: String,
         @RequestParam("encumberedTokensTxHash") encumberedTokensTxHash: String,
     ): ResponseEntity<TransactionHash> {
         logger.info("Request by $buyerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
-        val releasedTokensTxId = buyerClient.releaseTokens(buyerParty, encumberedTokensTxHash)
+        val releasedTokensTxId = buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash)
         return asResponse(releasedTokensTxId)
     }
 }

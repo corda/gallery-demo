@@ -48,10 +48,11 @@ open class AtomicSwapService(
         return SaleReceipt(bid.bidderName, bid.artworkId, proofOfTransfer.transactionHash, tokenTxId)
     }
 
-    fun cancelBid(bid: BidReceipt): CancellationReceipt {
+    fun cancelBid(bid: BidReceipt, currency: String): CancellationReceipt {
 
         val tokenTxId = sellerClient.releaseTokens(
             sellerParty,
+            currency,
             identityRegistry.getTokenParty(bid.bidderName),
             bid.encumberedTokens)
 

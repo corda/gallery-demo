@@ -29,9 +29,6 @@ class TokenNetworkBuyerClientImpl(
 
     companion object {
         private val logger = LoggerFactory.getLogger(TokenNetworkBuyerClientImpl::class.java)
-
-        // TODO: properly setup token networks
-        private val network = CordaRPCNetwork.GBP
     }
 
     override fun issueTokens(buyer: TokenParty, amount: Long, currency: String) {

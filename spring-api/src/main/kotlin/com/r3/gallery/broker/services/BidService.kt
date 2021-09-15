@@ -23,7 +23,7 @@ class BidService(
 
         // cancel remaining bids
         val cancelReceipts = bidRepository.getBidsFor(artworkId).map { failedBid ->
-            swapService.cancelBid(failedBid)
+            swapService.cancelBid(failedBid, encumberedCurrency)
         }
 
         return listOf(saleReceipt) + cancelReceipts

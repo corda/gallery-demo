@@ -12,5 +12,5 @@ interface TokenNetworkBuyerClient {
                                  currency: String,
                                  lockedOn: ValidatedUnsignedArtworkTransferTx): TransactionHash
 
-    fun releaseTokens(buyer: TokenParty, encumberedTokens: TransactionHash): TransactionHash
+    fun releaseTokens(buyer: TokenParty, currency: String, encumberedTokens: TransactionHash): TransactionHash
 }

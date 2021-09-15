@@ -27,7 +27,6 @@ class ArtNetworkBidderClientImpl(
 
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkBidderClientImpl::class.java)
-        private val network = CordaRPCNetwork.AUCTION
     }
 
     override fun issueTokens(bidderParty: TokenParty, amount: Long, currency: String) {
