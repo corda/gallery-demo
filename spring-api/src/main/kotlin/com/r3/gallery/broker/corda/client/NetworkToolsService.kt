@@ -33,35 +33,31 @@ class NetworkToolsService {
     private var logIdx: LogRetrievalIdx = 0
 
     @Autowired
-    @Qualifier("ArtNetworkGalleryProperties")
-    private lateinit var artNetworkGalleryProperties: ClientProperties
+    @Qualifier("AuctionNetworkProperties")
+    private lateinit var auctionNetworkProperties: ClientProperties
 
     @Autowired
-    @Qualifier("ArtNetworkBidderProperties")
-    private lateinit var artNetworkBidderProperties: ClientProperties
+    @Qualifier("GbpNetworkProperties")
+    private lateinit var gbpNetworkProperties: ClientProperties
 
     @Autowired
-    @Qualifier("TokenNetworkBuyerProperties")
-    private lateinit var tokenNetworkBuyerProperties: ClientProperties
-
-    @Autowired
-    @Qualifier("TokenNetworkSellerProperties")
-    private lateinit var tokenNetworkSellerProperties: ClientProperties
+    @Qualifier("CbdcNetworkProperties")
+    private lateinit var cbdcNetworkProperties: ClientProperties
 
     // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
-        val artNetworkGalleryCS = ConnectionServiceImpl(artNetworkGalleryProperties)
-        artNetworkGalleryCS.associatedNetwork = CordaRPCNetwork.AUCTION
+        val auctionNetworkCS = ConnectionServiceImpl(auctionNetworkProperties)
+        auctionNetworkCS.associatedNetwork = CordaRPCNetwork.AUCTION
 
-        val artNetworkBidderCS = ConnectionServiceImpl(artNetworkBidderProperties)
-        artNetworkBidderCS.associatedNetwork = CordaRPCNetwork.AUCTION
+        val gbpNetworkCS = ConnectionServiceImpl(gbpNetworkProperties)
+        gbpNetworkCS.associatedNetwork = CordaRPCNetwork.GBP
 
-        val tokenNetworkBuyerCS = ConnectionServiceImpl(tokenNetworkBuyerProperties)
-        val tokenNetworkSellerCS = ConnectionServiceImpl(tokenNetworkSellerProperties)
+        val cbdcNetworkCS = ConnectionServiceImpl(cbdcNetworkProperties)
+        cbdcNetworkCS.associatedNetwork = CordaRPCNetwork.CBDC
 
-        networkClients = listOf(artNetworkBidderCS, artNetworkGalleryCS, tokenNetworkBuyerCS, tokenNetworkSellerCS)
-        tokenClients = listOf(tokenNetworkBuyerCS, tokenNetworkSellerCS)
+        networkClients = listOf(auctionNetworkCS, gbpNetworkCS, cbdcNetworkCS)
+        tokenClients = listOf(gbpNetworkCS, cbdcNetworkCS)
     }
 
     /**

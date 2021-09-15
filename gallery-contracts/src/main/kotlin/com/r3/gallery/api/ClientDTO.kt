@@ -67,6 +67,7 @@ data class Participant(
 /**
  * Returns balances across network
  */
+@CordaSerializable
 data class NetworkBalancesResponse(
     val x500: String,
     val partyBalances: List<Balance>
@@ -74,6 +75,7 @@ data class NetworkBalancesResponse(
     /**
      * Represents a balance for an asset class
      */
+    @CordaSerializable
     data class Balance(
         val currencyCode: String,
         val encumberedFunds: Amount<TokenType>,
