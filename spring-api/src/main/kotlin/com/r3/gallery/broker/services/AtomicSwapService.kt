@@ -53,7 +53,6 @@ open class AtomicSwapService(
         val tokenTxId = sellerClient.releaseTokens(
             sellerParty,
             currency,
-            identityRegistry.getTokenParty(bid.bidderName),
             bid.encumberedTokens)
 
         return CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
