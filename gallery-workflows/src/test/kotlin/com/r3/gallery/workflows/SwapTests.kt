@@ -198,8 +198,8 @@ class SwapTests {
 
     @Test
     fun TestCurrencies() {
-        val gbp = AuctionCurrency.getInstance("GBP")
-        val cbdc = AuctionCurrency.getInstance("CBDC")
+        AuctionCurrency.getInstance("GBP")
+        AuctionCurrency.getInstance("CBDC")
     }
 
     private fun issueArtwork(node: StartedMockNode): ArtworkState {
