@@ -1,9 +1,11 @@
 package com.r3.gallery.workflows
 
-import com.r3.corda.lib.tokens.money.FiatCurrency
-import com.r3.corda.lib.tokens.money.USD
+import com.r3.corda.lib.tokens.money.DigitalCurrency
+import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.states.ArtworkState
+import com.r3.gallery.utils.AuctionCurrency
+import com.r3.gallery.utils.CBDC
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import com.r3.gallery.workflows.token.GetBalanceFlow
@@ -68,7 +70,7 @@ class SwapTests {
     }
 
     @Test
-    fun `swap steps between four parties`() {
+    fun `swap steps between four parties with GBP`() {
 
         val galleryParty = gallery.info.chooseIdentity()
         //val bidderParty = bidder.info.chooseIdentity()
@@ -76,7 +78,7 @@ class SwapTests {
         val buyerParty = buyer.info.chooseIdentity()
 
         val artworkState = issueArtwork(gallery)
-        buyer.startFlow(IssueTokensFlow(20.USD, buyerParty)).apply {
+        buyer.startFlow(IssueTokensFlow(20.GBP, buyerParty)).apply {
             network.runNetwork()
         }
 
@@ -87,7 +89,7 @@ class SwapTests {
             }.getOrThrow().second
 
         val signedTokensOfferTxId =
-            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.USD)).apply {
+            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
                 network.runNetwork()
             }.getOrThrow()
 
@@ -107,8 +109,52 @@ class SwapTests {
         val artworkItemBidder = queryArtworkState(bidder, false)
         assertNotNull(artworkItemBidder)
 
-//        val sellerBalance = seller.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
-//        val buyerBalance = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+//        val sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+//        val buyerBalance = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+    }
+
+    @Test
+    fun `swap steps between four parties with CBDC`() {
+
+        val galleryParty = gallery.info.chooseIdentity()
+        //val bidderParty = bidder.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+
+        val artworkState = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.CBDC, buyerParty)).apply {
+            network.runNetwork()
+        }
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkState.linearId.toString())
+        val verifiedDraftTx =
+            bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
+                network.runNetwork()
+            }.getOrThrow().second
+
+        val signedTokensOfferTxId =
+            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.CBDC)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val signedArtTransferTx = gallery.startFlow(SignAndFinalizeTransferOfOwnership(verifiedDraftTx.tx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
+
+        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTxId.id, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val artworkItemGallery = queryArtworkState(gallery, false)
+        assertNull(artworkItemGallery)
+
+        val artworkItemBidder = queryArtworkState(bidder, false)
+        assertNotNull(artworkItemBidder)
+
+//        val sellerBalance = seller.startFlow(GetBalanceFlow(CBDC)).also { network.runNetwork() }.getOrThrow()
+//        val buyerBalance = buyer.startFlow(GetBalanceFlow(CBDC)).also { network.runNetwork() }.getOrThrow()
     }
 
     @Test
@@ -121,7 +167,7 @@ class SwapTests {
         val buyerParty = buyer.info.chooseIdentity()
 
         val artworkState = issueArtwork(gallery)
-        buyer.startFlow(IssueTokensFlow(20.USD, buyerParty)).apply {
+        buyer.startFlow(IssueTokensFlow(20.GBP, buyerParty)).apply {
             network.runNetwork()
         }
 
@@ -131,23 +177,29 @@ class SwapTests {
                 network.runNetwork()
             }.getOrThrow().second
 
-        val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+        val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
         val signedTokensOfferTxId =
-            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.USD)).apply {
+            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
                 network.runNetwork()
             }.getOrThrow()
 
-        val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+        val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
         buyer.startFlow(RedeemEncumberedTokensFlow(signedTokensOfferTxId.id)).apply {
             network.runNetwork()
         }.getOrThrow()
 
-        val buyerBalanceAfterRedeem = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
+        val buyerBalanceAfterRedeem = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
         assertTrue(buyerBalanceAfterOffer < buyerInitialBalance)
         assertTrue(buyerBalanceAfterRedeem == buyerInitialBalance)
+    }
+
+    @Test
+    fun TestCurrencies() {
+        AuctionCurrency.getInstance("GBP")
+        AuctionCurrency.getInstance("CBDC")
     }
 
     private fun issueArtwork(node: StartedMockNode): ArtworkState {

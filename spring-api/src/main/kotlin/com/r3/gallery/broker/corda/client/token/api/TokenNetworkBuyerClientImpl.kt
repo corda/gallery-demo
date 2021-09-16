@@ -1,13 +1,11 @@
 package com.r3.gallery.broker.corda.client.token.api
 
-import com.r3.corda.lib.tokens.money.FiatCurrency
-import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.TransactionHash
 import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
-import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
+import com.r3.gallery.utils.AuctionCurrency
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
 import com.r3.gallery.workflows.RedeemEncumberedTokensFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
@@ -46,11 +44,11 @@ class TokenNetworkBuyerClientImpl(
         currency: String,
         lockedOn: ValidatedUnsignedArtworkTransferTx
     ): TransactionHash {
-        logger.info("Starting OfferEncumberedTokensFlow3 flow via $buyer with seller: $seller")
+        logger.info("Starting OfferEncumberedTokensFlow flow via $buyer with seller: $seller")
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val sellerParty = connService.wellKnownPartyFromName(buyer, seller)
-        val encumberedAmount = Amount(amount, FiatCurrency.getInstance("GBP"))
+        val encumberedAmount = Amount(amount, AuctionCurrency.getInstance(currency))
         val wireTx = SerializedBytes<WireTransaction>(lockedOn.transactionBytes).deserialize()
         val controllingNotary = SerializedBytes<Party>(lockedOn.controllingNotaryBytes).deserialize()
         val signatureMetadata = SerializedBytes<SignatureMetadata>(lockedOn.signatureMetadataBytes).deserialize()
@@ -65,7 +63,11 @@ class TokenNetworkBuyerClientImpl(
         return tx.toString()
     }
 
-    override fun releaseTokens(buyer: TokenParty, currency: String, encumberedTokens: TransactionHash): TransactionHash {
+    override fun releaseTokens(
+        buyer: TokenParty,
+        currency: String,
+        encumberedTokens: TransactionHash
+    ): TransactionHash {
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val encumberedTxHash = SecureHash.parse(encumberedTokens)
