@@ -1,6 +1,7 @@
 package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.*
+import java.time.Instant
 
 /**
  * Execute flows against Corda nodes running the Art Network application, acting as the gallery
@@ -9,8 +10,15 @@ interface ArtNetworkGalleryClient {
 
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
+     *
+     * - expiry is defaulted to 3 days from issuance.
      */
-    fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, description: String = "", url: String = ""): ArtworkOwnership
+    fun issueArtwork(
+        galleryParty: ArtworkParty,
+        artworkId: ArtworkId,
+        expiry: Instant? = Instant.now().plusSeconds(259200L),
+        description: String = "", url: String = ""
+    ): ArtworkOwnership
 
     /**
      * List out the artworks still held by the gallery.

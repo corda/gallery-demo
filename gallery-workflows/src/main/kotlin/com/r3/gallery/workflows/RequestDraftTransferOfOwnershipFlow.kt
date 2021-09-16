@@ -107,10 +107,6 @@ class RequestDraftTransferOfOwnershipFlow(
 @InitiatedBy(RequestDraftTransferOfOwnershipFlow::class)
 class RequestDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : FlowLogic<Unit>() {
 
-    companion object {
-        const val draftOfferValidityInMinutes = 5L
-    }
-
     override val progressTracker = ProgressTracker()
 
     @Suspendable
@@ -131,7 +127,7 @@ class RequestDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) 
             addInputState(artworkStateAndRef)
             addOutputState(artworkState.withNewOwner(bidderParty), ArtworkContract.ID)
             addCommand(ArtworkContract.Commands.TransferOwnership(), ourIdentity.owningKey, bidderParty.owningKey)
-            setTimeWindow(TimeWindow.untilOnly(Instant.now().plus(Duration.ofMinutes(draftOfferValidityInMinutes))))
+            setTimeWindow(TimeWindow.untilOnly(artworkState.expiry))
         }.also { it.verify(serviceHub) }.toWireTransaction(serviceHub)
 
         otherSession.send(wireTx)

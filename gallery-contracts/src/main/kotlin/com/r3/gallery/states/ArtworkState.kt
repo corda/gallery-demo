@@ -4,11 +4,13 @@ import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.contracts.ArtworkContract
 import net.corda.core.contracts.*
 import net.corda.core.identity.AbstractParty
+import java.time.Instant
 
 @BelongsToContract(ArtworkContract::class)
 data class ArtworkState(
     val artworkId: ArtworkId,
     val owner: AbstractParty,
+    val expiry: Instant,
     val description: String = "",
     val url: String = "",
     override val linearId: UniqueIdentifier = UniqueIdentifier()

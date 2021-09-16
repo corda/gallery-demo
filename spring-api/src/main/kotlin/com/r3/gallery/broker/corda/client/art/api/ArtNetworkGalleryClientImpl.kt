@@ -18,6 +18,7 @@ import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.time.Instant
 import javax.annotation.PostConstruct
 
 @Component
@@ -40,9 +41,9 @@ class ArtNetworkGalleryClientImpl(
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, description: String, url: String): ArtworkOwnership {
+    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, expiry: Instant?, description: String, url: String): ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
-        val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId, description, url)
+        val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId, expiry, description, url)
         return ArtworkOwnership(
             state.linearId.id,
             state.artworkId,
