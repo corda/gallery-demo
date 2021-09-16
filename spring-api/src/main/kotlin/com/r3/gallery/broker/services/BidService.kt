@@ -9,21 +9,21 @@ class BidService(
     @Autowired val bidRepository: BidReceiptRepository
 ) {
 
-    fun placeBid(bidderName: String, artworkId: ArtworkId, bidAmount: Int) {
-        val bidReceipt = swapService.bidForArtwork(bidderName, artworkId, bidAmount)
+    fun placeBid(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String) {
+        val bidReceipt = swapService.bidForArtwork(bidderName, artworkId, bidAmount, currency)
 
         bidRepository.store(bidReceipt)
     }
 
-    fun awardArtwork(bidderName: String, artworkId: ArtworkId): List<Receipt> {
+    fun awardArtwork(bidderName: String, artworkId: ArtworkId, encumberedCurrency: String): List<Receipt> {
         val bidReceipt = bidRepository.retrieve(bidderName, artworkId)
-        val saleReceipt = swapService.awardArtwork(bidReceipt)
+        val saleReceipt = swapService.awardArtwork(bidReceipt, encumberedCurrency)
 
         bidRepository.remove(bidderName, artworkId)
 
         // cancel remaining bids
         val cancelReceipts = bidRepository.getBidsFor(artworkId).map { failedBid ->
-            swapService.cancelBid(failedBid)
+            swapService.cancelBid(failedBid, encumberedCurrency)
         }
 
         return listOf(saleReceipt) + cancelReceipts

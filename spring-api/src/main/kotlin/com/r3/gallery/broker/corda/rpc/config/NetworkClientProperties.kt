@@ -3,14 +3,18 @@ package com.r3.gallery.broker.corda.rpc.config
 import com.r3.gallery.api.CordaRPCNetwork
 import org.springframework.stereotype.Component
 
-/**
- * Connection and credential properties for Bidders
- */
+@Component("AuctionNetworkProperties")
+class AuctionNetworkProperties(properties: RpcProperties) : ClientProperties {
 
-@Component("ArtNetworkBidderProperties")
-class ArtNetworkBidderProperties(properties: RpcProperties) : ClientProperties {
     override var clients: List<NetworkClientConfig> =
         listOf(
+            NetworkClientConfig(
+                properties.aliceX500,
+                CordaRPCNetwork.AUCTION,
+                properties.auction.url.alice,
+                properties.username,
+                properties.password
+            ),
             NetworkClientConfig(
                 properties.bobX500,
                 CordaRPCNetwork.AUCTION,
@@ -28,14 +32,37 @@ class ArtNetworkBidderProperties(properties: RpcProperties) : ClientProperties {
         )
 }
 
-@Component("TokenNetworkBidderProperties")
-class TokenNetworkBidderProperties(properties: RpcProperties) : ClientProperties {
+@Component("GbpNetworkProperties")
+class GbpNetworkProperties(properties: RpcProperties) : ClientProperties {
+
     override var clients: List<NetworkClientConfig> =
         listOf(
             NetworkClientConfig(
                 properties.bobX500,
                 CordaRPCNetwork.GBP,
                 properties.gbp.url.bob,
+                properties.username,
+                properties.password
+            ),
+            NetworkClientConfig(
+                properties.aliceX500,
+                CordaRPCNetwork.GBP,
+                properties.gbp.url.alice,
+                properties.username,
+                properties.password
+            )
+        )
+}
+
+@Component("CbdcNetworkProperties")
+class CbdcNetworkProperties(properties: RpcProperties) : ClientProperties {
+
+    override var clients: List<NetworkClientConfig> =
+        listOf(
+            NetworkClientConfig(
+                properties.aliceX500,
+                CordaRPCNetwork.CBDC,
+                properties.cbdc.url.alice,
                 properties.username,
                 properties.password
             ),

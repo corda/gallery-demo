@@ -9,6 +9,8 @@ import net.corda.core.identity.AbstractParty
 data class ArtworkState(
     val artworkId: ArtworkId,
     val owner: AbstractParty,
+    val description: String = "",
+    val url: String = "",
     override val linearId: UniqueIdentifier = UniqueIdentifier()
 ): LinearState {
     override val participants: List<AbstractParty> get() = listOf(owner)

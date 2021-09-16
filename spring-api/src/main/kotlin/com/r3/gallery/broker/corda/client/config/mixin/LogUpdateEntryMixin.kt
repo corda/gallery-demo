@@ -19,6 +19,14 @@ internal class LogUpdateEntrySerializer : JsonSerializer<LogUpdateEntry>() {
         gen.writeStringField("logRecordId", value.logRecordId)
         gen.writeStringField("timestamp", value.timestamp)
         gen.writeStringField("message", value.message)
+        if (value.completed != null) { // FlowCompletionLog
+            gen.writeObjectFieldStart("completed")
+            gen.writeStringField("associatedStage", value.completed!!.associatedStage)
+            gen.writeStringField("logRecordId", value.completed!!.logRecordId)
+            gen.writeObjectField("states", value.completed!!.states)
+            gen.writeObjectField("signers", value.completed!!.signers)
+            gen.writeEndObject()
+        }
         gen.writeEndObject()
     }
 }

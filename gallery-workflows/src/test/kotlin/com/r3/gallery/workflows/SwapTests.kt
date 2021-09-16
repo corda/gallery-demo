@@ -84,7 +84,7 @@ class SwapTests {
         val verifiedDraftTx =
             bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
                 network.runNetwork()
-            }.getOrThrow()
+            }.getOrThrow().second
 
         val signedTokensOfferTxId =
             buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.USD)).apply {
@@ -97,7 +97,7 @@ class SwapTests {
 
         val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
 
-        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTxId, requiredSignature)).apply {
+        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTxId.id, requiredSignature)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -129,7 +129,7 @@ class SwapTests {
         val verifiedDraftTx =
             bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
                 network.runNetwork()
-            }.getOrThrow()
+            }.getOrThrow().second
 
         val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
 
@@ -140,7 +140,7 @@ class SwapTests {
 
         val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(USD)).also { network.runNetwork() }.getOrThrow()
 
-        buyer.startFlow(RedeemEncumberedTokensFlow(signedTokensOfferTxId)).apply {
+        buyer.startFlow(RedeemEncumberedTokensFlow(signedTokensOfferTxId.id)).apply {
             network.runNetwork()
         }.getOrThrow()
 

@@ -10,7 +10,7 @@ interface ArtNetworkGalleryClient {
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
+    fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, description: String = "", url: String = ""): ArtworkOwnership
 
     /**
      * List out the artworks still held by the gallery.

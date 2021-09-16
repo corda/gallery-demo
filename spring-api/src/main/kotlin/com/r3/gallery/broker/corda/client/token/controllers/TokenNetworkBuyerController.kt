@@ -33,16 +33,18 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         return asResponse(Unit)
     }
 
+    // TODO: Move to BidService placeBid (request-draft-transfer / transfer-encumbered tokens)
     @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun transferEncumberedTokens(
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("sellerParty") sellerParty: TokenParty,
-        @RequestParam("amount") amount: Int,
+        @RequestParam("amount") amount: Long,
+        @RequestParam("currency") currency: String,
         @RequestBody validatedUnsignedArtworkTransferTx: ValidatedUnsignedArtworkTransferTx
     ): ResponseEntity<TransactionHash> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
         val signedTokenTransferTxId =
-            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, validatedUnsignedArtworkTransferTx)
+            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, currency, validatedUnsignedArtworkTransferTx)
         return asResponse(signedTokenTransferTxId)
     }
 
@@ -52,10 +54,11 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     @PostMapping("/release-encumbered-tokens")
     fun transferEncumberedTokens(
         @RequestParam("buyerParty") buyerParty: TokenParty,
+        @RequestParam("currency") currency: String,
         @RequestParam("encumberedTokensTxHash") encumberedTokensTxHash: String,
     ): ResponseEntity<TransactionHash> {
         logger.info("Request by $buyerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
-        val releasedTokensTxId = buyerClient.releaseTokens(buyerParty, encumberedTokensTxHash)
+        val releasedTokensTxId = buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash)
         return asResponse(releasedTokensTxId)
     }
 }

@@ -22,7 +22,7 @@ open class AtomicSwapService(
     private val galleryParty = identityRegistry.getArtworkParty(GALLERY)
     private val sellerParty = identityRegistry.getTokenParty(GALLERY)
 
-    fun bidForArtwork(bidderName: String, artworkId: ArtworkId, bidAmount: Int): BidReceipt {
+    fun bidForArtwork(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String): BidReceipt {
         val bidderParty = identityRegistry.getArtworkParty(bidderName)
         val buyerParty = identityRegistry.getTokenParty(bidderName)
 
@@ -30,7 +30,7 @@ open class AtomicSwapService(
         val validatedUnsignedTx =
             bidderClient.requestDraftTransferOfOwnership(bidderParty, galleryParty, ownership.cordaReference)
         val encumberedTokens =
-            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, bidAmount, validatedUnsignedTx)
+            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, bidAmount, currency, validatedUnsignedTx)
 
         val unsignedArtworkTransferTx = UnsignedArtworkTransferTx(validatedUnsignedTx.transactionBytes)
         return BidReceipt(bidderName, artworkId, unsignedArtworkTransferTx, encumberedTokens)
@@ -41,17 +41,18 @@ open class AtomicSwapService(
      *
      * @return Details of the sale, with transaction ids for both legs of the swap.
      */
-    fun awardArtwork(bid: BidReceipt): SaleReceipt {
+    fun awardArtwork(bid: BidReceipt, currency: String): SaleReceipt {
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
-        val tokenTxId = sellerClient. claimTokens(sellerParty, bid.encumberedTokens, proofOfTransfer.notarySignature)
+        val tokenTxId = sellerClient.claimTokens(sellerParty, currency, bid.encumberedTokens, proofOfTransfer.notarySignature)
 
         return SaleReceipt(bid.bidderName, bid.artworkId, proofOfTransfer.transactionHash, tokenTxId)
     }
 
-    fun cancelBid(bid: BidReceipt): CancellationReceipt {
+    fun cancelBid(bid: BidReceipt, currency: String): CancellationReceipt {
 
         val tokenTxId = sellerClient.releaseTokens(
             sellerParty,
+            currency,
             identityRegistry.getTokenParty(bid.bidderName),
             bid.encumberedTokens)
 

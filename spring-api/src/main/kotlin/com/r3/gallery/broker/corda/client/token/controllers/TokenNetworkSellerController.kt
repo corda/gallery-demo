@@ -17,10 +17,11 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     @PostMapping("/claim-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun claimTokens(
         @RequestParam("sellerParty") sellerParty: TokenParty,
+        @RequestParam("currency") currency: String,
         @RequestBody tokenReleaseData: TokenReleaseData
     ): ResponseEntity<TransactionHash> {
         val transactionHash =
-            sellerClient.claimTokens(sellerParty, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature)
+            sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature)
         return asResponse(transactionHash)
     }
 }

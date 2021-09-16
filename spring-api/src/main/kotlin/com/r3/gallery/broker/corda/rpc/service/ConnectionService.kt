@@ -12,7 +12,7 @@ import net.corda.core.node.NodeInfo
 interface ConnectionService {
 
     // Corda network which this connection service handles RPC towards.
-    var associatedNetwork: CordaRPCNetwork?
+    var associatedNetwork: CordaRPCNetwork
 
     /**
      * Store sessions: UniqueIdentifier [UUID, RpcConnectionTarget] / Connection Instance

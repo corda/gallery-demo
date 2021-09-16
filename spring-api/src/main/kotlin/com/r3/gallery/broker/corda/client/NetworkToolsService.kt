@@ -2,76 +2,42 @@ package com.r3.gallery.broker.corda.client
 
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.LogUpdateEntry
+import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.api.Participant
-import com.r3.gallery.broker.corda.rpc.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
-import com.r3.gallery.broker.services.exceptions.LogInitializationError
+import com.r3.gallery.workflows.webapp.GetBalanceFlow
 import net.corda.client.rpc.CordaRPCConnection
-import net.corda.client.rpc.RPCException
 import net.corda.core.internal.hash
+import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @Component
-class NetworkToolsService {
+class NetworkToolsService(
+    @Autowired private val connectionManager: ConnectionManager,
+    @Autowired private val logService: LogService
+) {
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsService::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
-    private var networkClients: MutableList<ConnectionService> = ArrayList()
-    private lateinit var logService: LogService
+    private lateinit var networkClients: List<ConnectionService>
+    private lateinit var tokenClients: List<ConnectionService>
     private var logIdx: LogRetrievalIdx = 0
 
-    @Autowired
-    @Qualifier("ArtNetworkGalleryProperties")
-    private lateinit var artNetworkGalleryProperties: ClientProperties
-
-    @Autowired
-    @Qualifier("ArtNetworkBidderProperties")
-    private lateinit var artNetworkBidderProperties: ClientProperties
-
-    // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
-        val artNetworkGalleryCS = ConnectionServiceImpl(artNetworkGalleryProperties)
-        artNetworkGalleryCS.associatedNetwork = CordaRPCNetwork.AUCTION
-
-        val artNetworkBidderCS = ConnectionServiceImpl(artNetworkBidderProperties)
-        artNetworkBidderCS.associatedNetwork = CordaRPCNetwork.AUCTION
-
-        networkClients.add(artNetworkBidderCS)
-        networkClients.add(artNetworkGalleryCS)
-    }
-
-    /**
-     * Setup the logging service for the associated connection services
-     */
-    private fun initializeLogService() {
-        val proxiesAndNetwork = networkClients.runPerConnectionService connect@{
-            val network = it.associatedNetwork
-
-            return@connect try {
-                it.allConnections()?.map { rpc ->
-                    Pair(rpc.proxy, network!!)
-                }!!
-            } catch (rpcE: RPCException) {
-                val issue = "Unable to connect to a target node: $rpcE"
-                logger.error(issue)
-                throw LogInitializationError(issue)
-            }
-
-        }.flatten()
-
-        logService = LogService(proxiesAndNetwork)
+        networkClients = listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp)
+        tokenClients = listOf(connectionManager.cbdc, connectionManager.gbp)
     }
 
     /**
@@ -107,7 +73,7 @@ class NetworkToolsService {
      */
     fun participants(networks: List<String>?) : List<Participant> {
         val allNetworkIds = networkClients.runPerConnectionService {
-            val currentNetwork = it.associatedNetwork!!.netName
+            val currentNetwork = it.associatedNetwork.netName
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
                 .map { nodeInfo ->
                     val x500 = nodeInfo.legalIdentitiesAndCerts.first().name
@@ -139,11 +105,31 @@ class NetworkToolsService {
      * available for logService to correctly init.
      */
     fun getLogs(): List<LogUpdateEntry> {
-        if (!this::logService.isInitialized) {
-            initializeLogService()
-        }
+        if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
         val result = logService.getProgressUpdates(logIdx)
         logIdx = result.first // set indexing for next fetch
         return result.second
+    }
+
+    /**
+     * Returns Balances of all parties
+     */
+    fun getBalance(): List<NetworkBalancesResponse> {
+        val allBalances = tokenClients.runPerConnectionService {
+            it.allConnections()!!.map { rpc ->
+                val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
+                val currentBalance = rpc.proxy.startFlowDynamic(
+                    GetBalanceFlow::class.java
+                ).returnValue.getOrThrow()
+                Pair(x500, currentBalance)
+            }
+        }.flatten()
+        return allBalances.groupBy { it.first }
+            .entries.map {
+                NetworkBalancesResponse(
+                    x500 = it.key.toString(),
+                    partyBalances = it.value.map { balance -> balance.second }
+                )
+            }
     }
 }

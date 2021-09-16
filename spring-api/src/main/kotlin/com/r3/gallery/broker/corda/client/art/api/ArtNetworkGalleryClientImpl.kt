@@ -1,9 +1,8 @@
 package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.*
-import com.r3.gallery.broker.corda.rpc.config.ClientProperties
+import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
-import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
@@ -18,37 +17,32 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @Component
-class ArtNetworkGalleryClientImpl : ArtNetworkGalleryClient {
+class ArtNetworkGalleryClientImpl(
+    @Autowired private val connectionManager: ConnectionManager
+) : ArtNetworkGalleryClient {
 
     private lateinit var artNetworkGalleryCS: ConnectionService
-
-    @Autowired
-    @Qualifier("ArtNetworkGalleryProperties")
-    private lateinit var artNetworkGalleryProperties: ClientProperties
 
     // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
-        artNetworkGalleryCS = ConnectionServiceImpl(artNetworkGalleryProperties)
-        artNetworkGalleryCS.associatedNetwork = network
+        artNetworkGalleryCS = connectionManager.auction
     }
 
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryClientImpl::class.java)
-        private val network = CordaRPCNetwork.AUCTION
     }
 
     /**
      * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
      */
-    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
+    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, description: String, url: String): ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
-        val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId)
+        val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId, description, url)
         return ArtworkOwnership(
             state.linearId.id,
             state.artworkId,

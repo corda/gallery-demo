@@ -16,12 +16,14 @@ import net.corda.core.transactions.TransactionBuilder
 @StartableByRPC
 @InitiatingFlow
 class IssueArtworkFlow(
-    private val artworkId: ArtworkId
+    private val artworkId: ArtworkId,
+    private val description: String = "",
+    private val url: String = ""
 ) : FlowLogic<ArtworkState>() {
 
     @Suspendable
     override fun call(): ArtworkState {
-        val state = ArtworkState(artworkId, ourIdentity)
+        val state = ArtworkState(artworkId, ourIdentity, description, url)
         val command = Command(ArtworkContract.Commands.Issue(), listOf(ourIdentity.owningKey))
         val builder = TransactionBuilder(notary = serviceHub.networkMapCache.notaryIdentities.first())
             .withItems(StateAndContract(state, ID), command)

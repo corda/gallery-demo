@@ -41,6 +41,17 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return asResponse(artworkIds)
     }
 
+    // TODO: Send to BidService awardArtwork
+    @PostMapping("/accept-bid", consumes = [MediaType.APPLICATION_JSON_VALUE])
+    fun acceptBid(
+        @RequestParam("galleryParty") galleryParty: ArtworkParty,
+        @RequestParam("cordaReference") cordaReference: CordaReference
+    ) : ResponseEntity<Unit> {
+        logger.info("Request by $galleryParty to accept bid from $cordaReference")
+        return asResponse(Unit)
+    }
+
+    // TODO: Move to bidService awardArtwork
     @PostMapping("/finalise-artwork-transfer", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun finaliseArtworkTransfer(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,

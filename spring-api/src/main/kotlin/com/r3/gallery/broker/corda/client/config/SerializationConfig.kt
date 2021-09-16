@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter
 import net.corda.client.jackson.JacksonSupport.createNonRpcMapper
 import net.corda.core.contracts.Amount
+import net.corda.core.contracts.ContractState
 import net.corda.core.contracts.UniqueIdentifier
 
 
@@ -28,6 +29,7 @@ class SerializationConfig {
         mapper.addMixIn(Participant::class.java, ParticipantMixin::class.java)
         mapper.addMixIn(NetworkBalancesResponse.Balance::class.java, BalanceMixin::class.java)
         mapper.addMixIn(AvailableArtwork::class.java, AvailableArtworkMixin::class.java)
+        mapper.addMixIn(ContractState::class.java, ContractStateMixin::class.java)
         val converter = MappingJackson2HttpMessageConverter()
         converter.objectMapper = mapper
         return converter
