@@ -1,6 +1,7 @@
 package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.*
+import java.time.Duration
 import java.time.Instant
 
 /**
@@ -16,8 +17,9 @@ interface ArtNetworkGalleryClient {
     fun issueArtwork(
         galleryParty: ArtworkParty,
         artworkId: ArtworkId,
-        expiry: Instant? = Instant.now().plusSeconds(259200L),
-        description: String = "", url: String = ""
+        expiry: Instant? = Instant.now().plus(Duration.ofDays(3)),
+        description: String = "",
+        url: String = ""
     ): ArtworkOwnership
 
     /**

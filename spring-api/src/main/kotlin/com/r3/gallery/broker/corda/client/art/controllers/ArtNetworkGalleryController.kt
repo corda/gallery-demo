@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.Duration
 import java.time.Instant
 
 /**
@@ -32,7 +33,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         @RequestParam("url", required = false) url: String = ""
     ): ResponseEntity<ArtworkOwnership> {
         logger.info("Request by $galleryParty to issue artwork of id $artworkId")
-        val expInstant = Instant.now().plusSeconds(expiry.toLong()*86400)
+        val expInstant = Instant.now().plus(Duration.ofDays(3))
         val artworkOwnership = galleryClient.issueArtwork(
             galleryParty,
             artworkId.toUUID(),
