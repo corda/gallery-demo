@@ -71,26 +71,6 @@ class NetworkToolsController(
      */
     @GetMapping("/init")
     fun initIssuance(): ResponseEntity<Unit> {
-        logger.info("Request for initial issuance to networks.")
-
-        // artworks
-        val urlPrefix = "/assets/artwork"
-        listOf(
-            Pair("A Thousand Plateaus", "A_Thousand_Plateaus.png"),
-            Pair("Cities of the Red Night", "Cities_of_the_Red_Night.png"),
-            Pair("The Funeral of Being", "The_Funeral_of_Being.png"),
-            Pair("All Watched Over By Machines", "All_Watched_Over_By_Machines_Of_Loving_Grace.png"),
-            Pair("The Eerie Bliss", "The_Eerie_Bliss_and_Torture_of_Solitude.png"),
-            Pair("The Masque of the Red Death", "The_Masque_of_the_Red_Death.png")
-        ).forEach {
-            galleryClient.issueArtwork(ALICE, UUID.randomUUID(), it.first, urlPrefix+it.second)
-        }
-
-        // GBP to BOB
-        tokenClient.issueTokens(BOB, 5000, "GBP")
-
-        // CBDC to CHARLIE
-
-        return asResponse(Unit)
+        TODO("coming on different branch")
     }
 }
