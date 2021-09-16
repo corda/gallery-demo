@@ -31,9 +31,6 @@ class NetworkToolsController(
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsController::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
-        const val ALICE = "O=Alice,L=London,C=GB"
-        const val BOB = "O=Bob,L=San Francisco,C=US"
-        const val CHARLIE = "O=Charlie,L=Mumbai,C=IN"
     }
 
     /**
@@ -71,6 +68,7 @@ class NetworkToolsController(
      */
     @GetMapping("/init")
     fun initIssuance(): ResponseEntity<Unit> {
-        TODO("coming on different branch")
+        logger.info("Request for initial issuance to networks.")
+        return asResponse(Unit)
     }
 }

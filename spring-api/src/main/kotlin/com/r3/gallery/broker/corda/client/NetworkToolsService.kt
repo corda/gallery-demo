@@ -4,6 +4,8 @@ import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.api.Participant
+import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
+import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
@@ -17,12 +19,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+import java.util.*
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @Component
 class NetworkToolsService(
     @Autowired private val connectionManager: ConnectionManager,
+    @Autowired private val artNetworkGalleryClient: ArtNetworkGalleryClient,
+    @Autowired private val tokenNetworkBuyerClient: TokenNetworkBuyerClient,
     @Autowired private val logService: LogService
 ) {
     companion object {
@@ -72,8 +77,10 @@ class NetworkToolsService(
      * Constructs Participants and injects grouped list
      */
     fun participants(networks: List<String>?) : List<Participant> {
+        logger.info("Attempting to fetch participants from all networks: ${CordaRPCNetwork.values()}")
         val allNetworkIds = networkClients.runPerConnectionService {
             val currentNetwork = it.associatedNetwork.netName
+            logger.info("Polling participants from $currentNetwork")
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
                 .map { nodeInfo ->
                     val x500 = nodeInfo.legalIdentitiesAndCerts.first().name
@@ -105,6 +112,7 @@ class NetworkToolsService(
      * available for logService to correctly init.
      */
     fun getLogs(): List<LogUpdateEntry> {
+        logger.info("Starting log retrieval")
         if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
         val result = logService.getProgressUpdates(logIdx)
         logIdx = result.first // set indexing for next fetch
@@ -131,5 +139,37 @@ class NetworkToolsService(
                     partyBalances = it.value.map { balance -> balance.second }
                 )
             }
+    }
+
+    /**
+     * Reset or Initialize auction demo conditions
+     */
+    fun initializeDemo() {
+        val alice = "O=Alice,L=London,C=GB"
+        val bob = "O=Bob,L=San Francisco,C=US"
+        val charlie = "O=Charlie,L=Mumbai,C=IN"
+
+        // artworks
+        val urlPrefix = "/assets/artwork"
+        listOf(
+            Pair("A Thousand Plateaus", "A_Thousand_Plateaus.png"),
+            Pair("Cities of the Red Night", "Cities_of_the_Red_Night.png"),
+            Pair("The Funeral of Being", "The_Funeral_of_Being.png"),
+            Pair("All Watched Over By Machines", "All_Watched_Over_By_Machines_Of_Loving_Grace.png"),
+            Pair("The Eerie Bliss", "The_Eerie_Bliss_and_Torture_of_Solitude.png"),
+            Pair("The Masque of the Red Death", "The_Masque_of_the_Red_Death.png")
+        ).forEach { // issue with default expiry of 3 days.
+            artNetworkGalleryClient.issueArtwork(
+                galleryParty = alice,
+                artworkId = UUID.randomUUID(),
+                description = it.first,
+                url = urlPrefix+it.second
+            )
+        }
+
+        // GBP issued to Bob
+        tokenNetworkBuyerClient.issueTokens(bob, 5000, "GBP")
+        // CBDC issued to Charlie
+        tokenNetworkBuyerClient.issueTokens(charlie, 8000, "CBDC")
     }
 }
