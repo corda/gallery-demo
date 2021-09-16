@@ -28,7 +28,7 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
         @RequestParam("currency") currency: String,
         @RequestBody tokenReleaseData: TokenReleaseData
     ): ResponseEntity<TransactionHash> {
-        logger.info("Request by $sellerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
+        logger.info("Request by $sellerParty to claim tokens from encumbered tx ${tokenReleaseData.encumberedTokens} with signature ${tokenReleaseData.notarySignature}")
         val transactionHash =
             sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature)
         return asResponse(transactionHash)
