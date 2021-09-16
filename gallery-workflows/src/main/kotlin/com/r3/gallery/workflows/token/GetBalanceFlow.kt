@@ -2,8 +2,8 @@ package com.r3.gallery.workflows.token
 
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.TokenType
-import com.r3.corda.lib.tokens.money.FiatCurrency
 import com.r3.corda.lib.tokens.workflows.utilities.tokenBalance
+import com.r3.gallery.utils.AuctionCurrency
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow
@@ -18,7 +18,7 @@ class GetBalanceFlow(val currency: String) : FlowLogic<Amount<TokenType>>() {
     @Suspendable
     override fun call(): Amount<TokenType> {
 
-        val currencyTokenType: TokenType = FiatCurrency.getInstance(currency)
+        val currencyTokenType: TokenType = AuctionCurrency.getInstance(currency)
 
         return serviceHub.vaultService.tokenBalance(currencyTokenType)
     }

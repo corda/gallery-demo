@@ -5,8 +5,8 @@ import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.contracts.utilities.heldBy
 import com.r3.corda.lib.tokens.contracts.utilities.issuedBy
 import com.r3.corda.lib.tokens.contracts.utilities.of
-import com.r3.corda.lib.tokens.money.FiatCurrency
 import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens
+import com.r3.gallery.utils.AuctionCurrency
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.*
 import net.corda.core.identity.AbstractParty
@@ -47,7 +47,7 @@ class IssueTokensFlow(
     @Suspendable
     override fun call(): SignedTransaction {
 
-        val currencyTokenType = FiatCurrency.getInstance(currency)
+        val currencyTokenType = AuctionCurrency.getInstance(currency)
         val amountOfTarget = amount of currencyTokenType
 
         val tokenToIssue = amountOfTarget issuedBy ourIdentity heldBy receiver!!
