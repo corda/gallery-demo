@@ -4,7 +4,6 @@ import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.r3.gallery.states.LockState
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
-import net.corda.core.contracts.requireThat
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.crypto.toStringShort
 import net.corda.core.transactions.LedgerTransaction
@@ -80,19 +79,27 @@ class LockContract : Contract {
                     "Signer of encumbrance transaction does not match controlling notary in Lock setup"
                 }
             }
-            is Redeem -> {
+            is Revert -> {
                 val now = Instant.now()
-                val ourState = tx.inRefsOfType(LockState::class.java).single().state.data
-                val encumberedTxIssuer = ourState.creator
-                val encumberedTxUntilTime = ourState.timeWindow.untilTime!!
-
-                val allowedOutputs: Set<FungibleToken> =
-                    tx.inputsOfType(FungibleToken::class.java).map { it.withNewHolder(encumberedTxIssuer) }.toSet()
+                val lockState = tx.inRefsOfType(LockState::class.java).single().state.data
+                val encumberedTxIssuer = lockState.creator
+                val encumberedTxReceiver = lockState.receiver
+                val encumberedTxUntilTime = lockState.timeWindow.untilTime!!
+                val allowedOutputs: Set<FungibleToken> = tx.inputsOfType(FungibleToken::class.java).map {
+                    if(it.holder.owningKey == lockState.getCompositeKey()) it.withNewHolder(encumberedTxIssuer) else it
+                }.toSet()
                 val actualOutputs: Set<FungibleToken> = tx.outputsOfType(FungibleToken::class.java).toSet()
 
-                requireThat {
-                    "Tokens can only be redeemed after the lock state expired" using (now.isAfter(encumberedTxUntilTime))
-                    "Tokens can only be redeemed by the issuer of the encumbered offer" using (allowedOutputs == actualOutputs)
+                require(ourCommand.signers.intersect(listOf(encumberedTxIssuer.owningKey, encumberedTxReceiver.owningKey)).size == 1) {
+                    "Token offer can be retired exclusively by either its issuer or its receiver"
+                }
+
+                require(now.isAfter(encumberedTxUntilTime) or ourCommand.signers.contains(encumberedTxReceiver.owningKey)) {
+                    "Token offer can be retired by its issuer only after the offer expires"
+                }
+
+                require(allowedOutputs == actualOutputs) {
+                    "Token offer can only be reverted in favor of the offer issuer"
                 }
             }
         }
@@ -101,6 +108,6 @@ class LockContract : Contract {
     open class LockCommand : CommandData
     class Encumber : LockCommand()
     class Release(val signature: TransactionSignature) : LockCommand()
-    class Redeem : LockCommand()
+    class Revert : LockCommand()
 }
 

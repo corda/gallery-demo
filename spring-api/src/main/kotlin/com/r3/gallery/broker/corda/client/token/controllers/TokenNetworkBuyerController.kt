@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*
 class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClient) {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(ArtNetworkBidderController::class.java)
+        private val logger = LoggerFactory.getLogger(TokenNetworkBuyerController::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
@@ -33,7 +33,6 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         return asResponse(Unit)
     }
 
-    // TODO: Move to BidService placeBid (request-draft-transfer / transfer-encumbered tokens)
     @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun transferEncumberedTokens(
         @RequestParam("buyerParty") buyerParty: TokenParty,
