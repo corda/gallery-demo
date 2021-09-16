@@ -7,7 +7,7 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
 import com.r3.gallery.utils.AuctionCurrency
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
-import com.r3.gallery.workflows.RedeemEncumberedTokensFlow
+import com.r3.gallery.workflows.RevertEncumberedTokensFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.crypto.SecureHash
@@ -71,7 +71,7 @@ class TokenNetworkBuyerClientImpl(
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val encumberedTxHash = SecureHash.parse(encumberedTokens)
-        val stx = connService.startFlow(buyer, RedeemEncumberedTokensFlow::class.java, encumberedTxHash)
+        val stx = connService.startFlow(buyer, RevertEncumberedTokensFlow::class.java, encumberedTxHash)
         return stx.id.toString()
     }
 }

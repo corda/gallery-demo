@@ -1,6 +1,5 @@
 package com.r3.gallery.workflows
 
-import com.r3.corda.lib.tokens.money.DigitalCurrency
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.states.ArtworkState
@@ -159,7 +158,7 @@ class SwapTests {
 
     @Test
     @Ignore("Need to parametrize swap tx TimeWindow expiration or LockCommand.Release")
-    fun `redeem steps between four parties`() {
+    fun `revert steps between four parties by encumbered tx issuer`() {
 
         val galleryParty = gallery.info.chooseIdentity()
         //val bidderParty = bidder.info.chooseIdentity()
@@ -186,7 +185,45 @@ class SwapTests {
 
         val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
-        buyer.startFlow(RedeemEncumberedTokensFlow(signedTokensOfferTxId.id)).apply {
+        buyer.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTxId.id)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val buyerBalanceAfterRedeem = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        assertTrue(buyerBalanceAfterOffer < buyerInitialBalance)
+        assertTrue(buyerBalanceAfterRedeem == buyerInitialBalance)
+    }
+
+    @Test
+    fun `revert steps between four parties by encumbered tx receiver`() {
+
+        val galleryParty = gallery.info.chooseIdentity()
+        //val bidderParty = bidder.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+
+        val artworkState = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.GBP, buyerParty)).apply {
+            network.runNetwork()
+        }
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkState.linearId.toString())
+        val verifiedDraftTx =
+            bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
+                network.runNetwork()
+            }.getOrThrow().second
+
+        val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        val signedTokensOfferTxId =
+            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        seller.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTxId.id)).apply {
             network.runNetwork()
         }.getOrThrow()
 
