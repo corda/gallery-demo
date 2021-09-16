@@ -40,13 +40,13 @@ allprojects {
 
 	repositories {
 		mavenCentral()
-		jcenter()
 		maven(url = uri( "https://jitpack.io"))
 		maven(url = uri( "https://software.r3.com/artifactory/corda-dev"))
 		maven(url = uri( "https://software.r3.com/artifactory/corda-releases"))
 		maven(url = uri( "https://software.r3.com/artifactory/corda"))
 		maven(url = uri( "https://software.r3.com/artifactory/corda-lib"))
 		maven(url = uri( "https://repo.gradle.org/gradle/libs-releases-local/"))
+		jcenter()
 	}
 
 	group = "com.r3"
