@@ -10,6 +10,7 @@ import net.corda.core.messaging.StateMachineUpdate
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.getOrThrow
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,7 +30,7 @@ typealias LogRetrievalIdx = Int
 class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
     companion object {
-        val logger =  LoggerFactory.getLogger(LogService::class.java)
+        val logger: Logger =  LoggerFactory.getLogger(LogService::class.java)
     }
 
     private val stateMachineSubscriptions: MutableList<Subscription> = ArrayList()

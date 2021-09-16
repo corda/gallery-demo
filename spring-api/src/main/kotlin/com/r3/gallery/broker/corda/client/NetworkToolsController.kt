@@ -67,8 +67,9 @@ class NetworkToolsController(
      * Initialise the initial artworks and correct amount of funds to the demo parties
      */
     @GetMapping("/init")
-    fun initIssuance(): ResponseEntity<Unit> {
+    fun initializeDemo(): ResponseEntity<Unit> {
         logger.info("Request for initial issuance to networks.")
+        networkToolsService.initializeDemo()
         return asResponse(Unit)
     }
 }
