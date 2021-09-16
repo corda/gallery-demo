@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.Duration
+import java.time.Instant
 
 /**
  * REST endpoints for Gallery parties on Auction Network
@@ -25,10 +27,20 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     @PutMapping("/issue-artwork")
     fun issueArtwork(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
-        @RequestParam("artworkId") artworkId: String
+        @RequestParam("artworkId") artworkId: String,
+        @RequestParam("expiryDays") expiry: Int,
+        @RequestParam("description", required = false) description: String = "",
+        @RequestParam("url", required = false) url: String = ""
     ): ResponseEntity<ArtworkOwnership> {
         logger.info("Request by $galleryParty to issue artwork of id $artworkId")
-        val artworkOwnership = galleryClient.issueArtwork(galleryParty, artworkId.toUUID())
+        val expInstant = Instant.now().plus(Duration.ofDays(3))
+        val artworkOwnership = galleryClient.issueArtwork(
+            galleryParty,
+            artworkId.toUUID(),
+            expInstant,
+            description,
+            url
+        )
         return asResponse(artworkOwnership)
     }
 

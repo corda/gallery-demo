@@ -21,6 +21,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
+import java.time.Instant
 import java.util.concurrent.Future
 
 
@@ -63,7 +64,7 @@ class SwapTests {
     @Test
     fun `can issue artwork`() {
         //val flow = IssueArtworkFlow(description = "test artwork $epoch", url = "http://www.google.com/search?q=$epoch")
-        val flow = IssueArtworkFlow(ArtworkId.randomUUID())
+        val flow = IssueArtworkFlow(ArtworkId.randomUUID(), Instant.now().plusSeconds(5000L))
         seller.startFlow(flow).also { network.runNetwork() }.getOrThrow()
         // TODO
     }
@@ -240,7 +241,7 @@ class SwapTests {
     }
 
     private fun issueArtwork(node: StartedMockNode): ArtworkState {
-        val flow = IssueArtworkFlow(ArtworkId.randomUUID())
+        val flow = IssueArtworkFlow(ArtworkId.randomUUID(), Instant.now().plusSeconds(5000L))
         val future: Future<ArtworkState> = node.startFlow(flow)
         network.runNetwork()
         return future.getOrThrow()
