@@ -17,8 +17,8 @@ import net.corda.core.transactions.TransactionBuilder
 @InitiatingFlow
 class IssueArtworkFlow(
     private val artworkId: ArtworkId,
-    private val description: String,
-    private val url: String
+    private val description: String = "",
+    private val url: String = ""
 ) : FlowLogic<ArtworkState>() {
 
     @Suspendable
