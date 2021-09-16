@@ -1,6 +1,6 @@
 package com.r3.gallery.workflows
 
-import com.r3.corda.lib.tokens.money.USD
+import com.r3.corda.lib.tokens.money.GBP
 import com.r3.corda.lib.tokens.workflows.utilities.tokenBalance
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
@@ -42,23 +42,23 @@ class IssueTokenFlowTests {
     fun `can issue tokens to a party`() {
         val aParty = a.info.chooseIdentity()
 
-        val issueFlow = IssueTokensFlow(10, USD.tokenIdentifier, aParty)
+        val issueFlow = IssueTokensFlow(10, GBP.tokenIdentifier, aParty)
         val stx = a.startFlow(issueFlow).also { network.runNetwork() }.getOrThrow()
 
-        val balance = a.services.vaultService.tokenBalance(USD)
+        val balance = a.services.vaultService.tokenBalance(GBP)
         assertNotNull(stx)
-        assertEquals(10.USD, balance)
+        assertEquals(10.GBP, balance)
     }
 
     @Test
     fun `can get balance`() {
         val aParty = a.info.chooseIdentity()
-        val issueFlow = IssueTokensFlow(10, USD.tokenIdentifier, aParty)
+        val issueFlow = IssueTokensFlow(10, GBP.tokenIdentifier, aParty)
         a.startFlow(issueFlow).also { network.runNetwork() }
 
-        val balanceFlow = GetBalanceFlow(USD)
+        val balanceFlow = GetBalanceFlow(GBP)
         val balance = a.startFlow(balanceFlow).also { network.runNetwork() }.getOrThrow()
 
-        assertEquals(10.USD, balance)
+        assertEquals(10.GBP, balance)
     }
 }
