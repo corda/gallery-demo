@@ -16,7 +16,6 @@ function UserDropdown({ userList, currentUser }: Props) {
   return (
     <div>
       <Dropdown
-        closeOnSelectOption
         positionX="right"
         positionY="bottom"
         trigger={

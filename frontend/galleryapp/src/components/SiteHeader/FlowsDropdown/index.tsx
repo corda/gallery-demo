@@ -24,11 +24,12 @@ function FlowsDropdown() {
   const completedFlows = logs
     .filter((log) => !!log.completed)
     .map((log) => {
-      //@ts-ignore .at() method doesnt seem to be supported in typescript
+      //@ts-ignore .at() method doesnt seem to be supported in Typescript
       const stageName: string = log.completed!.associatedStage.split(".").at(-1);
+
       return {
         title: stageName,
-        template: templates[stageName](log.completed),
+        template: templates[stageName] ? templates[stageName](log.completed) : [],
       };
     });
 
@@ -57,7 +58,7 @@ function FlowsDropdown() {
                 handleLogClick(flow);
               }}
             >
-              {flow.title}
+              {flow.title.split(/(?=[A-Z])/).join(' ')}
             </Option>
           ))}
         </Dropdown>
@@ -65,7 +66,6 @@ function FlowsDropdown() {
       {selectedFlow && (
         <Modal
           className={styles.modal}
-          closeOnOutsideClick
           onClose={() => setToggleModal(false)}
           size="large"
           title={selectedFlow.title}

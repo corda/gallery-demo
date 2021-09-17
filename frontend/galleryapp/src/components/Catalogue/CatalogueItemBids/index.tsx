@@ -59,7 +59,6 @@ function CatalogueItemBids({ bids, open }: Props) {
                   <th>Patron</th>
                   <th>Bid value</th>
                   <th>Network</th>
-                  <th>Expires in</th>
                   <th>Status</th>
                   {open ? <th /> : null}
                 </tr>
@@ -83,7 +82,6 @@ function CatalogueItemBids({ bids, open }: Props) {
                     <td>
                       <Badge variant="gray">{bid.notary}</Badge>
                     </td>
-                    <td>{bid.expiryDate}</td>
                     <td>{getStatus(bid.accepted, open)}</td>
                     {open ? (
                       <td>

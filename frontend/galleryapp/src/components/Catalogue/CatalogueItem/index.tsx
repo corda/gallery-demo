@@ -27,6 +27,7 @@ function CatalogueItem({ lot }: Props) {
           </div>
         </td>
         <td>{lot.artworkId}</td>
+        <td>{lot.expiryDate}</td>
         <td>{lot.bids.length}</td>
         <td>{sold ? <Badge variant="green">Sold</Badge> : <Badge variant="gray">Open</Badge>}</td>
       </tr>

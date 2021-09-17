@@ -1,15 +1,7 @@
-import {
-  Button,
-  DateTimeInput,
-  Select,
-  TextInput,
-  Option,
-  Loader,
-} from "@r3/r3-tooling-design-system";
+import { Button, Select, TextInput, Option, Loader, Modal } from "@r3/r3-tooling-design-system";
 import { GalleryLot, Participant } from "@Models";
 import styles from "./styles.module.scss";
 import { useContext, useState } from "react";
-import Modal from "react-modal";
 import { TokensContext } from "@Context/tokens";
 import { postBid } from "@Api";
 import { usersBid } from "@Utils";
@@ -25,7 +17,6 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
   const { getTokensByUser } = useContext(TokensContext);
   const [amount, setAmount] = useState("");
   const [tokenType, setTokenType] = useState("");
-  const [expiryTime, setExpiryTime] = useState("");
   const [bidPosted, setBidPosted] = useState(false);
 
   if (!user || !selectedArtwork) return null;
@@ -41,7 +32,6 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
         artworkId: selectedArtwork.artworkId,
         amount,
         currency: tokenType,
-        expiryDate: expiryTime,
       });
     }
   }
@@ -49,18 +39,11 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
   function handleCancel() {
     setAmount("");
     setTokenType("");
-    setExpiryTime("");
     setBidPosted(false);
     onClose();
   }
   return selectedArtwork ? (
-    <Modal
-      isOpen={open}
-      contentLabel="Place Bid"
-      className={styles.modal}
-      overlayClassName={styles.overlay}
-      ariaHideApp={false}
-    >
+    <Modal onClose={handleCancel} size="small" title="" withBackdrop open={open}>
       {bidPosted && !bidRecognised && (
         <div className={styles.bidPosting}>
           <Loader size="small" />
@@ -85,6 +68,7 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
           value={tokenType}
           className={styles.input}
         >
+          <Option key="select-token" value="select token">Select Token</Option>
           {tokens.map((token) => (
             <Option key={token.currencyCode} value={token.currencyCode}>
               {token.currencyCode}
@@ -92,14 +76,6 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
           ))}
         </Select>
       </div>
-      <DateTimeInput
-        className={styles.input}
-        label="Expiry time"
-        onChange={(time: any) => {
-          setExpiryTime(time[0].toISOString());
-        }}
-        value={null}
-      />
       <div className={styles.ctas}>
         <Button size="small" variant="secondary" onClick={() => handleCancel()}>
           Cancel
