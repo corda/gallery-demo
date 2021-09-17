@@ -17,7 +17,6 @@ const FlowNode = ({ data }: Props) => {
           <Handle
             key={`${position}-${type}`}
             type={type}
-            //@ts-ignore
             position={position}
             style={{ opacity: "0" }}
           />

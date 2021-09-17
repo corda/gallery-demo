@@ -22,7 +22,6 @@ const BlockNode = ({ data }: Props) => {
             key={`${position}-${type}`}
             type={type}
             id={position}
-            //@ts-ignore
             position={position}
             style={{ opacity: "0" }}
           />

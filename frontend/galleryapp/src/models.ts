@@ -79,7 +79,7 @@ export enum NodeType {
 }
 
 export interface NodeHandle {
-  position: "top" | "right" | "bottom" | "left";
+  position: Position;
   type: "source" | "target";
 }
 
