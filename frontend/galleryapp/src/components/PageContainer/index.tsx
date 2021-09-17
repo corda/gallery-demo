@@ -7,13 +7,13 @@ const PageContainer: FC = ({ children }) => {
   const { logs } = useContext(LogsContext);
 
   return (
-    <div>
+    <>
       <SiteHeader />
       <div className="content-wrapper">{children}</div>
       <div className="footer-wrapper">
         <ActivityLog title="Global activity log" logs={logs} />
       </div>
-    </div>
+    </>
   );
 };
 
