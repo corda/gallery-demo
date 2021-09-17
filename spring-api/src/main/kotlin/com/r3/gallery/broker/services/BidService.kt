@@ -3,6 +3,7 @@ package com.r3.gallery.broker.services
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.broker.services.api.Receipt
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 class BidService(
     @Autowired val swapService: AtomicSwapService,

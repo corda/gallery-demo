@@ -8,6 +8,7 @@ import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.services.api.Receipt.*
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Component
 
 const val GALLERY = "gallery"
 

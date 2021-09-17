@@ -150,7 +150,7 @@ class NetworkToolsService(
      */
     fun initializeDemo() {
         // artworks
-        val urlPrefix = "/assets/artwork"
+        val urlPrefix = "/assets/artwork/"
         listOf(
             Pair("A Thousand Plateaus", "A_Thousand_Plateaus.png"),
             Pair("Cities of the Red Night", "Cities_of_the_Red_Night.png"),

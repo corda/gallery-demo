@@ -4,11 +4,13 @@ import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.states.ArtworkState
+import com.r3.gallery.utils.AuctionCurrency
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
 import com.r3.gallery.workflows.artwork.FindArtworkFlow
 import com.r3.gallery.workflows.artwork.FindOwnedArtworksFlow
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
+import net.corda.core.contracts.Amount
 import net.corda.core.internal.toX500Name
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
@@ -18,7 +20,9 @@ import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.time.Instant
+import java.util.*
 import javax.annotation.PostConstruct
 
 @Component
@@ -64,7 +68,17 @@ class ArtNetworkGalleryClientImpl(
                 it.description,
                 it.url,
                 listed = true,
-                bids = emptyList()
+                bids = listOf(
+                    AvailableArtwork.BidRecord(
+                        cordaReference = UUID.randomUUID(),
+                        bidderPublicKey = "0xb4bc263278d3ф82a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
+                        bidderDisplayName = "Bob GBP",
+                        amountAndCurrency = Amount(250L, AuctionCurrency.getInstance("GBP")),
+                        notary = "O=GBP Notary,L=London,C=GB",
+                        expiryDate = Date(),
+                        accepted = false
+                    )
+                )
             )
         }
     }
