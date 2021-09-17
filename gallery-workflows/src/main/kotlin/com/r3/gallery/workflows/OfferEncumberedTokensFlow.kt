@@ -30,39 +30,70 @@ class OfferEncumberedTokensFlow(
     val verifiedDraftTx: ValidatedDraftTransferOfOwnership,
     val encumberedAmount: Amount<TokenType>
 ) : FlowLogic<SignedTransaction>() {
-    override val progressTracker = ProgressTracker()
+
+    @Suppress("ClassName")
+    companion object {
+        object GENERATING_LOCK :
+            ProgressTracker.Step("Generating lock state for encumbered token transaction")
+
+        object GENERATING_TRANSACTION : ProgressTracker.Step("Generating encumbered token transaction")
+        object VERIFYING_TRANSACTION : ProgressTracker.Step("Verifying contract constraints.")
+        object SIGNING_TRANSACTION : ProgressTracker.Step("Signing transaction with our private key.")
+        object COLLECTING_SIGNATURES : ProgressTracker.Step("Collecting transaction signatures from signers.") {
+            override fun childProgressTracker() = CollectSignaturesFlow.tracker()
+        }
+        object FINALISING_TRANSACTION : ProgressTracker.Step("Obtaining notary signature and recording transaction.") {
+            override fun childProgressTracker() = FinalityFlow.tracker()
+        }
+    }
+
+    override val progressTracker = ProgressTracker(
+        GENERATING_LOCK,
+        GENERATING_TRANSACTION,
+        VERIFYING_TRANSACTION,
+        SIGNING_TRANSACTION,
+        COLLECTING_SIGNATURES,
+        FINALISING_TRANSACTION
+    )
 
     @Suspendable
     override fun call(): SignedTransaction {
         val compositeKey = serviceHub.registerCompositeKey(ourIdentity, sellerParty)
         val compositeParty = AnonymousParty(compositeKey)
-
-        val txUntilTime = TimeWindow.untilOnly(
-            verifiedDraftTx.timeWindow.untilTime!!.plusSeconds(30)
-        )
-
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
+
+        progressTracker.currentStep = GENERATING_LOCK
+        val lockState = LockState(verifiedDraftTx, ourIdentity, sellerParty)
+        val partiesAndAmounts = listOf(PartyAndAmount1(compositeParty, encumberedAmount))
+
+        progressTracker.currentStep = GENERATING_TRANSACTION
         val txBuilder = try {
             with(TransactionBuilder(notary = notary)) {
                 addMoveTokens(
                     serviceHub,
-                    listOf(PartyAndAmount1(compositeParty, encumberedAmount)),
+                    partiesAndAmounts,
                     ourIdentity,
                     listOf(sellerParty).map { it.owningKey },
-                    LockState(verifiedDraftTx, ourIdentity, sellerParty)
+                    lockState
                 )
-                setTimeWindow(txUntilTime)
+                setTimeWindow(TimeWindow.untilOnly(verifiedDraftTx.timeWindow.untilTime!!.plusSeconds(30)))
             }
         } catch (e: InsufficientBalanceException) {
             throw FlowException("Offered amount ($encumberedAmount) exceeds balance", e)
         }
 
+        progressTracker.currentStep = VERIFYING_TRANSACTION
         txBuilder.verify(serviceHub)
-        var signedTx = serviceHub.signInitialTransaction(txBuilder, listOf(ourIdentity.owningKey))
-        // TODO: discuss what "will not be needed for X-Network, as no additional signers! - DELETE"
-        signedTx = subFlow(CollectSignaturesForComposites(signedTx, listOf(sellerParty)))
 
-        return subFlow(FinalityFlow(signedTx, initiateFlow(sellerParty)))
+        progressTracker.currentStep = SIGNING_TRANSACTION
+        val selfSignedTx = serviceHub.signInitialTransaction(txBuilder, listOf(ourIdentity.owningKey))
+
+        progressTracker.currentStep = COLLECTING_SIGNATURES
+        val signedTx = subFlow(CollectSignaturesForComposites(selfSignedTx, listOf(sellerParty)))
+
+        progressTracker.currentStep = FINALISING_TRANSACTION
+        val sessions = listOf(initiateFlow(sellerParty))
+        return subFlow(FinalityFlow(signedTx, sessions, FINALISING_TRANSACTION.childProgressTracker()))
     }
 }
 
