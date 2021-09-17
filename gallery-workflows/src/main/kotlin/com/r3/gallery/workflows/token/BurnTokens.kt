@@ -1,12 +1,10 @@
 package com.r3.gallery.workflows.token
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.corda.lib.tokens.workflows.flows.redeem.RedeemTokensFlow
 import com.r3.corda.lib.tokens.workflows.flows.redeem.addTokensToRedeem
 import com.r3.corda.lib.tokens.workflows.utilities.tokenAmountsByToken
 import com.r3.corda.lib.tokens.workflows.utilities.tokenBalance
 import com.r3.gallery.utils.AuctionCurrency
-import com.r3.gallery.workflows.artwork.DestroyArtwork
 import net.corda.core.flows.FinalityFlow
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
@@ -25,6 +23,8 @@ class BurnTokens(private val currency: String = "GBP") : FlowLogic<Unit>() {
     override fun call() {
         val tokenType = if (currency.equals("GBP", true)) AuctionCurrency.getInstance("GBP")
             else  AuctionCurrency.getInstance("CBDC")
+
+        // TODO search for encumbered tokens, request creator to override and burn
 
         val tokens = serviceHub.vaultService.tokenAmountsByToken(tokenType).states
         if (tokens.isNotEmpty()) {
