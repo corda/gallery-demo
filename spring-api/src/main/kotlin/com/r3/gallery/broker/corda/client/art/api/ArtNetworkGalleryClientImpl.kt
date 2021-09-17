@@ -54,10 +54,19 @@ class ArtNetworkGalleryClientImpl(
     /**
      * List out the artworks still held by the gallery.
      */
-    override fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
+    override fun listAvailableArtworks(galleryParty: ArtworkParty): List<AvailableArtwork> {
         logger.info("Starting ListAvailableArtworks flow via $galleryParty")
-        return artNetworkGalleryCS.startFlow(galleryParty, FindOwnedArtworksFlow::class.java)
-            .map { it.state.data.artworkId }
+        val artworks = artNetworkGalleryCS.startFlow(galleryParty, FindOwnedArtworksFlow::class.java)
+            .map { it.state.data }
+        return artworks.map {
+            AvailableArtwork(
+                it.artworkId,
+                it.description,
+                it.url,
+                listed = true,
+                bids = emptyList()
+            )
+        }
     }
 
     /**
