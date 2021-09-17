@@ -1,3 +1,5 @@
+import {Position} from "react-flow-renderer";
+
 export enum ParticipantType {
   GalleryOwner,
   Bidder,
@@ -33,6 +35,7 @@ export interface GalleryLot {
   listed: boolean;
   url: string;
   bids: Bid[];
+  expiryDate: string;
 }
 
 export interface Bid {
@@ -42,7 +45,6 @@ export interface Bid {
   amount: number;
   currencyCode: string;
   notary: string;
-  expiryDate: string;
   accepted: boolean;
 }
 
@@ -98,7 +100,6 @@ export interface PostBidParams {
   artworkId: string;
   amount: string;
   currency: string;
-  expiryDate: string;
 }
 
 export interface PostBidAcceptanceParams {

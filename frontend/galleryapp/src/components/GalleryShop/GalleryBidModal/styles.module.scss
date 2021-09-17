@@ -15,25 +15,6 @@
   grid-column-gap: 16px;
 }
 
-.modal {
-  position: relative;
-  inset: 40px;
-  box-shadow: 0 3px 6px rgba(29, 35, 67, 0.2);
-  background-color: var(--color-light-gray-300);
-  border-radius: 0.375rem;
-  padding: 2rem;
-  min-width: 400px;
-}
-
-.overlay {
-  position: fixed;
-  inset: 0px;
-  background-color: rgba(74, 79, 105, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .bidPosting {
   position: absolute;
   z-index: 1;

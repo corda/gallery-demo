@@ -22,6 +22,7 @@ function Catalogue({ lots }: Props) {
             <th />
             <th>Lot</th>
             <th>Lot Id</th>
+            <th>Expiry Date</th>
             <th># Bids</th>
             <th>Status</th>
           </tr>
