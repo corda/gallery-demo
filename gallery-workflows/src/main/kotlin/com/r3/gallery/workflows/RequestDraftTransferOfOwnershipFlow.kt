@@ -17,8 +17,6 @@ import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.unwrap
-import java.time.Duration
-import java.time.Instant
 
 @InitiatingFlow
 @StartableByRPC
@@ -27,13 +25,28 @@ class RequestDraftTransferOfOwnershipFlow(
     val artworkLinearId: UniqueIdentifier
 ) : FlowLogic<Pair<WireTransaction, ValidatedDraftTransferOfOwnership>>() {
 
-    override val progressTracker = ProgressTracker()
+    @Suppress("ClassName")
+    companion object {
+        object REQUESTING_DRAFTTX : ProgressTracker.Step("Requesting draft transfer transaction from gallery")
+        object VERIFYING_DRAFTTX : ProgressTracker.Step("Verifying gallery's draft transaction and its dependencies")
+        object VERIFYING_NOTARY_IDENTITY : ProgressTracker.Step("Verifying draft transaction controlling notary params to relay to token's network sibling node")
+    }
+
+    override val progressTracker = ProgressTracker(
+        REQUESTING_DRAFTTX,
+        VERIFYING_DRAFTTX,
+        VERIFYING_NOTARY_IDENTITY
+    )
+
 
     @Suspendable
     override fun call(): Pair<WireTransaction, ValidatedDraftTransferOfOwnership> {
 
+        progressTracker.currentStep = REQUESTING_DRAFTTX
         val session = initiateFlow(galleryParty)
         val wireTx = session.sendAndReceive<WireTransaction>(artworkLinearId).unwrap { it }
+
+        progressTracker.currentStep = VERIFYING_DRAFTTX
         val txMerkleTree = wireTx.generateWireTransactionMerkleTree()
         val txOk = receiveAndVerifyTxDependencies(session, wireTx) && verifyShareConditions(wireTx, txMerkleTree)
                 && verifySharedTx(wireTx)
@@ -42,6 +55,7 @@ class RequestDraftTransferOfOwnershipFlow(
             throw FlowException("Failed to validate the proposed transaction or one of its dependencies")
         }
 
+        progressTracker.currentStep = VERIFYING_NOTARY_IDENTITY
         val notaryIdentity = serviceHub.identityService.partyFromKey(wireTx.notary!!.owningKey)
             ?: throw IllegalArgumentException("Unable to retrieve party for notary key: ${wireTx.notary!!.owningKey}")
         val notaryInfo = serviceHub.networkMapCache.getNodeByLegalIdentity(notaryIdentity)
@@ -107,31 +121,57 @@ class RequestDraftTransferOfOwnershipFlow(
 @InitiatedBy(RequestDraftTransferOfOwnershipFlow::class)
 class RequestDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : FlowLogic<Unit>() {
 
-    override val progressTracker = ProgressTracker()
+    @Suppress("ClassName")
+    companion object {
+        object RECEIVING_DRAFTTX_REQUEST : ProgressTracker.Step("Receiving draft transfer transaction request from bidder.")
+        object ARTWORK_LOOKUP : ProgressTracker.Step("Looking up artwork item to draft transaction for.")
+        object GENERATING_TRANSACTION : ProgressTracker.Step("Generating transaction based on requested artwork item.")
+        object VERIFYING_TRANSACTION : ProgressTracker.Step("Verifying contract constraints.")
+        object SENDING_UNSIGNED_TX : ProgressTracker.Step("Sending unsigned draft transfer transaction to bidder.")
+        object SENDING_DEPENDENCIES : ProgressTracker.Step("Sending draft transfer transaction's dependencies.")
+    }
+
+    override val progressTracker = ProgressTracker(
+        RECEIVING_DRAFTTX_REQUEST,
+        ARTWORK_LOOKUP,
+        GENERATING_TRANSACTION,
+        VERIFYING_TRANSACTION,
+        SENDING_UNSIGNED_TX,
+        SENDING_DEPENDENCIES
+    )
 
     @Suspendable
     override fun call() {
 
+        progressTracker.currentStep = RECEIVING_DRAFTTX_REQUEST
         val bidderParty = otherSession.counterparty
         val artworkLinearId = otherSession.receive<UniqueIdentifier>().unwrap { it }
 
+        progressTracker.currentStep = ARTWORK_LOOKUP
         val artworkStates = serviceHub.vaultService.queryBy(ArtworkState::class.java)
         val artworkStateAndRef =
             // HACK: we look-up for both IDs to overcome some design/implementation issues
             requireNotNull(artworkStates.states.singleOrNull { it.state.data.linearId == artworkLinearId || it.state.data.artworkId == artworkLinearId.id }) {
                 "Unable to find an artwork state by the id: $artworkLinearId"
             }
+
+        progressTracker.currentStep = GENERATING_TRANSACTION
         val artworkState = artworkStateAndRef.state.data
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
         val wireTx = with(TransactionBuilder(notary)) {
             addInputState(artworkStateAndRef)
-            addOutputState(artworkState.withNewOwner(bidderParty), ArtworkContract.ID)
+            addOutputState(artworkState.withNewOwner(bidderParty), ArtworkContract.ARTWORKCONTRACTID)
             addCommand(ArtworkContract.Commands.TransferOwnership(), ourIdentity.owningKey, bidderParty.owningKey)
             setTimeWindow(TimeWindow.untilOnly(artworkState.expiry))
-        }.also { it.verify(serviceHub) }.toWireTransaction(serviceHub)
+        }.also {
+            progressTracker.currentStep = VERIFYING_TRANSACTION
+            it.verify(serviceHub)
+        }.toWireTransaction(serviceHub)
 
+        progressTracker.currentStep = SENDING_UNSIGNED_TX
         otherSession.send(wireTx)
 
+        progressTracker.currentStep = SENDING_DEPENDENCIES
         val txDependencies = wireTx.getDependencies()
         txDependencies.forEach {
             val validatedTxDependency = serviceHub.validatedTransactions.getTransaction(it)

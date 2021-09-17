@@ -47,10 +47,15 @@ class IssueTokensFlow(
     @Suspendable
     override fun call(): SignedTransaction {
 
+        progressTracker.currentStep = PARSING_CURRENCY
         val currencyTokenType = AuctionCurrency.getInstance(currency)
+
         val amountOfTarget = amount of currencyTokenType
 
+        progressTracker.currentStep = GETTING_IDENTITIES
         val tokenToIssue = amountOfTarget issuedBy ourIdentity heldBy receiver!!
+
+        progressTracker.currentStep = ISSUING_TOKENS
         return subFlow(IssueTokens(tokensToIssue = listOf(tokenToIssue), observers = emptyList()))
     }
 
