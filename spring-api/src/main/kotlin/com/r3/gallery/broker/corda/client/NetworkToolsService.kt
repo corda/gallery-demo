@@ -1,5 +1,6 @@
 package com.r3.gallery.broker.corda.client
 
+import com.r3.corda.lib.tokens.workflows.flows.rpc.RedeemFungibleTokens
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.NetworkBalancesResponse
@@ -11,6 +12,8 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
+import com.r3.gallery.workflows.artwork.DestroyArtwork
+import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.webapp.GetBalanceFlow
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.internal.hash
@@ -32,6 +35,9 @@ class NetworkToolsService(
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsService::class.java)
+        const val ALICE = "O=Alice,L=London,C=GB"
+        const val BOB = "O=Bob,L=San Francisco,C=US"
+        const val CHARLIE = "O=Charlie,L=Mumbai,C=IN"
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
@@ -145,10 +151,6 @@ class NetworkToolsService(
      * Reset or Initialize auction demo conditions
      */
     fun initializeDemo() {
-        val alice = "O=Alice,L=London,C=GB"
-        val bob = "O=Bob,L=San Francisco,C=US"
-        val charlie = "O=Charlie,L=Mumbai,C=IN"
-
         // artworks
         val urlPrefix = "/assets/artwork"
         listOf(
@@ -160,7 +162,7 @@ class NetworkToolsService(
             Pair("The Masque of the Red Death", "The_Masque_of_the_Red_Death.png")
         ).forEach { // issue with default expiry of 3 days.
             artNetworkGalleryClient.issueArtwork(
-                galleryParty = alice,
+                galleryParty = ALICE,
                 artworkId = UUID.randomUUID(),
                 description = it.first,
                 url = urlPrefix+it.second
@@ -168,8 +170,28 @@ class NetworkToolsService(
         }
 
         // GBP issued to Bob
-        tokenNetworkBuyerClient.issueTokens(bob, 5000, "GBP")
+        tokenNetworkBuyerClient.issueTokens(BOB, 5000, "GBP")
         // CBDC issued to Charlie
-        tokenNetworkBuyerClient.issueTokens(charlie, 8000, "CBDC")
+        tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC")
+    }
+
+    /**
+     * Consumes all relevant tokens and art to reset the auction demo state
+     */
+    fun clearDemo() {
+        // destroy (off-ledger any outstanding art pieces
+        connectionManager.auction.allConnections()!!.forEach {
+            it.proxy.startFlowDynamic(DestroyArtwork::class.java).returnValue.get()
+        }
+
+        // burn tokens on GBP network
+        connectionManager.gbp.allConnections()!!.forEach {
+            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP")
+        }
+
+        // burn tokens on CBDC network
+        connectionManager.cbdc.allConnections()!!.forEach {
+            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC")
+        }
     }
 }

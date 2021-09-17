@@ -72,4 +72,11 @@ class NetworkToolsController(
         networkToolsService.initializeDemo()
         return asResponse(Unit)
     }
+
+    @GetMapping("/clear")
+    fun clearDemo(): ResponseEntity<Unit> {
+        logger.info("Request to clear demo states.")
+        networkToolsService.clearDemo()
+        return asResponse(Unit)
+    }
 }
