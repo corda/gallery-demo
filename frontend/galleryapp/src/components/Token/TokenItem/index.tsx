@@ -30,9 +30,11 @@ function TokenItem({ token, x500 }: Props) {
       </tr>
 
       {isToggled && (
-        <td colSpan={4} className={styles.logHolder}>
-          <ActivityLog title="Token Audit Log" inline={true} logs={logs} />
-        </td>
+        <tr>
+          <td colSpan={4} className={styles.logHolder}>
+            <ActivityLog title="Token Audit Log" inline={true} logs={logs} />
+          </td>
+        </tr>
       )}
     </>
   );
