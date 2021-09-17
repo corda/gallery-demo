@@ -43,7 +43,7 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
     onClose();
   }
   return selectedArtwork ? (
-    <Modal onClose={onClose} size="small" title="" withBackdrop open={open}>
+    <Modal onClose={handleCancel} size="small" title="" withBackdrop open={open}>
       {bidPosted && !bidRecognised && (
         <div className={styles.bidPosting}>
           <Loader size="small" />
@@ -68,6 +68,7 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
           value={tokenType}
           className={styles.input}
         >
+          <Option key="select-token" value="select token">Select Token</Option>
           {tokens.map((token) => (
             <Option key={token.currencyCode} value={token.currencyCode}>
               {token.currencyCode}
