@@ -147,6 +147,14 @@ data class ArtworkOwnership(
     val artworkOwner: ArtworkParty
 )
 
+data class BidProposal(
+    val bidderParty: String,
+    val artworkId: ArtworkId,
+    val amount: String,
+    val currency: String,
+    val expiryDate: String // TODO Delete me
+)
+
 typealias TransactionHash = String
 
 data class TransactionSignature(val bytes: ByteArray) {

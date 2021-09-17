@@ -10,6 +10,8 @@ import net.corda.core.messaging.StateMachineUpdate
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.getOrThrow
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Subscription
@@ -26,6 +28,10 @@ typealias LogRetrievalIdx = Int
  */
 @Component
 class LogService(@Autowired private val connectionManager: ConnectionManager) {
+
+    companion object {
+        val logger: Logger =  LoggerFactory.getLogger(LogService::class.java)
+    }
 
     private val stateMachineSubscriptions: MutableList<Subscription> = ArrayList()
     private val progressSubscriptions: MutableSet<Pair<StateMachineRunId, ProgressUpdateSubscription>> = HashSet()
@@ -49,14 +55,17 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                     associatedFlow = smUpdateInfo.flowLogicClassName,
                                     network = currentNetwork.name,
                                     x500 = firingX500.toString(),
-                                    logRecordId = smUpdate.id.toString(),
+                                    logRecordId = smUpdate.id.toString() + "-" + UUID.randomUUID(),
                                     timestamp = Date.from(Instant.now()).toString(),
                                     message = update
                                 )
                                 // avoid duplicates
                                 if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
                             }
-                        }.also { pSub -> progressSubscriptions.add(Pair(smUpdateInfo.id, pSub!!)) }
+                        }.also { pSub ->
+                            logger.info("Progress Subscription set for $firingX500-${smUpdateInfo.flowLogicClassName}-${smUpdateInfo.id}")
+                            progressSubscriptions.add(Pair(smUpdateInfo.id, pSub!!))
+                        }
                     }
                     if (smUpdate is StateMachineUpdate.Removed) {
                         val logRecordId = smUpdate.id.toString()
@@ -80,7 +89,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                             } else {
                                 val stx = smUpdate.result.getOrThrow() as SignedTransaction
                                 signers = stx.requiredSigningKeys.associate { pKey ->
-                                    val hasSigned: Boolean = stx.getMissingSigners().contains(pKey)
+                                    val hasSigned: Boolean = !stx.getMissingSigners().contains(pKey)
                                     Pair(rpc.partyFromKey(pKey)!!.name, hasSigned)
                                 }
                                 rpc.startFlowDynamic(StatesFromTXFlow::class.java, stx).returnValue.getOrThrow()
@@ -90,12 +99,12 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                     associatedFlow = associatedFlow,
                                     network = currentNetwork.name,
                                     x500 = firingX500.toString(),
-                                    logRecordId = logRecordId,
+                                    logRecordId = logRecordId + "-" + UUID.randomUUID(),
                                     timestamp = Date.from(Instant.now()).toString(),
                                     message = "",
                                     completed = LogUpdateEntry.FlowCompletionLog(
                                         associatedStage = associatedFlow,
-                                        logRecordId = logRecordId,
+                                        logRecordId = logRecordId + "-" + UUID.randomUUID(),
                                         states = states,
                                         signers = signers
                                     )
@@ -105,6 +114,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                         removeProgressSubscriptions() // remove subscriptions
                     }
                 }
+                logger.info("StateMachine Subscription set for $firingX500")
                 stateMachineSubscriptions.add(subscription)
             }
         }

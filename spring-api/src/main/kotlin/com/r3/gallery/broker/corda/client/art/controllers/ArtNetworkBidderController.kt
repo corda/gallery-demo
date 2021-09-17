@@ -2,10 +2,14 @@ package com.r3.gallery.broker.corda.client.art.controllers
 
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.api.ArtworkParty
+import com.r3.gallery.api.BidProposal
 import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
+import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
+import com.r3.gallery.broker.services.BidService
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -18,21 +22,36 @@ import org.springframework.web.bind.annotation.*
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @RequestMapping("/bidder")
 class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClient) {
+
+//    @Autowired
+//    private lateinit var bidService: BidService
+    @Autowired
+    private lateinit var tokenBuyerClient: TokenNetworkBuyerClient
+
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkBidderController::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
-    @PutMapping("/bid")
+    @PostMapping("/bid")
     fun bid(
-        @RequestParam("bidderParty") bidderParty: ArtworkParty,
-        @RequestParam("artworkId") artworkId: ArtworkId,
-        @RequestParam("amount") amount: Long,
-        @RequestParam("currency") currency: String = "GBP",
-        @RequestParam("expiryDate") expiry: String // "2014-01-01T23:28:56.782Z"
+        @RequestBody bidProposal: BidProposal
     ) : ResponseEntity<Unit> {
-        logger.info("Request by $bidderParty to bid on $artworkId in amount of $amount $currency")
-        TODO("send to bidService")
+        logger.info("Request by ${bidProposal.bidderParty} to bid on ${bidProposal.artworkId} in amount of ${bidProposal.amount} ${bidProposal.currency}")
+        // TODO migrate to BidService
+        val verifiedWireTx = bidderClient.requestDraftTransferOfOwnership(
+            bidProposal.bidderParty,
+            "O=Alice, L=London, C=GB",
+            bidProposal.artworkId
+        )
+        tokenBuyerClient.transferEncumberedTokens(
+            buyer = bidProposal.bidderParty,
+            seller = "O=Alice, L=London, C=GB",
+            amount = bidProposal.amount.toLong(),
+            currency = "GBP",
+            verifiedWireTx
+        )
+        return asResponse(Unit)
     }
 
     // TODO: Move to BidService placeBid (request-draft-transfer / transfer-encumbered tokens)

@@ -26,12 +26,14 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     fun claimTokens(
         @RequestParam("sellerParty") sellerParty: TokenParty,
         @RequestParam("currency") currency: String,
-        @RequestBody tokenReleaseData: TokenReleaseData
+        @RequestBody tokenReleaseData: String
     ): ResponseEntity<TransactionHash> {
-        logger.info("Request by $sellerParty to claim tokens from encumbered tx ${tokenReleaseData.encumberedTokens} with signature ${tokenReleaseData.notarySignature}")
-        val transactionHash =
-            sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature)
-        return asResponse(transactionHash)
+//        logger.info("Request by $sellerParty to claim tokens from encumbered tx ${tokenReleaseData.encumberedTokens} with signature ${tokenReleaseData.notarySignature}")
+        // TODO fix deserialization of TokenReleaseData
+//        val transactionHash =
+//            sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature)
+//        return asResponse(transactionHash)
+        TODO()
     }
 
     /*

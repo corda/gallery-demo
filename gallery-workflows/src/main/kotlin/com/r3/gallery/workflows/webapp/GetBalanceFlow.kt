@@ -3,8 +3,10 @@ package com.r3.gallery.workflows.webapp
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.r3.corda.lib.tokens.contracts.types.TokenType
+import com.r3.corda.lib.tokens.money.FiatCurrency
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.NetworkBalancesResponse
+import com.r3.gallery.utils.AuctionCurrency
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
@@ -18,7 +20,8 @@ class GetBalanceFlow : FlowLogic<NetworkBalancesResponse.Balance>() {
             .states.map { it.state }
 
         val tokenType: TokenType = if (serviceHub.networkMapCache.notaryIdentities.first()
-            .name.organisation.contains("GBP")) GBP else TokenType("CBDC", 2)
+            .name.organisation.contains("GBP")) AuctionCurrency.getInstance("GBP")
+            else AuctionCurrency.getInstance("CBDC")
 
         // no balance available
         if (tokensHeld.isNullOrEmpty()) {

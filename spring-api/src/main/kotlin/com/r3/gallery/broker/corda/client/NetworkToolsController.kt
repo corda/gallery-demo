@@ -31,9 +31,6 @@ class NetworkToolsController(
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsController::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
-        const val ALICE = "O=Alice,L=London,C=GB"
-        const val BOB = "O=Bob,L=San Francisco,C=US"
-        const val CHARLIE = "O=Charlie,L=Mumbai,C=IN"
     }
 
     /**
@@ -52,9 +49,11 @@ class NetworkToolsController(
      * Log returns progressUpdates for Node Level state-machine updates
      */
     @GetMapping("/log")
-    fun log(): ResponseEntity<List<LogUpdateEntry>> {
+    fun log(
+        @RequestParam("index", required = false) index: Int?
+    ): ResponseEntity<List<LogUpdateEntry>> {
         logger.info("Request for logs")
-        return asResponse(networkToolsService.getLogs())
+        return asResponse(networkToolsService.getLogs(index))
     }
 
     /**
@@ -70,7 +69,16 @@ class NetworkToolsController(
      * Initialise the initial artworks and correct amount of funds to the demo parties
      */
     @GetMapping("/init")
-    fun initIssuance(): ResponseEntity<Unit> {
-        TODO("coming on different branch")
+    fun initializeDemo(): ResponseEntity<Unit> {
+        logger.info("Request for initial issuance to networks.")
+        networkToolsService.initializeDemo()
+        return asResponse(Unit)
+    }
+
+    @GetMapping("/clear")
+    fun clearDemo(): ResponseEntity<Unit> {
+        logger.info("Request to clear demo states.")
+        networkToolsService.clearDemo()
+        return asResponse(Unit)
     }
 }

@@ -29,7 +29,7 @@ interface ArtNetworkGalleryClient {
     /**
      * List out the artworks still held by the gallery.
      */
-    fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId>
+    fun listAvailableArtworks(galleryParty: ArtworkParty): List<AvailableArtwork>
 
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,

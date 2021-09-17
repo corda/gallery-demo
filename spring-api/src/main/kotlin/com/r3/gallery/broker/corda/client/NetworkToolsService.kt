@@ -1,14 +1,19 @@
 package com.r3.gallery.broker.corda.client
 
+import com.r3.corda.lib.tokens.workflows.flows.rpc.RedeemFungibleTokens
 import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.api.Participant
+import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
+import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogRetrievalIdx
 import com.r3.gallery.broker.services.LogService
+import com.r3.gallery.workflows.artwork.DestroyArtwork
+import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.webapp.GetBalanceFlow
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.internal.hash
@@ -17,22 +22,27 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
+import java.util.*
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @Component
 class NetworkToolsService(
     @Autowired private val connectionManager: ConnectionManager,
+    @Autowired private val artNetworkGalleryClient: ArtNetworkGalleryClient,
+    @Autowired private val tokenNetworkBuyerClient: TokenNetworkBuyerClient,
     @Autowired private val logService: LogService
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsService::class.java)
+        const val ALICE = "O=Alice,L=London,C=GB"
+        const val BOB = "O=Bob,L=San Francisco,C=US"
+        const val CHARLIE = "O=Charlie,L=Mumbai,C=IN"
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
     private lateinit var networkClients: List<ConnectionService>
     private lateinit var tokenClients: List<ConnectionService>
-    private var logIdx: LogRetrievalIdx = 0
 
     @PostConstruct
     private fun postConstruct() {
@@ -72,8 +82,10 @@ class NetworkToolsService(
      * Constructs Participants and injects grouped list
      */
     fun participants(networks: List<String>?) : List<Participant> {
+        logger.info("Attempting to fetch participants from all networks: ${CordaRPCNetwork.values()}")
         val allNetworkIds = networkClients.runPerConnectionService {
             val currentNetwork = it.associatedNetwork.netName
+            logger.info("Polling participants from $currentNetwork")
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
                 .map { nodeInfo ->
                     val x500 = nodeInfo.legalIdentitiesAndCerts.first().name
@@ -104,10 +116,10 @@ class NetworkToolsService(
      * - current implementation is all or nothing (all intended nodes must be
      * available for logService to correctly init.
      */
-    fun getLogs(): List<LogUpdateEntry> {
+    fun getLogs(index: Int?): List<LogUpdateEntry> {
+        logger.info("Starting log retrieval")
         if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
-        val result = logService.getProgressUpdates(logIdx)
-        logIdx = result.first // set indexing for next fetch
+        val result = logService.getProgressUpdates(index ?: 0)
         return result.second
     }
 
@@ -131,5 +143,53 @@ class NetworkToolsService(
                     partyBalances = it.value.map { balance -> balance.second }
                 )
             }
+    }
+
+    /**
+     * Reset or Initialize auction demo conditions
+     */
+    fun initializeDemo() {
+        // artworks
+        val urlPrefix = "/assets/artwork/"
+        listOf(
+            Pair("A Thousand Plateaus", "A_Thousand_Plateaus.png"),
+            Pair("Cities of the Red Night", "Cities_of_the_Red_Night.png"),
+            Pair("The Funeral of Being", "The_Funeral_of_Being.png"),
+            Pair("All Watched Over By Machines", "All_Watched_Over_By_Machines_Of_Loving_Grace.png"),
+            Pair("The Eerie Bliss", "The_Eerie_Bliss_and_Torture_of_Solitude.png"),
+            Pair("The Masque of the Red Death", "The_Masque_of_the_Red_Death.png")
+        ).forEach { // issue with default expiry of 3 days.
+            artNetworkGalleryClient.issueArtwork(
+                galleryParty = ALICE,
+                artworkId = UUID.randomUUID(),
+                description = it.first,
+                url = urlPrefix+it.second
+            )
+        }
+
+        // GBP issued to Bob
+        tokenNetworkBuyerClient.issueTokens(BOB, 5000, "GBP")
+        // CBDC issued to Charlie
+        tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC")
+    }
+
+    /**
+     * Consumes all relevant tokens and art to reset the auction demo state
+     */
+    fun clearDemo() {
+        // destroy (off-ledger any outstanding art pieces
+        connectionManager.auction.allConnections()!!.forEach {
+            it.proxy.startFlowDynamic(DestroyArtwork::class.java).returnValue.get()
+        }
+
+        // burn tokens on GBP network
+        connectionManager.gbp.allConnections()!!.forEach {
+            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP")
+        }
+
+        // burn tokens on CBDC network
+        connectionManager.cbdc.allConnections()!!.forEach {
+            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC")
+        }
     }
 }

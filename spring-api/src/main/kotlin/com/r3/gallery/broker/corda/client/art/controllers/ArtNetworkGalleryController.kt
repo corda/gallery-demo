@@ -46,11 +46,11 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
 
     @GetMapping("/list-available-artworks")
     fun listAvailableArtworks(
-        @RequestParam("galleryParty") galleryParty: ArtworkParty
-    ): ResponseEntity<List<ArtworkId>> {
+        @RequestParam("galleryParty", required = false) galleryParty: ArtworkParty?
+    ): ResponseEntity<List<AvailableArtwork>> {
         logger.info("Request of artwork listing of $galleryParty")
-        val artworkIds = galleryClient.listAvailableArtworks(galleryParty)
-        return asResponse(artworkIds)
+        val artworks = galleryClient.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
+        return asResponse(artworks)
     }
 
     // TODO: Send to BidService awardArtwork
