@@ -89,7 +89,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                             } else {
                                 val stx = smUpdate.result.getOrThrow() as SignedTransaction
                                 signers = stx.requiredSigningKeys.associate { pKey ->
-                                    val hasSigned: Boolean = stx.getMissingSigners().contains(pKey)
+                                    val hasSigned: Boolean = !stx.getMissingSigners().contains(pKey)
                                     Pair(rpc.partyFromKey(pKey)!!.name, hasSigned)
                                 }
                                 rpc.startFlowDynamic(StatesFromTXFlow::class.java, stx).returnValue.getOrThrow()
