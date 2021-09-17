@@ -49,9 +49,11 @@ class NetworkToolsController(
      * Log returns progressUpdates for Node Level state-machine updates
      */
     @GetMapping("/log")
-    fun log(): ResponseEntity<List<LogUpdateEntry>> {
+    fun log(
+        @RequestParam("index", required = false) index: Int?
+    ): ResponseEntity<List<LogUpdateEntry>> {
         logger.info("Request for logs")
-        return asResponse(networkToolsService.getLogs())
+        return asResponse(networkToolsService.getLogs(index))
     }
 
     /**

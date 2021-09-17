@@ -43,7 +43,6 @@ class NetworkToolsService(
 
     private lateinit var networkClients: List<ConnectionService>
     private lateinit var tokenClients: List<ConnectionService>
-    private var logIdx: LogRetrievalIdx = 0
 
     @PostConstruct
     private fun postConstruct() {
@@ -117,11 +116,10 @@ class NetworkToolsService(
      * - current implementation is all or nothing (all intended nodes must be
      * available for logService to correctly init.
      */
-    fun getLogs(): List<LogUpdateEntry> {
+    fun getLogs(index: Int?): List<LogUpdateEntry> {
         logger.info("Starting log retrieval")
         if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
-        val result = logService.getProgressUpdates(logIdx)
-        logIdx = result.first // set indexing for next fetch
+        val result = logService.getProgressUpdates(index ?: 0)
         return result.second
     }
 

@@ -55,7 +55,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                     associatedFlow = smUpdateInfo.flowLogicClassName,
                                     network = currentNetwork.name,
                                     x500 = firingX500.toString(),
-                                    logRecordId = smUpdate.id.toString(),
+                                    logRecordId = smUpdate.id.toString() + "-" + UUID.randomUUID(),
                                     timestamp = Date.from(Instant.now()).toString(),
                                     message = update
                                 )
@@ -99,12 +99,12 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                     associatedFlow = associatedFlow,
                                     network = currentNetwork.name,
                                     x500 = firingX500.toString(),
-                                    logRecordId = logRecordId,
+                                    logRecordId = logRecordId + "-" + UUID.randomUUID(),
                                     timestamp = Date.from(Instant.now()).toString(),
                                     message = "",
                                     completed = LogUpdateEntry.FlowCompletionLog(
                                         associatedStage = associatedFlow,
-                                        logRecordId = logRecordId,
+                                        logRecordId = logRecordId + "-" + UUID.randomUUID(),
                                         states = states,
                                         signers = signers
                                     )
