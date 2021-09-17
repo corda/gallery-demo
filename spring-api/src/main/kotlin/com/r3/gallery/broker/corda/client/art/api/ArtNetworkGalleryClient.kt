@@ -1,5 +1,9 @@
 package com.r3.gallery.broker.corda.client.art.api
 
+import com.r3.gallery.api.ArtworkOwnership
+import com.r3.gallery.api.ProofOfTransferOfOwnership
+import com.r3.gallery.api.UnsignedArtworkTransferTx
+
 import com.r3.gallery.api.*
 import java.time.Duration
 import java.time.Instant
