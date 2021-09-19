@@ -193,6 +193,6 @@ class NetworkToolsService(
         }
 
         // clear logs from service
-        logService.clearLogs()
+        if (logService.isInitialized) logService.clearLogs()
     }
 }

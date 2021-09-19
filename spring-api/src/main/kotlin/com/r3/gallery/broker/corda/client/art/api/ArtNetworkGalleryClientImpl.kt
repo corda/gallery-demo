@@ -25,6 +25,9 @@ import java.time.Instant
 import java.util.*
 import javax.annotation.PostConstruct
 
+/**
+ * Implementation of [ArtNetworkGalleryClient]
+ */
 @Component
 class ArtNetworkGalleryClientImpl(
     @Autowired private val connectionManager: ConnectionManager
@@ -43,7 +46,14 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
+     * Issues an [ArtworkState] representing ownership of the artwork with the id [artworkId], assigned to the gallery.
+     *
+     * @param galleryParty who will issue/own the artwork
+     * @param artworkId a unique UUID to identify the artwork by
+     * @param expiry an [Instant] which will default to 3 days from 'now' if not provided
+     * @param description of the artwork
+     * @param url of the asset/img representing the artwork
+     * @return [ArtworkOwnership]
      */
     override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, expiry: Instant?, description: String, url: String): ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
@@ -56,7 +66,10 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * List out the artworks still held by the gallery.
+     * Lists available artwork held by a particular gallery
+     *
+     * @param galleryParty to query for artwork
+     * @return [List][AvailableArtwork]
      */
     override fun listAvailableArtworks(galleryParty: ArtworkParty): List<AvailableArtwork> {
         logger.info("Starting ListAvailableArtworks flow via $galleryParty")
@@ -87,7 +100,9 @@ class ArtNetworkGalleryClientImpl(
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]
      *
-     * @return Proof that ownership of the artwork has been transferred.
+     * @param galleryParty who holds the artwork
+     * @param unsignedArtworkTransferTx byte code representation of the transaction
+     * @return [ProofOfTransferOfOwnership] that ownership of the artwork has been transferred.
      */
     override fun finaliseArtworkTransferTx(
         galleryParty: ArtworkParty,
@@ -115,7 +130,10 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * Returns the ArtworkState associated with the ArtworkId
+     * Query a representation of the ownership of the artwork with id [artworkId]
+     *
+     * @param artworkId
+     * @return [ArtworkOwnership]
      */
     internal fun ArtworkParty.artworkIdToState(artworkId: ArtworkId): ArtworkState {
         logger.info("Fetching ArtworkState for artworkId $artworkId")

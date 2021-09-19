@@ -4,12 +4,14 @@ import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.time.Duration
 import java.time.Instant
+import kotlin.math.exp
 
 /**
  * REST endpoints for Gallery parties on Auction Network
@@ -24,16 +26,27 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
+    /**
+     * REST endpoint to Issue an artwork
+     *
+     * TODO - NOTE: not currently supported in UI. This endpoint is for future use.
+     *
+     * @param galleryParty to issue the artwork
+     * @param artworkId unique identifier of the artwork (valid UUID format)
+     * @param expiry OPTIONAL number of days to auction the artwork for
+     * @param description OPTIONAL
+     * @param url OPTIONAL uri to an image or asset
+     */
     @PutMapping("/issue-artwork")
     fun issueArtwork(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
         @RequestParam("artworkId") artworkId: String,
-        @RequestParam("expiryDays") expiry: Int,
+        @RequestParam("expiryDays", required = false) expiry: Int?,
         @RequestParam("description", required = false) description: String = "",
         @RequestParam("url", required = false) url: String = ""
     ): ResponseEntity<ArtworkOwnership> {
         logger.info("Request by $galleryParty to issue artwork of id $artworkId")
-        val expInstant = Instant.now().plus(Duration.ofDays(3))
+        val expInstant = Instant.now().plus(Duration.ofDays(expiry?.toLong() ?: 3))
         val artworkOwnership = galleryClient.issueArtwork(
             galleryParty,
             artworkId.toUUID(),
@@ -44,6 +57,11 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return asResponse(artworkOwnership)
     }
 
+    /**
+     * REST endpoint to list available artwork held by a particular gallery
+     *
+     * @param galleryParty to query for artwork
+     */
     @GetMapping("/list-available-artworks")
     fun listAvailableArtworks(
         @RequestParam("galleryParty", required = false) galleryParty: ArtworkParty?
@@ -53,7 +71,13 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return asResponse(artworks)
     }
 
-    // TODO: Send to BidService awardArtwork
+    /**
+     * TODO: Forward request to bidService
+     * REST endpoint to 'ACCEPT' an offer/bid for a piece of artwork
+     *
+     * @param galleryParty who owns the artwork
+     * @param cordaReference the unique draft transaction reference (used to fetch [UnsignedArtworkTransferTx]) to finalise
+     */
     @PostMapping("/accept-bid", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun acceptBid(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
@@ -63,7 +87,13 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         return asResponse(Unit)
     }
 
-    // TODO: Move to bidService awardArtwork
+    /**
+     * TODO: This is an intermediate request test endpoint and will move to bidService awardArtwork
+     * REST endpoint to finalize (deserialize, sign, and generate proof of ownership) an [UnsignedArtworkTransferTx]
+     *
+     * @param galleryParty who owns the artwork
+     * @param unsignedArtworkTransferTx representing the transaction to transfer the asset.
+     */
     @PostMapping("/finalise-artwork-transfer", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun finaliseArtworkTransfer(
         @RequestParam("galleryParty") galleryParty: ArtworkParty,
