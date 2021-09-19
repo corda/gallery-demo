@@ -3,11 +3,10 @@ package com.r3.gallery.broker.services
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.broker.services.api.Receipt
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 
 class BidService(
     @Autowired val swapService: AtomicSwapService,
-    @Autowired val bidRepository: BidReceiptRepository
+    @Autowired val bidRepository: ReceiptRepository<Receipt.BidReceipt>
 ) {
 
     fun placeBid(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String) {
