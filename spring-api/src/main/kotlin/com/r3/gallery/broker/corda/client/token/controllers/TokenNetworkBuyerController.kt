@@ -3,7 +3,6 @@ package com.r3.gallery.broker.corda.client.token.controllers
 import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.TransactionHash
 import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
-import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkBidderController
 import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl

@@ -1,10 +1,11 @@
 package com.r3.gallery.broker.corda.client.art.api
 
-import com.r3.gallery.api.*
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.ArtworkParty
+import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow
-import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.serialization.serialize
 import org.slf4j.LoggerFactory

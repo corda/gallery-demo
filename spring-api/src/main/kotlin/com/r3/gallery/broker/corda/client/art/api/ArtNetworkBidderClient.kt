@@ -2,7 +2,6 @@ package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.api.ArtworkParty
-import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 
 /**
