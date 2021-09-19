@@ -147,12 +147,14 @@ data class ArtworkOwnership(
     val artworkOwner: ArtworkParty
 )
 
+/**
+ * Used to deserialize bid proposals
+ */
 data class BidProposal(
     val bidderParty: String,
     val artworkId: ArtworkId,
     val amount: String,
-    val currency: String,
-    val expiryDate: String // TODO Delete me
+    val currency: String
 )
 
 typealias TransactionHash = String

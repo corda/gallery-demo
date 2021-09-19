@@ -147,4 +147,12 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
         return Pair(lastIndex, updatesSubList)
     }
+
+    /**
+     * Clears / resets logs
+     */
+    fun clearLogs() {
+        progressSubscriptions.clear()
+        progressUpdates.clear()
+    }
 }

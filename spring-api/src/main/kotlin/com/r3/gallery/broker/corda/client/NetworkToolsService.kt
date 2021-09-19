@@ -191,5 +191,8 @@ class NetworkToolsService(
         connectionManager.cbdc.allConnections()!!.forEach {
             it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC")
         }
+
+        // clear logs from service
+        logService.clearLogs()
     }
 }
