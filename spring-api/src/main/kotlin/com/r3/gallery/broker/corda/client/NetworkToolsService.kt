@@ -35,9 +35,9 @@ class NetworkToolsService(
 ) {
     companion object {
         private val logger = LoggerFactory.getLogger(NetworkToolsService::class.java)
-        const val ALICE = "O=Alice,L=London,C=GB"
-        const val BOB = "O=Bob,L=San Francisco,C=US"
-        const val CHARLIE = "O=Charlie,L=Mumbai,C=IN"
+        const val ALICE = "O=Alice, L=London, C=GB"
+        const val BOB = "O=Bob, L=San Francisco, C=US"
+        const val CHARLIE = "O=Charlie, L=Mumbai, C=IN"
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
