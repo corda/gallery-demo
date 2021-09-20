@@ -27,8 +27,8 @@ cordapp {
 
 dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
-    compile(tokensReleaseGroup,"tokens-contracts", tokensReleaseVersion)
-    compile(tokensReleaseGroup,"tokens-workflows", tokensReleaseVersion)
+    cordapp(tokensReleaseGroup,"tokens-contracts", tokensReleaseVersion)
+    cordapp(tokensReleaseGroup,"tokens-workflows", tokensReleaseVersion)
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.9.7")
 }
