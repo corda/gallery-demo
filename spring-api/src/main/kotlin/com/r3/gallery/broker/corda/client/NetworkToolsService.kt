@@ -180,14 +180,14 @@ class NetworkToolsService(
             it.proxy.startFlowDynamic(DestroyArtwork::class.java).returnValue.get()
         }
 
-        // burn tokens on GBP network
+        // Release locks and burn tokens on GBP network
         connectionManager.gbp.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP")
+            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP").returnValue.get()
         }
 
-        // burn tokens on CBDC network
+        // Release locks and burn tokens on CBDC network
         connectionManager.cbdc.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC")
+            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC").returnValue.get()
         }
 
         // clear logs from service
