@@ -166,7 +166,7 @@ class NetworkToolsService(
         }
 
         // GBP issued to Bob
-        tokenNetworkBuyerClient.issueTokens(BOB, 5000, "GBP")
+        tokenNetworkBuyerClient.issueTokens(BOB, 500000, "GBP")
         // CBDC issued to Charlie
         tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC")
     }
