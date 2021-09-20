@@ -9,6 +9,8 @@ import com.r3.gallery.utils.AuctionCurrency
 import com.r3.gallery.workflows.RevertEncumberedTokensFlow
 import net.corda.core.crypto.SecureHash
 import net.corda.core.flows.*
+import net.corda.core.node.StatesToRecord
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.unwrap
 import org.slf4j.Logger
@@ -36,19 +38,35 @@ class BurnTokens(private val currency: String = "GBP") : FlowLogic<Unit>() {
             val lockReceiverSession = initiateFlow(lockState.receiver)
 
             logger.info("Attempting unlock of $lockState, $lockTxHash")
+            lockReceiverSession.send("seller")
             lockReceiverSession.sendAndReceive<Boolean>(lockTxHash).unwrap { it }.also {
                 result -> if (!result) throw IllegalStateException("Unable to unlock $lockState")
             }
+            lockReceiverSession.close()
         }
 
-        val tokens = serviceHub.vaultService.tokenAmountsByToken(tokenType).states
+        // User should only redeem/burn what they are the holder (not any shared token states)
+        val tokens = serviceHub.vaultService.tokenAmountsByToken(tokenType).states.filter {
+            it.state.data.holder == ourIdentity
+        }
 
         if (tokens.isNotEmpty()) {
-            val txBuilder =  TransactionBuilder(tokens.first().state.notary) // network only has one notary
+            val notary = tokens.first().state.notary
+            val issuer = tokens.first().state.data.issuer
+            val txBuilder =  TransactionBuilder(notary)
             addTokensToRedeem(txBuilder, tokens)
             txBuilder.verify(serviceHub)
-            val stx = serviceHub.signInitialTransaction(txBuilder)
-            subFlow(FinalityFlow(stx, emptyList()))
+            var stx = serviceHub.signInitialTransaction(txBuilder)
+            if (ourIdentity != issuer) { // fetch issuer signature if we are not the issuer.
+                val issuerSession = initiateFlow(issuer)
+                issuerSession.send("issuer")
+                stx = subFlow(CollectSignatureFlow(stx, issuerSession, issuer.owningKey)).let {
+                   stx.plus(it)
+                }
+                subFlow(FinalityFlow(stx, listOf(issuerSession)))
+            } else {
+                subFlow(FinalityFlow(stx, emptyList()))
+            }
             logger.info(
                 "Redeemed the following tokens: ${serviceHub.vaultService.tokenBalance(tokenType)} on $ourIdentity"
             )
@@ -60,10 +78,24 @@ class BurnTokens(private val currency: String = "GBP") : FlowLogic<Unit>() {
 
 @InitiatedBy(BurnTokens::class)
 class BurnTokensHandler(private val otherSession: FlowSession): FlowLogic<Unit>() {
+
     @Suspendable
     override fun call() {
-        val lockStateTxToRelease = otherSession.receive<SecureHash>().unwrap { it }
-        subFlow(RevertEncumberedTokensFlow(lockStateTxToRelease))
-        otherSession.send(true)
+        val role = otherSession.receive<String>().unwrap { it }
+        when (role) {
+            "seller" -> {
+                val lockStateTxToRelease = otherSession.receive<SecureHash>().unwrap { it }
+                subFlow(RevertEncumberedTokensFlow(lockStateTxToRelease))
+                otherSession.send(true)
+            }
+            "issuer" -> {
+                val stx = subFlow(object : SignTransactionFlow(otherSession) {
+                    override fun checkTransaction(stx: SignedTransaction) {
+                        TODO("Not yet implemented")
+                    }
+                })
+                subFlow(ReceiveFinalityFlow(otherSession, stx.id, statesToRecord = StatesToRecord.ALL_VISIBLE))
+            }
+        }
     }
 }
