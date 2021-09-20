@@ -3,7 +3,10 @@ package com.r3.gallery.broker.corda.client.art.controllers
 import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
+import com.r3.gallery.broker.services.BidService
+import com.r3.gallery.broker.services.api.Receipt
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -23,6 +26,9 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         private val logger = LoggerFactory.getLogger(ArtNetworkGalleryController::class.java)
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
+
+    @Autowired
+    private lateinit var bidService: BidService
 
     /**
      * REST endpoint to Issue an artwork
@@ -78,10 +84,10 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
      */
     @PostMapping("/accept-bid", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun acceptBid(
-        @RequestParam("galleryParty") galleryParty: ArtworkParty,
-        @RequestParam("cordaReference") cordaReference: CordaReference
+        @RequestBody acceptedBid: AcceptedBid
     ) : ResponseEntity<Unit> {
-        logger.info("Request by $galleryParty to accept bid from $cordaReference")
+        logger.info("Request by gallery to accept bid for $acceptedBid.artworkId from $acceptedBid.bidderParty")
+        bidService.awardArtwork(acceptedBid.bidderParty, acceptedBid.artworkId, acceptedBid.currency)
         return asResponse(Unit)
     }
 

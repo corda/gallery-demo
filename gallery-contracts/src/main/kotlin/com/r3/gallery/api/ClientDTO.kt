@@ -157,6 +157,12 @@ data class BidProposal(
     val currency: String
 )
 
+data class AcceptedBid(
+    val bidderParty: String,
+    val artworkId: ArtworkId,
+    val currency: String
+)
+
 typealias TransactionHash = String
 
 data class TransactionSignature(val bytes: ByteArray) {
