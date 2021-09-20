@@ -90,46 +90,49 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                         }
                     }
                     if (smUpdate is StateMachineUpdate.Removed) {
-                        val associatedFlow = stateMachineRunIdToFlowName[smUpdate.id]
-                        val signers: Map<CordaX500Name, Boolean>
+                        try {
+                            val associatedFlow = stateMachineRunIdToFlowName[smUpdate.id]
+                            val signers: Map<CordaX500Name, Boolean>
 
-                        val states: List<ContractState> = if (
-                                associatedFlow!!.contains("RequestDraftTransferOfOwnershipFlow")
-                        ) { // target flows are all SignedTransaction except RequestDraft which is pair
-                            val wtx = (smUpdate.result.getOrThrow() as Pair<*,*>).first as WireTransaction
-                            signers = wtx.requiredSigningKeys.associate { pKey ->
-                                Pair(rpc.partyFromKey(pKey)!!.name, false) // no signatures are applied
+                            val states: List<ContractState> = if (
+                                    associatedFlow!!.contains("RequestDraftTransferOfOwnershipFlow")
+                            ) { // target flows are all SignedTransaction except RequestDraft which is pair
+                                val wtx = (smUpdate.result.getOrThrow() as Pair<*,*>).first as WireTransaction
+                                signers = wtx.requiredSigningKeys.associate { pKey ->
+                                    Pair(rpc.partyFromKey(pKey)!!.name, false) // no signatures are applied
+                                }
+                                rpc.startFlowDynamic(StatesFromTXFlow::class.java, wtx).returnValue.getOrThrow()
+                            } else {
+                                val stx = smUpdate.result.getOrThrow() as SignedTransaction
+                                signers = stx.requiredSigningKeys.associate { pKey ->
+                                    val hasSigned: Boolean = !stx.getMissingSigners().contains(pKey)
+                                    Pair(rpc.partyFromKey(pKey)!!.name, hasSigned)
+                                }
+                                rpc.startFlowDynamic(StatesFromTXFlow::class.java, stx).returnValue.getOrThrow()
                             }
-                            rpc.startFlowDynamic(StatesFromTXFlow::class.java, wtx).returnValue.getOrThrow()
-                        } else {
-                            val stx = smUpdate.result.getOrThrow() as SignedTransaction
-                            signers = stx.requiredSigningKeys.associate { pKey ->
-                                val hasSigned: Boolean = !stx.getMissingSigners().contains(pKey)
-                                Pair(rpc.partyFromKey(pKey)!!.name, hasSigned)
-                            }
-                            rpc.startFlowDynamic(StatesFromTXFlow::class.java, stx).returnValue.getOrThrow()
+
+                            val logRecordId = UUID.randomUUID().toString()
+                            progressUpdates.add(
+                                    LogUpdateEntry(
+                                            associatedFlow = associatedFlow,
+                                            network = currentNetwork.name,
+                                            x500 = firingX500.toString(),
+                                            logRecordId = logRecordId,
+                                            timestamp = Date.from(Instant.now()).toString(),
+                                            message = "",
+                                            completed = LogUpdateEntry.FlowCompletionLog(
+                                                    associatedStage = associatedFlow,
+                                                    logRecordId = logRecordId,
+                                                    states = states,
+                                                    signers = signers
+                                            )
+                                    )
+                            )
+
+                            progressSubscriptions.remove(smUpdate.id) // remove subscription after completion
+                        } catch (e: Error) {
+                            logger.error("Error in smUpdate removal ${e.message}")
                         }
-
-                        val logRecordId = UUID.randomUUID().toString()
-                        progressUpdates.add(
-                                LogUpdateEntry(
-                                        associatedFlow = associatedFlow,
-                                        network = currentNetwork.name,
-                                        x500 = firingX500.toString(),
-                                        logRecordId = logRecordId,
-                                        timestamp = Date.from(Instant.now()).toString(),
-                                        message = "",
-                                        completed = LogUpdateEntry.FlowCompletionLog(
-                                                associatedStage = associatedFlow,
-                                                logRecordId = logRecordId,
-                                                states = states,
-                                                signers = signers
-                                        )
-                                )
-                        )
-
-                        progressSubscriptions.remove(smUpdate.id) // remove subscription after completion
-
                     }
                 }
                 logger.info("StateMachine Subscription set for $firingX500")
