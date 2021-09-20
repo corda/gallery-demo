@@ -184,7 +184,7 @@ class NodeDeployment implements Iterable<Object> {
                 .addNewInitContainer()
                 .withName("run-migration")
                 .withImage("${imageName}:${imageVersion}")
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy("Always")
                 .withCommand("bash")
                 .withArgs("run-dbmigration.sh")
                 .withVolumeMounts(
@@ -200,7 +200,7 @@ class NodeDeployment implements Iterable<Object> {
                 .addNewContainer()
                 .withName("$dnsSafeIdentifier-node")
                 .withImage("${imageName}:${imageVersion}")
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy("Always")
                 .withPorts(
                         new V1ContainerPortBuilder().withName("p2pport").withContainerPort(P2P_PORT).build(),
                         new V1ContainerPortBuilder().withName("rpcport").withContainerPort(RPC_PORT).build(),
