@@ -50,7 +50,7 @@ class IssueTokensFlow(
         progressTracker.currentStep = PARSING_CURRENCY
         val currencyTokenType = AuctionCurrency.getInstance(currency)
 
-        val amountOfTarget = amount of currencyTokenType
+        val amountOfTarget = Amount(amount, currencyTokenType)
 
         progressTracker.currentStep = GETTING_IDENTITIES
         val tokenToIssue = amountOfTarget issuedBy ourIdentity heldBy receiver!!
