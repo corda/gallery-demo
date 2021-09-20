@@ -53,6 +53,8 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
     var isInitialized: Boolean = false
 
     fun initSubscriptions() {
+        if (isInitialized) return // final check for race-condition.
+
         listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp).forEach {
             val currentNetwork = it.associatedNetwork
             it.allConnections()!!.map { connection -> connection.proxy }.forEach { rpc ->
@@ -69,24 +71,43 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
                         // add progress update subscription
                         if (flowsToTrackProgress.any { flowName -> flowName in flowForUpdate }) {
-                            val pSub = smUpdateInfo.progressTrackerStepAndUpdates?.updates?.subscribe { update ->
-                                if (!update.contains("Structural step change")) {
-                                    val update_ = if (update == "Starting" || update == "Done") { "$update ${flowForUpdate}."}
-                                        else update
-                                    val updateProposal = LogUpdateEntry(
-                                            associatedFlow = flowForUpdate,
-                                            network = currentNetwork.name,
-                                            x500 = firingX500.toString(),
-                                            logRecordId = UUID.randomUUID().toString(),
-                                            timestamp = Date.from(Instant.now()).toString(),
-                                            message = update_
-                                    )
-                                    // avoid duplicates
-                                    if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
+                            smUpdateInfo.progressTrackerStepAndUpdates?.let { feed ->
+                                with(feed.snapshot) {
+                                    if (!contains("Structural step change")) {
+                                        val update_ = if (this == "Starting" || this == "Done") { "$this ${flowForUpdate}."}
+                                            else this
+                                        val updateProposal = LogUpdateEntry(
+                                                associatedFlow = flowForUpdate,
+                                                network = currentNetwork.name,
+                                                x500 = firingX500.toString(),
+                                                logRecordId = UUID.randomUUID().toString(),
+                                                timestamp = Date.from(Instant.now()).toString(),
+                                                message = update_
+                                        )
+                                        // avoid duplicates
+                                        if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
+                                    }
                                 }
                             }
-                            logger.info("Progress Subscription set for $firingX500-${smUpdateInfo.flowLogicClassName}-${smUpdateInfo.id}")
-                            progressSubscriptions[smUpdate.id] = pSub!!
+
+//                            val pSub = smUpdateInfo.progressTrackerStepAndUpdates?.updates?.subscribe { update ->
+//                                if (!update.contains("Structural step change")) {
+//                                    val update_ = if (update == "Starting" || update == "Done") { "$update ${flowForUpdate}."}
+//                                        else update
+//                                    val updateProposal = LogUpdateEntry(
+//                                            associatedFlow = flowForUpdate,
+//                                            network = currentNetwork.name,
+//                                            x500 = firingX500.toString(),
+//                                            logRecordId = UUID.randomUUID().toString(),
+//                                            timestamp = Date.from(Instant.now()).toString(),
+//                                            message = update_
+//                                    )
+//                                    // avoid duplicates
+//                                    if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
+//                                }
+//                            }
+//                            logger.info("Progress Subscription set for $firingX500-${smUpdateInfo.flowLogicClassName}-${smUpdateInfo.id}")
+//                            progressSubscriptions[smUpdate.id] = pSub!!
                         }
                     }
                     if (smUpdate is StateMachineUpdate.Removed) {
