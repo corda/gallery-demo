@@ -79,7 +79,7 @@ class TokenNetworkBuyerClientImpl(
             verifiedDraftTx,
             encumberedAmount
         )
-        return tx.toString()
+        return tx.id.toString()
     }
 
     /**
