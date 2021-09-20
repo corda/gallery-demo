@@ -30,7 +30,6 @@ dependencies {
     cordaCompile(cordaCoreReleaseGroup,"corda-core", cordaCoreVersion)
     cordaCompile(tokensReleaseGroup,"tokens-contracts", tokensReleaseVersion)
     cordaCompile(tokensReleaseGroup,"tokens-workflows", tokensReleaseVersion)
-
     cordaRuntime(cordaCoreReleaseGroup, "corda", cordaCoreVersion)
     testImplementation(cordaCoreReleaseGroup, "corda-node-driver", cordaCoreVersion)
 
