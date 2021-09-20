@@ -14,13 +14,6 @@ sealed class Receipt {
         val encumberedTokens: TransactionHash
     ) : Receipt()
 
-    data class BidReceiptOld(
-        override val bidderName: String,
-        override val artworkId: ArtworkId,
-        val unsignedArtworkTransferTx: UnsignedArtworkTransferTx,
-        val encumberedTokens: EncumberedTokens
-    ) : Receipt()
-
     data class SaleReceipt(
         override val bidderName: String,
         override val artworkId: ArtworkId,

@@ -7,6 +7,7 @@ import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
+import com.r3.gallery.broker.services.BidService
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*
 class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClient) {
 
     @Autowired
-    private lateinit var tokenBuyerClient: TokenNetworkBuyerClient
+    private lateinit var bidService: BidService
 
     companion object {
         private val logger = LoggerFactory.getLogger(ArtNetworkBidderController::class.java)
@@ -43,18 +44,8 @@ class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClien
     ) : ResponseEntity<Unit> {
         logger.info("Request by ${bidProposal.bidderParty} to bid on ${bidProposal.artworkId} in amount of ${bidProposal.amount} ${bidProposal.currency}")
 
-        val verifiedWireTx = bidderClient.requestDraftTransferOfOwnership(
-            bidProposal.bidderParty,
-            "O=Alice, L=London, C=GB",
-            bidProposal.artworkId
-        )
-        tokenBuyerClient.transferEncumberedTokens(
-            buyer = bidProposal.bidderParty,
-            seller = "O=Alice, L=London, C=GB",
-            amount = bidProposal.amount.toLong(),
-            currency = "GBP",
-            verifiedWireTx
-        )
+        bidService.placeBid(bidProposal.bidderParty, bidProposal.artworkId, bidProposal.amount.toLong(), "GBP")
+
         return asResponse(Unit)
     }
 
