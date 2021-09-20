@@ -42,7 +42,7 @@ class IssueTokenFlowTests {
     fun `can issue tokens to a party`() {
         val aParty = a.info.chooseIdentity()
 
-        val issueFlow = IssueTokensFlow(10, GBP.tokenIdentifier, aParty)
+        val issueFlow = IssueTokensFlow(1000, GBP.tokenIdentifier, aParty)
         val stx = a.startFlow(issueFlow).also { network.runNetwork() }.getOrThrow()
 
         val balance = a.services.vaultService.tokenBalance(GBP)
@@ -53,7 +53,7 @@ class IssueTokenFlowTests {
     @Test
     fun `can get balance`() {
         val aParty = a.info.chooseIdentity()
-        val issueFlow = IssueTokensFlow(10, GBP.tokenIdentifier, aParty)
+        val issueFlow = IssueTokensFlow(1000, GBP.tokenIdentifier, aParty)
         a.startFlow(issueFlow).also { network.runNetwork() }
 
         val balanceFlow = GetBalanceFlow(GBP)

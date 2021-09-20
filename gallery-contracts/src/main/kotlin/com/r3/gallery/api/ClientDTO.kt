@@ -35,8 +35,15 @@ typealias TokenParty = String
 
 /**
  * Log entry templated for UI output.
- * - message can/should include formatting tokens for resolving the
- * display on the frontend.
+ * The message can/should include formatting tokens for resolving the display on the frontend.
+ *
+ * @property associatedFlow which is being tracked in StateMachine
+ * @property network of the action
+ * @property x500 of the initiator
+ * @property logRecordId unique ID for this update
+ * @property timestamp of the update
+ * @property message of the update itself; ProgressTracker.Step
+ * @property completed a completion log representing the details of any transaction or output of the associated flow.
  */
 data class LogUpdateEntry(
     val associatedFlow: String,
@@ -157,6 +164,9 @@ data class BidProposal(
     val currency: String
 )
 
+/**
+ * Used to deserialize bid acceptance requests
+ */
 data class AcceptedBid(
     val bidderParty: String,
     val artworkId: ArtworkId,

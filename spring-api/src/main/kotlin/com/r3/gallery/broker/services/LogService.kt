@@ -17,20 +17,20 @@ import org.springframework.stereotype.Component
 import rx.Subscription
 import java.time.Instant
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
-import kotlin.math.log
 
 typealias ProgressUpdateSubscription = Subscription
 typealias LogRetrievalIdx = Int
 
 /**
  * Stores and returns log updates based on a set of rpc proxies
- * TODO: FE poll tracking based on index of updates list?
  */
 @Component
 class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
+    /**
+     * Companion object contains whitelisting/blacklisting for use in filtering progress tracker updates to most
+     * relevant flows.
+     */
     companion object {
         val logger: Logger =  LoggerFactory.getLogger(LogService::class.java)
         val flowsToTrackProgress = listOf(
@@ -64,6 +64,12 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
     private val stateMachineRunIdToFlowName: MutableMap<StateMachineRunId, String> = HashMap()
     var isInitialized: Boolean = false
 
+    /**
+     * Creates subscriptions to statemachine observables through RPC proxies.
+     *
+     * Each update is based on ProgressTracker.Step definitions in the Flow being transitioned through the StateMachine
+     * and transformed to a DTO [LogUpdateEntry]
+     */
     fun initSubscriptions() {
         if (isInitialized) return // final check for race-condition.
 
@@ -73,6 +79,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
                 val firingX500 = rpc.nodeInfo().legalIdentities.first().name
                 val subscription = rpc.stateMachinesFeed().updates.subscribe subscriptionSet@{ smUpdate ->
+                    // event for Flow being added to the StateMachine track
                     if (smUpdate is StateMachineUpdate.Added) {
                         val smUpdateInfo = smUpdate.stateMachineInfo
                         val flowForUpdate = smUpdateInfo.flowLogicClassName
@@ -85,6 +92,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
                         smUpdateInfo.progressTrackerStepAndUpdates?.let { feed ->
                             feed.updates.toBlocking().forEach { msg ->
+                                // ignore structural step change updates and add context to Starting and Done messages.
                                 if (!msg.contains("Structural step change")) {
                                     val update_ = if (msg == "Starting" || msg == "Done") { "$msg ${flowForUpdate}."}
                                     else msg
@@ -96,12 +104,13 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                             timestamp = Date.from(Instant.now()).toString(),
                                             message = update_
                                     )
-                                    // avoid duplicates
+                                    // Avoid duplicates - see LogUpdateEntry.equals
                                     if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
                                 }
                             }
                         }
                     }
+                    // event for Flow exiting StateMachine
                     if (smUpdate is StateMachineUpdate.Removed) {
                         try {
                             val associatedFlow = stateMachineRunIdToFlowName[smUpdate.id]
@@ -113,6 +122,9 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                     flowsToIgnoreCompletionUpdate.any { flowName -> flowName in associatedFlow!! }
                             ) return@subscriptionSet
 
+                            // Cast to correct Object for decomposition to serialized states of 'completed' property
+                            // Wire and SignedTransaction are converted to [LedgerTransaction] and ContractStates resolved
+                            // via StatesFromTXFlow.
                             val states: List<ContractState> = if (
                                     associatedFlow!!.contains("RequestDraftTransferOfOwnershipFlow")
                             ) { // target flows are all SignedTransaction except RequestDraft which is pair
