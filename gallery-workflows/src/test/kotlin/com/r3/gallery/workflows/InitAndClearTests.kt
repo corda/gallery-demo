@@ -125,7 +125,7 @@ class InitAndClearTests {
 
         balance = buyer.startFlow(GetBalanceFlow(GBP)).apply {
             network.runNetwork()
-        }.toCompletableFuture().get()
+        }.getOrThrow()
         sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).apply {
             network.runNetwork()
         }.getOrThrow()
