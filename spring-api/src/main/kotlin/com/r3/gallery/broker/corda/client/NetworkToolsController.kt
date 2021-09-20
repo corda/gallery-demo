@@ -12,11 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.*
 
 /**
- * Controller with aggregate access across  API layers
- * for x-network queries and generic operations.
+ * Controller with aggregate access across API layers
+ * for x-network queries and generic demo operations.
  */
 @CrossOrigin
 @RestController
@@ -34,8 +33,9 @@ class NetworkToolsController(
     }
 
     /**
-     * Test endpoint to return NodeInfo of connections
-     * TODO: add jackson model for NodeInfo rather than string
+     * REST endpoint for returning participants across all networks.
+     *
+     * @param networks optional list of networks to filter on
      */
     @GetMapping("/participants")
     fun participants(
@@ -47,6 +47,8 @@ class NetworkToolsController(
 
     /**
      * Log returns progressUpdates for Node Level state-machine updates
+     *
+     * @param index to retrieve a subset of log updates, defaults to returning full set of all updates
      */
     @GetMapping("/log")
     fun log(
@@ -66,19 +68,13 @@ class NetworkToolsController(
     }
 
     /**
-     * Initialise the initial artworks and correct amount of funds to the demo parties
+     * Initialise the demo by issuing artwork pieces and funds to the demo parties.
      */
     @GetMapping("/init")
     fun initializeDemo(): ResponseEntity<Unit> {
         logger.info("Request for initial issuance to networks.")
-        networkToolsService.initializeDemo()
-        return asResponse(Unit)
-    }
-
-    @GetMapping("/clear")
-    fun clearDemo(): ResponseEntity<Unit> {
-        logger.info("Request to clear demo states.")
         networkToolsService.clearDemo()
+        networkToolsService.initializeDemo()
         return asResponse(Unit)
     }
 }

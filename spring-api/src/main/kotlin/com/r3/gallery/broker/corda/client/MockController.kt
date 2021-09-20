@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 /**
- * REST endpoints for Gallery parties on Auction Network
+ * MOCK REST endpoints for Gallery parties on Auction Network
  *
- * required endpoints:
- *
+ * See application.properties, mock.controller.enabled property for setting this controller to active.
  */
 @CrossOrigin
 @RestController

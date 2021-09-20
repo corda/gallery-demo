@@ -20,6 +20,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+/**
+ * Implementation of [TokenNetworkBuyerClient]
+ */
 @Component
 class TokenNetworkBuyerClientImpl(
     @Autowired private val connectionManager: ConnectionManager
@@ -29,6 +32,13 @@ class TokenNetworkBuyerClientImpl(
         private val logger = LoggerFactory.getLogger(TokenNetworkBuyerClientImpl::class.java)
     }
 
+    /**
+     * Issue tokens on a given consideration network
+     *
+     * @param buyer to issue tokens to (for demo purposes tokens are self-issued)
+     * @param amount to issue
+     * @param currency string representation of the token description
+     */
     override fun issueTokens(buyer: TokenParty, amount: Long, currency: String) {
         logger.info("Starting IssueTokensFlow via $buyer for $amount $currency")
         val connService = connectionManager.connectToCurrencyNetwork(currency)
@@ -37,6 +47,15 @@ class TokenNetworkBuyerClientImpl(
         connService.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
     }
 
+    /**
+     * Creates a transaction to encumber tokens against a lock requiring a notary signature on an unsigned artwork transfer
+     *
+     * @param buyer encumbering the tokens
+     * @param seller who will receive the encumbered tokens
+     * @param amount of tokens
+     * @param currency representing the token type description
+     * @param lockedOn [ValidatedUnsignedArtworkTransferTx] to use as a requirement for notary signature
+     */
     override fun transferEncumberedTokens(
         buyer: TokenParty,
         seller: TokenParty,
@@ -63,6 +82,15 @@ class TokenNetworkBuyerClientImpl(
         return tx.toString()
     }
 
+    /**
+     * A Buyer request for release of encumbered tokens (return to their ownership) in the case that the seller has
+     * not fulfilled their Proof-of-action by the auction expiry time-window. At this time the buyer (creator of lock on
+     * encumbrance can release the lock and transfer the tokens back to themselves).
+     *
+     * @param buyer who wishes to release the tokens
+     * @param currency of the token
+     * @param encumberedTokens [TransactionHash]
+     */
     override fun releaseTokens(
         buyer: TokenParty,
         currency: String,
