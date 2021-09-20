@@ -54,12 +54,11 @@ class RevertEncumberedTokensFlow(
             party == ourIdentity && it.state.encumbrance != null
         }
 
-        val compositeKey = tokensStates.first().state.data.holder.owningKey
         val outputStates = tokensStates.map { it.state.data.withNewHolder(encumberedTxIssuer) }
 
         progressTracker.currentStep = GENERATING_TRANSACTION
         val txBuilder = TransactionBuilder(notary = encumberedTx.notary!!)
-            .addMoveTokens(tokensStates, outputStates, listOf(compositeKey))
+            .addMoveTokens(tokensStates, outputStates, listOf())
             .addInputState(lockState)
             .addCommand(Command(LockContract.Revert(), ourIdentity.owningKey))
 
