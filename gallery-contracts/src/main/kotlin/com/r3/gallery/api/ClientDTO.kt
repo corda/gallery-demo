@@ -134,7 +134,7 @@ data class AvailableArtwork(
     // A record of a bid placed against a single artworkId
     @CordaSerializable
     data class BidRecord(
-        val cordaReference: CordaReference, // UNIQUE
+        val cordaReference: String, // UNIQUE
         val bidderPublicKey: String,
         val bidderDisplayName: ArtworkParty,
         val amountAndCurrency: Amount<TokenType>, // will expand to amount, currencyCode

@@ -1,6 +1,7 @@
 package com.r3.gallery.broker.corda.client.token.api
 
 import com.r3.gallery.api.*
+import net.corda.core.identity.Party
 
 /**
  * Execute flows against Corda nodes running a Token (GBP or CBDC) application, acting as the buyer
@@ -41,4 +42,9 @@ interface TokenNetworkBuyerClient {
      * @param encumberedTokens [TransactionHash]
      */
     fun releaseTokens(buyer: TokenParty, currency: String, encumberedTokens: TransactionHash): TransactionHash
+
+    /**
+     * Returns a [Party] given a buyer.
+     */
+    fun resolvePartyFromNameAndCurrency(buyer: TokenParty /* = kotlin.String */, currency: String): Party
 }

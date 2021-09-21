@@ -3,15 +3,18 @@ package com.r3.gallery.broker.corda.client.art.api
 import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
+import com.r3.gallery.broker.services.BidService
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.utils.AuctionCurrency
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
 import com.r3.gallery.workflows.artwork.FindArtworkFlow
+import com.r3.gallery.workflows.artwork.FindArtworksFlow
 import com.r3.gallery.workflows.artwork.FindOwnedArtworksFlow
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import net.corda.core.contracts.Amount
 import net.corda.core.internal.toX500Name
+import net.corda.core.messaging.startFlow
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.serialize
@@ -65,37 +68,6 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * Lists available artwork held by a particular gallery
-     *
-     * @param galleryParty to query for artwork
-     * @return [List][AvailableArtwork]
-     */
-    override fun listAvailableArtworks(galleryParty: ArtworkParty): List<AvailableArtwork> {
-        logger.info("Starting ListAvailableArtworks flow via $galleryParty")
-        val artworks = artNetworkGalleryCS.startFlow(galleryParty, FindOwnedArtworksFlow::class.java)
-            .map { it.state.data }
-        return artworks.map {
-            AvailableArtwork(
-                it.artworkId,
-                it.description,
-                it.url,
-                listed = true,
-                bids = listOf(
-                    AvailableArtwork.BidRecord(
-                        cordaReference = UUID.randomUUID(),
-                        bidderPublicKey = "0xb4bc263278d3ф82a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
-                        bidderDisplayName = "Bob GBP",
-                        amountAndCurrency = Amount(250L, AuctionCurrency.getInstance("GBP")),
-                        notary = "O=GBP Notary,L=London,C=GB",
-                        expiryDate = Date(),
-                        accepted = false
-                    )
-                )
-            )
-        }
-    }
-
-    /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]
      *
@@ -125,6 +97,16 @@ class ArtNetworkGalleryClientImpl(
         logger.info("Fetching ownership record for $galleryParty with artworkId: $artworkId")
         return galleryParty.artworkIdToState(artworkId).let {
             ArtworkOwnership(it.linearId.id, it.artworkId, it.owner.nameOrNull().toString())
+        }
+    }
+
+    /**
+     * Returns all available artwork states.
+     * @return [List][ArtworkState]
+     */
+    override fun getAllArtwork(): List<ArtworkState> {
+        return artNetworkGalleryCS.allConnections()!!.flatMap {
+            it.proxy.startFlow(::FindArtworksFlow).returnValue.get()
         }
     }
 

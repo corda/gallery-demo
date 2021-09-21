@@ -19,6 +19,7 @@ import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.lang.IllegalArgumentException
 
 /**
  * Implementation of [TokenNetworkBuyerClient]
@@ -101,5 +102,14 @@ class TokenNetworkBuyerClientImpl(
         val encumberedTxHash = SecureHash.parse(encumberedTokens)
         val stx = connService.startFlow(buyer, RevertEncumberedTokensFlow::class.java, encumberedTxHash)
         return stx.id.toString()
+    }
+
+    override fun resolvePartyFromNameAndCurrency(buyer: TokenParty, currency: String): Party {
+        return try {
+            return connectionManager.cbdc.wellKnownPartyFromName(buyer, buyer)!!
+        } catch (e: IllegalArgumentException) {
+            logger.info("Not found on cbdc network")
+            null
+        } ?: return connectionManager.gbp.wellKnownPartyFromName(buyer, buyer)!!
     }
 }

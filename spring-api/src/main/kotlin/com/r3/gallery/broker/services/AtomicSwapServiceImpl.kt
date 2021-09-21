@@ -1,12 +1,15 @@
 package com.r3.gallery.broker.services
 
 import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.UnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.services.api.Receipt
+import com.r3.gallery.states.ArtworkState
+import net.corda.core.identity.Party
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -34,7 +37,14 @@ class AtomicSwapServiceImpl(
             buyerClient.transferEncumberedTokens(buyerParty, sellerParty, bidAmount, currency, validatedUnsignedTx)
 
         val unsignedArtworkTransferTx = UnsignedArtworkTransferTx(validatedUnsignedTx.transactionBytes)
-        return Receipt.BidReceipt(bidderName, artworkId, unsignedArtworkTransferTx, encumberedTokens)
+
+        return Receipt.BidReceipt(
+                bidderName,
+                artworkId,
+                bidAmount,
+                currency,
+                unsignedArtworkTransferTx,
+                encumberedTokens)
     }
 
     /**
@@ -46,7 +56,7 @@ class AtomicSwapServiceImpl(
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
         val tokenTxId = sellerClient.claimTokens(sellerParty, currency, bid.encumberedTokens, proofOfTransfer.notarySignature)
 
-        return Receipt.SaleReceipt(bid.bidderName, bid.artworkId, proofOfTransfer.transactionHash, tokenTxId)
+        return Receipt.SaleReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, proofOfTransfer.transactionHash, tokenTxId)
     }
 
     override fun cancelBid(bid: Receipt.BidReceipt, currency: String): Receipt.CancellationReceipt {
@@ -56,6 +66,14 @@ class AtomicSwapServiceImpl(
             currency,
             bid.encumberedTokens)
 
-        return Receipt.CancellationReceipt(bid.bidderName, bid.artworkId, tokenTxId)
+        return Receipt.CancellationReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, tokenTxId)
+    }
+
+    override fun getAllArtworks(): List<ArtworkState> {
+        return galleryClient.getAllArtwork()
+    }
+
+    override fun getPartyFromNameAndCurrency(buyerParty: TokenParty, currency: String): Party {
+        return buyerClient.resolvePartyFromNameAndCurrency(buyerParty, currency)
     }
 }

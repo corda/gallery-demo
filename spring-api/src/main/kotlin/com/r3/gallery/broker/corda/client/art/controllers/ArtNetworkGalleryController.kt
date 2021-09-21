@@ -4,7 +4,6 @@ import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.BidService
-import com.r3.gallery.broker.services.api.Receipt
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -71,7 +70,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         @RequestParam("galleryParty", required = false) galleryParty: ArtworkParty?
     ): ResponseEntity<List<AvailableArtwork>> {
         logger.info("Request of artwork listing of $galleryParty")
-        val artworks = galleryClient.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
+        val artworks = bidService.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
         return asResponse(artworks)
     }
 
@@ -79,8 +78,7 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
      * TODO: Forward request to bidService
      * REST endpoint to 'ACCEPT' an offer/bid for a piece of artwork
      *
-     * @param galleryParty who owns the artwork
-     * @param cordaReference the unique draft transaction reference (used to fetch [UnsignedArtworkTransferTx]) to finalise
+     * @param acceptedBid (JSON)
      */
     @PostMapping("/accept-bid", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun acceptBid(

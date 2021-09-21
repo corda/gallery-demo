@@ -2,7 +2,6 @@ package com.r3.gallery.broker.services
 
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.broker.services.api.Receipt
-import com.r3.gallery.broker.services.api.Receipt.BidReceipt
 import org.springframework.stereotype.Component
 
 /**
@@ -13,6 +12,7 @@ interface ReceiptRepository<T: Receipt> {
     fun retrieve(bidderName: String, artworkId: ArtworkId): T
     fun remove(bidderName: String, artworkId: ArtworkId)
     fun getBidsFor(artworkId: ArtworkId): List<T>
+    fun allReceipts(): List<T>
 }
 
 @Component
@@ -37,6 +37,10 @@ class ReceiptRepositoryImpl<T: Receipt>: ReceiptRepository<T> {
 
     override fun getBidsFor(artworkId: ArtworkId): List<T> {
         return receipts.values.filter { it.artworkId == artworkId }
+    }
+
+    override fun allReceipts(): List<T> {
+        return receipts.values.toList()
     }
 
     class ReceiptNotFoundException(bidderName: String, artworkId: ArtworkId /* = java.util.UUID */)
