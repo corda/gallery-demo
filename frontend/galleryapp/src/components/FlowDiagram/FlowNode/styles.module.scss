@@ -35,6 +35,31 @@
       font-family: "Monaco", "Courier New", Courier, monospace;
     }
   }
+
+  .propertyItem {
+    display: flex;
+    margin-top: 5px;
+
+    .propertyKey {
+      min-width: 100px;
+      font-weight: bold;
+    }
+
+    .propertyValue {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 2px 5px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      &:hover {
+        background: white;
+        overflow: visible;
+      }
+    }
+  }
+
 }
 
 .title {
@@ -47,3 +72,5 @@
 .properties {
   border-bottom: solid 1px var(--color-medium-light-gray-500);
 }
+
+

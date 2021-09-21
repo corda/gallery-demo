@@ -26,7 +26,7 @@ const BlockNode = ({ data }: Props) => {
             style={{ opacity: "0" }}
           />
         ))}
-      <h6 className={styles.title}>{data.label}</h6>
+      <span className={styles.title}>{data.label}</span>
     </div>
   );
 };

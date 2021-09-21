@@ -29,8 +29,8 @@ const FlowNode = ({ data }: Props) => {
         {Object.entries(data.properties).map((properties) => {
           const [key, value] = properties;
           return (
-            <li key={key}>
-              <b>{key}</b>: {value}
+            <li key={key} className={styles.propertyItem}>
+              <div className={styles.propertyKey}>{key}:</div> <div className={styles.propertyValue}>{value}</div>
             </li>
           );
         })}
