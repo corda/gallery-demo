@@ -23,7 +23,7 @@ function getStatus(bidAccepted: boolean, biddingOpen: boolean) {
   return <Badge variant="gray">Open</Badge>;
 }
 
-function CatalogueItemBids({ bids, open }: Props) {
+function CatalogueItemBids({ bids, open, lotId }: Props) {
   const { getUser } = useContext(UsersContext);
   const [bidAccepted, setBidAccepted] = useState(false);
   const pendingState = bidAccepted && open;
@@ -34,8 +34,9 @@ function CatalogueItemBids({ bids, open }: Props) {
     if (user) {
       setBidAccepted(true);
       postBidAcceptance({
-        galleryParty: user.x500,
-        cordaReference: bid.cordaReference,
+        bidderParty: bid.bidderDisplayName,
+        artworkId: lotId,
+        currency: bid.currencyCode
       });
     }
   }
