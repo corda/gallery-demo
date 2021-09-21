@@ -13,14 +13,16 @@ import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.workflows.artwork.DestroyArtwork
 import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.webapp.GetBalanceFlow
-import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.internal.hash
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.core.task.SimpleAsyncTaskExecutor
 import org.springframework.stereotype.Component
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
@@ -41,6 +43,11 @@ class NetworkToolsService(
 
     private lateinit var networkClients: List<ConnectionService>
     private lateinit var tokenClients: List<ConnectionService>
+
+    // for caching fetches
+    private val taskExecutor = SimpleAsyncTaskExecutor()
+    private var balanceResult: CopyOnWriteArrayList<NetworkBalancesResponse>? = null
+    private var logResult: CopyOnWriteArrayList<LogUpdateEntry>? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -64,13 +71,6 @@ class NetworkToolsService(
     // Utility fun for aggregating results across multiple connection services
     private fun <T> List<ConnectionService>.runPerConnectionService(block: (ConnectionService) -> T): List<T> {
         return this.map(block)
-    }
-
-    // Utility fun for executing block across all connections contained in the calling list of services
-    private fun <T> List<ConnectionService>.runPerRPCConnection(block: (CordaRPCConnection) -> T): List<T> {
-        return this.flatMap {
-            it.sessions.values.map(block)
-        }
     }
 
     /**
@@ -116,33 +116,56 @@ class NetworkToolsService(
      */
     fun getLogs(index: Int?): List<LogUpdateEntry> {
         logger.info("Starting log retrieval")
-        if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
-        val result = logService.getProgressUpdates(index ?: 0)
-        return result.second
+        var initialLatch: CountDownLatch? = null
+        if (this.balanceResult == null) {
+            initialLatch = CountDownLatch(1)
+        }
+
+        taskExecutor.execute {
+            if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
+            val result = logService.getProgressUpdates(index ?: 0)
+            this.logResult = CopyOnWriteArrayList(result.second)
+            initialLatch?.let { initialLatch.countDown() }
+        }
+
+        initialLatch?.let { initialLatch.await() }
+        return this.logResult!!
     }
 
     /**
      * Returns Balances of all parties
      */
     fun getBalance(): List<NetworkBalancesResponse> {
-        val allBalances = tokenClients.runPerConnectionService {
-            val network = it.associatedNetwork
-            it.allConnections()!!.map { rpc ->
-                val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
-                val currentBalance = rpc.proxy.startFlowDynamic(
-                    GetBalanceFlow::class.java,
-                    network.name
-                ).returnValue.getOrThrow()
-                Pair(x500, currentBalance)
-            }
-        }.flatten()
-        return allBalances.groupBy { it.first }
-            .entries.map {
-                NetworkBalancesResponse(
-                    x500 = it.key.toString(),
-                    partyBalances = it.value.map { balance -> balance.second }
-                )
-            }
+        var initialLatch: CountDownLatch? = null
+        if (this.balanceResult == null) {
+            initialLatch = CountDownLatch(1)
+        }
+
+        taskExecutor.execute {
+            val allBalances = tokenClients.runPerConnectionService {
+                val network = it.associatedNetwork
+                it.allConnections()!!.map { rpc ->
+                    val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
+                    val currentBalance = rpc.proxy.startFlowDynamic(
+                            GetBalanceFlow::class.java,
+                            network.name
+                    ).returnValue.getOrThrow()
+                    Pair(x500, currentBalance)
+                }
+            }.flatten()
+            val balanceList = allBalances.groupBy { it.first }
+                    .entries.map {
+                        NetworkBalancesResponse(
+                                x500 = it.key.toString(),
+                                partyBalances = it.value.map { balance -> balance.second }
+                        )
+                    }
+            this.balanceResult = CopyOnWriteArrayList(balanceList)
+            initialLatch?.let { initialLatch.countDown() }
+        }
+        initialLatch?.let { initialLatch.await() }
+
+        return this.balanceResult!!
     }
 
     /**

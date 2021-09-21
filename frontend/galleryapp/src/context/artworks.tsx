@@ -20,7 +20,7 @@ export const ArtworksProvider: FC = ({ children }) => {
   useInterval(async () => {
     const lots = await getGallery();
     if (lots && !isEqual(lots, artworks)) setArtwork(lots);
-  }, 2000);
+  }, 3000);
 
   return (
     <ArtworksContext.Provider
