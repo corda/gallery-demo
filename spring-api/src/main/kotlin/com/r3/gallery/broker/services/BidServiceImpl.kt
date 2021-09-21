@@ -15,7 +15,9 @@ import java.util.*
 @Component
 class BidServiceImpl(
     @Autowired val swapService: AtomicSwapService,
-    @Autowired val bidRepository: ReceiptRepository<Receipt.BidReceipt>
+    @Autowired val bidRepository: BidReceiptRepository,
+    @Autowired val saleRepository: SaleReceiptRepository,
+    @Autowired val cancelRepository: CancelReceiptRepository
 ) : BidService {
 
     companion object {
@@ -34,13 +36,18 @@ class BidServiceImpl(
         logger.info("Processing award artwork $bidderName, $artworkId, $encumberedCurrency in BidService")
 
         val bidReceipt = bidRepository.retrieve(bidderName, artworkId)
+
         val saleReceipt = swapService.awardArtwork(bidReceipt, encumberedCurrency)
+        saleRepository.store(saleReceipt)
 
         bidRepository.remove(bidderName, artworkId)
 
         // cancel remaining bids
-        val cancelReceipts = bidRepository.getBidsFor(artworkId).map { failedBid ->
+        val cancelReceipts = bidRepository.retrieveAllForId(artworkId).map { failedBid ->
             swapService.cancelBid(failedBid, encumberedCurrency)
+        }
+        cancelReceipts.forEach {
+            cancellationReceipt -> cancelRepository.store(cancellationReceipt)
         }
 
         return listOf(saleReceipt) + cancelReceipts
@@ -57,15 +64,30 @@ class BidServiceImpl(
         logger.info("Listing available artworks via $galleryParty")
         val artworks = swapService.getAllArtworks()
         return artworks.map { artwork ->
-            val bids = bidRepository.getBidsFor(artwork.artworkId).map { bid ->
-                val bidder = swapService.getPartyFromNameAndCurrency(bid.bidderName, bid.currency)
+            // get both bids and sales for target artwork
+            val receiptsForId: List<Receipt> = (
+                        bidRepository.retrieveAllForId(artwork.artworkId) +
+                                saleRepository.retrieveAllForId(artwork.artworkId)
+                    )
+            val bidRecords = receiptsForId.map { receipt ->
+                val bidder = swapService.getPartyFromNameAndCurrency(receipt.bidderName, receipt.currency)
+                var cordaReference = ""
+                var accepted = false
+                when (receipt) {
+                    is Receipt.BidReceipt -> { cordaReference = receipt.encumberedTokens }
+                    is Receipt.SaleReceipt -> {
+                        cordaReference = receipt.tokenTxId
+                        accepted = true
+                    }
+                    else -> {}
+                }
                 AvailableArtwork.BidRecord(
-                        cordaReference =  bid.encumberedTokens,
+                        cordaReference =  cordaReference,
                         bidderPublicKey = bidder.owningKey.hash.toString(),
-                        bidderDisplayName = bid.bidderName,
-                        amountAndCurrency = Amount(bid.amount, AuctionCurrency.getInstance(bid.currency)),
-                        notary = "${bid.currency} Notary",
-                        accepted = false // TODO check if there is a SALE receipt
+                        bidderDisplayName = receipt.bidderName,
+                        amountAndCurrency = Amount(receipt.amount, AuctionCurrency.getInstance(receipt.currency)),
+                        notary = "${receipt.currency} Notary",
+                        accepted = accepted
                 )
             }
             AvailableArtwork(
@@ -74,7 +96,7 @@ class BidServiceImpl(
                 url = artwork.url,
                 listed = true,
                 expiryDate = Date.from(artwork.expiry),
-                bids = bids
+                bids = bidRecords
             )
         }
     }
