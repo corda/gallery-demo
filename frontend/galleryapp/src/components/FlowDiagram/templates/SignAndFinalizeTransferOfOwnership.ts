@@ -33,7 +33,7 @@ const template = (data: FlowData) => [
         },
       ],
     },
-    position: { x: 0, y: 580 },
+    position: { x: 0, y: 480 },
   },
   {
     id: "f3_3",
@@ -60,7 +60,7 @@ const template = (data: FlowData) => [
         },
       ],
     },
-    position: { x: 450, y: 199 },
+    position: { x: 450, y: 192 },
   },
   {
     id: "f3_5",
@@ -79,7 +79,7 @@ const template = (data: FlowData) => [
         },
       ],
     },
-    position: { x: 450, y: 248 },
+    position: { x: 450, y: 234 },
   },
   {
     id: "f3_6",
@@ -87,7 +87,7 @@ const template = (data: FlowData) => [
     data: {
       label: Object.keys(data.signers)[0],
     },
-    position: { x: 450, y: 297 },
+    position: { x: 450, y: 276 },
   },
   {
     id: "7",
@@ -95,7 +95,7 @@ const template = (data: FlowData) => [
     data: {
       label: Object.keys(data.signers)[1],
     },
-    position: { x: 450, y: 346 },
+    position: { x: 450, y: 318 },
   },
   {
     id: "f3_8",

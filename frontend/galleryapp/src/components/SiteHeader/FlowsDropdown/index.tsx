@@ -1,40 +1,20 @@
 import styles from "./styles.module.scss";
 import { ReactComponent as UmlIcon } from "@Assets/umlIcon.svg";
-import { Dropdown, Modal, Option } from "@r3/r3-tooling-design-system";
+import { Dropdown, Option } from "@r3/r3-tooling-design-system";
 import React, { useContext, useState } from "react";
-import templateOne from "@Components/FlowDiagram/templates/one";
-import templateTwo from "@Components/FlowDiagram/templates/two";
-import templateThree from "@Components/FlowDiagram/templates/three";
-import templateFour from "@Components/FlowDiagram/templates/four";
 import FlowDiagram from "@Components/FlowDiagram";
 import { LogsContext } from "@Context/logs";
-
-const templates: { [index: string]: any } = {
-  RequestDraftTransferOfOwnershipFlow: templateOne,
-  OfferEncumberedTokensFlow: templateTwo,
-  SignAndFinalizeTransferOfOwnership: templateThree,
-  UnlockEncumberedTokensFlow: templateFour,
-};
+import { FlowData } from "@Models";
 
 function FlowsDropdown() {
   const [toggledModal, setToggleModal] = useState(false);
-  const [selectedFlow, setSelectedFlow] = useState<any>();
+  const [selectedFlow, setSelectedFlow] = useState<FlowData | null>(null);
   const { logs } = useContext(LogsContext);
 
-  const completedFlows = logs
-    .filter((log) => !!log.completed)
-    .map((log) => {
-      //@ts-ignore .at() method doesnt seem to be supported in Typescript
-      const stageName: string = log.completed!.associatedStage.split(".").at(-1);
+  const completedFlows = logs.filter((log) => !!log.completed).map((log) => log.completed);
 
-      return {
-        title: stageName,
-        template: templates[stageName] ? templates[stageName](log.completed) : [],
-      };
-    });
-
-  const handleLogClick = (templateNumber: any) => {
-    setSelectedFlow(templateNumber);
+  const handleLogClick = (selectedFlow: any) => {
+    setSelectedFlow(selectedFlow);
     setToggleModal(true);
   };
 
@@ -52,29 +32,28 @@ function FlowsDropdown() {
         >
           {completedFlows.map((flow, i) => (
             <Option
-              key={flow.title}
-              value={flow.title}
+              key={flow!.associatedStage}
+              value={flow!.associatedStage}
               onClick={() => {
                 handleLogClick(flow);
               }}
             >
-              {flow.title.split(/(?=[A-Z])/).join(' ')}
+              {flow!.associatedStage
+                .split(".")
+                //@ts-ignore .at() method doesnt seem to be supported in Typescript
+                .at(-1)
+                .split(/(?=[A-Z])/)
+                .join(" ")}
             </Option>
           ))}
         </Dropdown>
       </div>
-      {selectedFlow && (
-        <Modal
-          className={styles.modal}
-          onClose={() => setToggleModal(false)}
-          size="large"
-          title={selectedFlow.title}
-          withBackdrop
-          open={toggledModal}
-        >
-          <FlowDiagram template={selectedFlow.template} />
-        </Modal>
-      )}
+
+      <FlowDiagram
+        selectedFlow={selectedFlow}
+        open={toggledModal}
+        onClose={() => setToggleModal(false)}
+      />
     </>
   );
 }
