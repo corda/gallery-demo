@@ -16,15 +16,7 @@ def hostPrefix = rootProject.ext.'host.prefix' as String
 task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def auctionNetworkServices = kdeployment.buildNMSDeployment.call(
             deployedNamespace,
-            "auction-nms",
-            nmsImageName
-    )
-    def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            deployedNamespace,
-            "auction-notary",
-            "roastario/notary-one:5",
-            "O=Auction Notary, L=London, C=GB",
-            auctionNetworkServices.getNmsService()
+            "auction-nms"
     )
 
     // Node deployment
@@ -67,7 +59,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
             ingressRules
     )
 
-    deployments = [auctionNetworkServices, auctionIngress, auctionNotaryDeployment, *auctionNodeDeployments]
+    deployments = [auctionNetworkServices, auctionIngress, *auctionNodeDeployments]
     fileName = "auctionNetworkDeployment"
 }
 
@@ -78,15 +70,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
 task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def gbpNetworkServices = kdeployment.buildNMSDeployment.call(
             deployedNamespace,
-            "gbp-nms",
-            nmsImageName
-    )
-    def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            deployedNamespace as String,
-            "gbp-notary",
-            "roastario/notary-two:5",
-            "O=GBP Notary, L=London, C=GB",
-            gbpNetworkServices.getNmsService()
+            "gbp-nms"
     )
 
     // Node deployment
@@ -129,7 +113,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
             ingressRules
     )
 
-    deployments = [gbpNetworkServices, gbpIngress, gbpNotaryDeployment, *gbpNodeDeployments]
+    deployments = [gbpNetworkServices, gbpIngress, *gbpNodeDeployments]
     fileName = "gbpNetworkDeployment"
 }
 
@@ -140,15 +124,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
 task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def cbdcNetworkServices = kdeployment.buildNMSDeployment.call(
             deployedNamespace,
-            "cbdc-nms",
-            nmsImageName
-    )
-    def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            deployedNamespace as String,
-            "cbdc-notary",
-            "roastario/notary-three:5",
-            "O=CBDC Notary, L=London, C=GB",
-            cbdcNetworkServices.getNmsService()
+            "cbdc-nms"
     )
 
     // Node deployment
@@ -191,7 +167,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
             ingressRules
     )
 
-    deployments = [cbdcNetworkServices, cbdcIngress, cbdcNotaryDeployment, *cbdcNodeDeployments]
+    deployments = [cbdcNetworkServices, cbdcIngress, *cbdcNodeDeployments]
     fileName = "cbdcNetworkDeployment"
 }
 

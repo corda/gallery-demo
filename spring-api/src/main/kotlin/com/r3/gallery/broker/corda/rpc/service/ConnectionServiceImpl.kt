@@ -32,7 +32,7 @@ open class ConnectionServiceImpl(
         private val logger = LoggerFactory.getLogger(ConnectionServiceImpl::class.java)
 
         private const val MINIMUM_SERVER_PROTOCOL_VERSION = 4
-        const val TIMEOUT = 30L
+        const val TIMEOUT = 90L
     }
 
     /**
