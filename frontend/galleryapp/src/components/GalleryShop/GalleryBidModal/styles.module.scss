@@ -22,3 +22,36 @@
   inset: 0;
   display: flex;
 }
+
+
+.bidDetails {
+  margin: 20px 0;
+
+  li {
+    margin: 5px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+
+    .bidDetailsKey {
+      font-weight: bold;
+      margin-right: 10px;
+      min-width: 140px;
+      text-align: right;
+    }
+
+    .bidDetailsValue {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 2px 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+
+      &:hover {
+        background: white;
+        overflow: visible;
+      }
+    }
+  }
+}
