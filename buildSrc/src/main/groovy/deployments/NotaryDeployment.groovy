@@ -48,6 +48,7 @@ class NotaryDeployment implements Iterable<Object> {
     static NotaryDeployment buildNotaryDeployment(String namespace,
                                                   String notaryId,
                                                   String notaryImage,
+                                                  String x500,
                                                   V1Service nmsService) {
 
         def deployment = new V1DeploymentBuilder()
@@ -72,6 +73,7 @@ class NotaryDeployment implements Iterable<Object> {
                 .withImage(notaryImage)
                 .withImagePullPolicy("IfNotPresent")
                 .withEnv(
+                        new V1EnvVarBuilder().withName("MY_LEGAL_NAME").withValue(x500).build(),
                         new V1EnvVarBuilder().withName("PUBLIC_ADDRESS").withValue(notaryId).build(),
                         new V1EnvVarBuilder().withName("NETWORK_SERVICES_URL").withValue("http://${nmsService.metadata.name}:8080").build()
                 )
