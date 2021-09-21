@@ -129,6 +129,7 @@ data class AvailableArtwork(
     val description: String,
     val url: String,
     val listed: Boolean,
+    val expiryDate: Date,
     val bids: List<BidRecord>
 ) {
     // A record of a bid placed against a single artworkId
@@ -139,7 +140,6 @@ data class AvailableArtwork(
         val bidderDisplayName: ArtworkParty,
         val amountAndCurrency: Amount<TokenType>, // will expand to amount, currencyCode
         val notary: ArtworkParty,
-        val expiryDate: Date,
         val accepted: Boolean
     )
 }

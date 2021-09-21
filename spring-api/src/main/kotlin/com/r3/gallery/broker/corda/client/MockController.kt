@@ -59,6 +59,7 @@ class MockController {
                     description = "AppleMan",
                     "https://thumbor.forbes.com/thumbor/960x0/https%3A%2F%2Fblogs-images.forbes.com%2Fchaddscott%2Ffiles%2F2018%2F10%2F12.-Son-of-Man-1200x1575.jpg",
                     true,
+                    expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                     listOf(
                         BidRecord(
                             cordaReference = "d1364c88-55d8-47c2-9587-079aca2caf7e",
@@ -66,7 +67,6 @@ class MockController {
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(300),
                             notary = "O=GBP Notary,L=London,C=GB",
-                            expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                             accepted = true
                         ),
                         BidRecord(
@@ -75,7 +75,6 @@ class MockController {
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(299, CBDC()),
                             notary = "O=CBDC Notary,L=London,C=GB",
-                            expiryDate = Date(Calendar.getInstance().apply { set(2021,9,22) }.timeInMillis),
                             accepted = false
                         )
                     )
@@ -85,6 +84,7 @@ class MockController {
                     description = "Summer set on the Beach",
                     url = "https://render.fineartamerica.com/images/rendered/default/print/8/6.5/break/images-medium-5/summerset-sailboats-paul-brent.jpg",
                     listed = true,
+                    expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                     bids = listOf(
                         BidRecord(
                             cordaReference = "b80e93dd-1a6b-4678-81fe-84b27acdd951",
@@ -92,7 +92,6 @@ class MockController {
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(3999, CBDC()),
                             notary = "O=CBDC Notary,L=London,C=GB",
-                            expiryDate = Date(Calendar.getInstance().apply { set(2021,8,30) }.timeInMillis),
                             accepted = false
                         )
                     )
@@ -102,6 +101,7 @@ class MockController {
                     description = "American Gothic",
                     url = "https://www.galerie-sakura.com/media/main/produit/32f978fb9eb0a9685bfe4031af7b98dc6faf23c2.jpg",
                     listed = true,
+                    expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                     bids = listOf( // multiple bob bids
                         BidRecord(
                             cordaReference = "939d6b8c-c0b6-4a95-983c-87e7fb003084",
@@ -109,7 +109,6 @@ class MockController {
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(300),
                             notary = "O=GBP Notary,L=London,C=GB",
-                            expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                             accepted = false
                         ),
                         BidRecord(
@@ -118,7 +117,6 @@ class MockController {
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(493),
                             notary = "O=GBP Notary,L=London,C=GB",
-                            expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                             accepted = false
                         ),
                         BidRecord(
@@ -127,7 +125,6 @@ class MockController {
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(3999, CBDC()),
                             notary = "O=CBDC Notary,L=London,C=GB",
-                            expiryDate = Date(Calendar.getInstance().apply { set(2021,8,30) }.timeInMillis),
                             accepted = false
                         )
                     )
@@ -137,6 +134,7 @@ class MockController {
                     description = "In the car",
                     url = "https://www.invaluable.com/blog/wp-content/uploads/2017/10/Invaluable-Roy-Lichtenstein-Hero.jpg",
                     listed = true,
+                    expiryDate = Date(Calendar.getInstance().apply { set(2021,11,31) }.timeInMillis),
                     bids = emptyList()
                 )
             )

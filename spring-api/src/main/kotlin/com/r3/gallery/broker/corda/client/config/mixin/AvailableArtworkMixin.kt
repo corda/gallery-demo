@@ -16,16 +16,16 @@ internal class AvailableArtworkSerializer : JsonSerializer<AvailableArtwork>() {
         gen.writeStringField("description", value.description)
         gen.writeStringField("url", value.url)
         gen.writeBooleanField("listed", value.listed)
+        gen.writeStringField("expiryDate", value.expiryDate.toString())
         gen.writeArrayFieldStart("bids")
         for (bid in value.bids) {
             gen.writeStartObject()
-            gen.writeStringField("cordaReference", bid.cordaReference.toString())
+            gen.writeStringField("cordaReference", bid.cordaReference)
             gen.writeStringField("bidderPublicKey", bid.bidderPublicKey)
             gen.writeStringField("bidderDisplayName", bid.bidderDisplayName)
             gen.writeStringField("amount", bid.amountAndCurrency.toDecimal().toString())
             gen.writeStringField("currencyCode", bid.amountAndCurrency.token.tokenIdentifier)
             gen.writeStringField("notary", bid.notary)
-            gen.writeStringField("expiryDate", bid.expiryDate.toString())
             gen.writeBooleanField("accepted", bid.accepted)
             gen.writeEndObject()
         }

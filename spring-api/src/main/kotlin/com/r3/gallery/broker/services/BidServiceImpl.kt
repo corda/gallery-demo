@@ -62,18 +62,18 @@ class BidServiceImpl(
                 AvailableArtwork.BidRecord(
                         cordaReference =  bid.encumberedTokens,
                         bidderPublicKey = bidder.owningKey.hash.toString(),
-                        bid.bidderName,
-                        Amount(bid.amount, AuctionCurrency.getInstance(bid.currency)),
-                        "${bid.currency} Notary",
-                        Date.from(artwork.expiry),
+                        bidderDisplayName = bid.bidderName,
+                        amountAndCurrency = Amount(bid.amount, AuctionCurrency.getInstance(bid.currency)),
+                        notary = "${bid.currency} Notary",
                         accepted = false // TODO check if there is a SALE receipt
                 )
             }
             AvailableArtwork(
-                artwork.artworkId,
-                artwork.description,
-                artwork.url,
+                artworkId = artwork.artworkId,
+                description = artwork.description,
+                url = artwork.url,
                 listed = true,
+                expiryDate = Date.from(artwork.expiry),
                 bids = bids
             )
         }
