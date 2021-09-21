@@ -21,7 +21,7 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
 
   if (!user || !selectedArtwork) return null;
 
-  const bidRecognised = !!usersBid(selectedArtwork, user);
+  const biddersBid = usersBid(selectedArtwork, user);
   const tokens = getTokensByUser(user);
 
   function handleBid() {
@@ -44,46 +44,74 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
   }
   return selectedArtwork ? (
     <Modal onClose={handleCancel} size="small" title="" withBackdrop open={open}>
-      {bidPosted && !bidRecognised && (
+      {bidPosted && !biddersBid && (
         <div className={styles.bidPosting}>
           <Loader size="small" />
         </div>
       )}
-      <h4>Place Bid</h4>
-      <div className={styles.amountInputs}>
-        <TextInput
-          className={styles.input}
-          label="Bid amount"
-          onChange={(event): void => {
-            setAmount(event.target.value);
-          }}
-          value={amount}
-          type="number"
-        />
-        <Select
-          label="Asset"
-          onChange={(event) => {
-            setTokenType(event.target.value);
-          }}
-          value={tokenType}
-          className={styles.input}
-        >
-          <Option key="select-token" value="select token">Select Token</Option>
-          {tokens.map((token) => (
-            <Option key={token.currencyCode} value={token.currencyCode}>
-              {token.currencyCode}
-            </Option>
-          ))}
-        </Select>
-      </div>
-      <div className={styles.ctas}>
-        <Button size="small" variant="secondary" onClick={() => handleCancel()}>
-          Cancel
-        </Button>
-        <Button size="small" variant="primary" onClick={handleBid}>
-          Place Bid
-        </Button>
-      </div>
+      {!biddersBid && (
+        <>
+          <h4>Place Bid</h4>
+          <div className={styles.amountInputs}>
+            <TextInput
+              className={styles.input}
+              label="Bid amount"
+              onChange={(event): void => {
+                setAmount(event.target.value);
+              }}
+              value={amount}
+              type="number"
+            />
+            <Select
+              label="Asset"
+              onChange={(event) => {
+                setTokenType(event.target.value);
+              }}
+              value={tokenType}
+              className={styles.input}
+            >
+              <Option key="select-token" value="select token">
+                Select Token
+              </Option>
+              {tokens.map((token) => (
+                <Option key={token.currencyCode} value={token.currencyCode}>
+                  {token.currencyCode}
+                </Option>
+              ))}
+            </Select>
+          </div>
+          <div className={styles.ctas}>
+            <Button size="small" variant="secondary" onClick={() => handleCancel()}>
+              Cancel
+            </Button>
+            <Button size="small" variant="primary" onClick={handleBid}>
+              Place Bid
+            </Button>
+          </div>
+        </>
+      )}
+      {biddersBid && (
+        <div className="text-center">
+          <h4>Bid placed successfully</h4>
+          <ul className={styles.bidDetails}>
+            {Object.entries(biddersBid).map((entry) => {
+              const [key, value] = entry;
+
+              return (
+                <li key={key}>
+                  <span className={styles.bidDetailsKey}>{key}:</span>
+                  <span className={styles.bidDetailsValue}>{value.toString()}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="justify-center flex">
+            <Button size="small" variant="primary" onClick={() => handleCancel()}>
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
     </Modal>
   ) : null;
 }

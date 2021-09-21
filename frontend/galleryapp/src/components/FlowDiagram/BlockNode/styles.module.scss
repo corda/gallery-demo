@@ -3,6 +3,10 @@
   border: solid 1px var(--color-medium-light-gray-500);
   width: 230px;
   pointer-events: none;
+  height: 43px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &.draft {
     background: var(--color-medium-light-gray-100);
@@ -16,9 +20,10 @@
     background: var(--color-green-300);
   }
 
-  h6 {
+  .title {
     color: var(--color-medium-light-gray-600);
     font-family: "Monaco", "Courier New", Courier, monospace;
-    padding: 0;
+    font-size: 12px;
+    font-weight: bold;
   }
 }
