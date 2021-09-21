@@ -82,7 +82,7 @@ const template = (data: FlowData) => [
     id: "f2_7",
     type: "flow",
     data: {
-      title: "Consideration State",
+      title: "Consideration State - Requested",
       networkType: "considerationLedger",
       properties: data.states[1] ? data.states[1].properties : {},
       participants: data.states[1] ? data.states[1].participants : [],
@@ -99,6 +99,23 @@ const template = (data: FlowData) => [
     id: "f2_8",
     type: "flow",
     data: {
+      title: "Consideration State - Change",
+      networkType: "draft",
+      properties: data.states[2] ? data.states[2].properties : {},
+      participants: data.states[2] ? data.states[2].participants : [],
+      handles: [
+        {
+          type: "target",
+          position: "left",
+        },
+      ],
+    },
+    position: { x: 800, y: 450 },
+  },
+  {
+    id: "f2_9",
+    type: "flow",
+    data: {
       title: "Encumbrance State",
       networkType: "considerationLedger",
       properties: data.states[2] ? data.states[2].properties : {},
@@ -110,12 +127,13 @@ const template = (data: FlowData) => [
         },
       ],
     },
-    position: { x: 800, y: 580 },
+    position: { x: 800, y: 880 },
   },
 
   { id: "f2_e1-3", source: "f2_1", target: "f2_3", animated: false, arrowHeadType: "arrow" },
   { id: "f2_e3-8", source: "f2_3", target: "f2_7", animated: false, arrowHeadType: "arrow" },
-  { id: "f2_e4-9", source: "f2_4", target: "f2_8", animated: false, arrowHeadType: "arrow" },
+  { id: "f2_e3-8", source: "f2_3", target: "f2_8", animated: false, arrowHeadType: "arrow" },
+  { id: "f2_e4-9", source: "f2_4", target: "f2_9", animated: false, arrowHeadType: "arrow" },
 ];
 
 export default template;
