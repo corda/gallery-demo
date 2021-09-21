@@ -7,6 +7,7 @@ import UserDropdown from "@Components/SiteHeader/UserDropdown";
 import FlowsDropdown from "@Components/SiteHeader/FlowsDropdown";
 import { useParams } from "react-router-dom";
 import { RouterParams } from "@Models";
+import SettingsDropdown from "@Components/SiteHeader/SettingsDropdown";
 
 function SiteHeader() {
   const { list, getUser } = useContext(UsersContext);
@@ -19,6 +20,7 @@ function SiteHeader() {
       <div className={styles.dropdowns}>
         <FlowsDropdown />
         <UserDropdown currentUser={user} userList={list} />
+        <SettingsDropdown />
       </div>
     </header>
   );

@@ -7,6 +7,8 @@ export const getLogs = () => apiCall<Log[]>('get', '/network/log');
 
 export const getBalances = () => apiCall<Balance[]>('get', '/network/balance');
 
+export const resetInit = () => apiCall<null>('get', '/network/init');
+
 export const getGallery = (userDisplayName?: string) => {
     const queryString = userDisplayName ? `?user=${userDisplayName}` : "";
     return apiCall<GalleryLot[]>('get', `/gallery/list-available-artworks${queryString}`)
