@@ -7,11 +7,10 @@ import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.selection.TokenQueryBy
 import com.r3.corda.lib.tokens.selection.database.selector.DatabaseTokenSelection
-import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount
-import com.r3.corda.lib.tokens.workflows.types.toPairs
 import com.r3.corda.lib.tokens.workflows.utilities.addTokenTypeJar
 import com.r3.gallery.contracts.LockContract
 import com.r3.gallery.states.LockState
+import net.corda.core.contracts.Amount
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.crypto.CompositeKey
 import net.corda.core.identity.AbstractParty
@@ -20,17 +19,24 @@ import net.corda.core.node.ServiceHub
 import net.corda.core.transactions.TransactionBuilder
 import java.security.PublicKey
 
+/**
+ * Adds token move to transaction. [amount] and [holder] parameters specify which party should receive the amount of
+ * token, with possible change paid to [changeHolder].
+ * Note: For now this method always uses database token selection, to use in memory one, use [addMoveTokens] with
+ * already selected input and output states. []
+ */
 @Suspendable
 internal fun TransactionBuilder.addMoveTokens(
     serviceHub: ServiceHub,
-    partiesAndAmounts: List<PartyAndAmount<TokenType>>,
+    amount: Amount<TokenType>,
+    holder: AbstractParty,
     changeHolder: AbstractParty,
     additionalKeys: List<PublicKey>,
     lockState: LockState? = null
 ): TransactionBuilder {
     val selector = DatabaseTokenSelection(serviceHub)
     val (inputs, outputs) = selector.generateMove(
-        partiesAndAmounts.toPairs(),
+        listOf(Pair(holder, amount)),
         changeHolder,
         TokenQueryBy(),
         this.lockId
@@ -43,7 +49,10 @@ internal fun TransactionBuilder.addMoveTokens(
     )
 }
 
-@JvmOverloads
+/**
+ * Adds a set of token moves to a transaction using specific inputs and outputs. If a [lockState] is passed in, it will
+ * be used as an encumbrance for any token that is being moved to a new holder where the holder is a composite key.
+ */
 @Suspendable
 internal fun TransactionBuilder.addMoveTokens(
     inputs: List<StateAndRef<AbstractToken>>,

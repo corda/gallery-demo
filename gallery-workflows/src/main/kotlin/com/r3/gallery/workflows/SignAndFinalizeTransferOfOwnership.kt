@@ -9,7 +9,7 @@ import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
 
 /**
- * Sign and finalise the unsigned swap push [WireTransaction] and return a [SignedTransaction].
+ * Sign and finalise the unsigned art transfer [WireTransaction] and return the [SignedTransaction].
  * @property wireTransaction transaction to sign and finalise.
  */
 @StartableByRPC
@@ -95,7 +95,7 @@ class SignAndFinalizeTransferOfOwnership(
 
 /**
  * Responder flow for [SignAndFinalizeTransferOfOwnership].
- * Sign and finalise the swap push transaction.
+ * Sign and finalise the art transfer transaction.
  */
 @InitiatedBy(SignAndFinalizeTransferOfOwnership::class)
 class SignAndFinaliseTxForPushHandler(private val otherSession: FlowSession) : FlowLogic<Unit>() {

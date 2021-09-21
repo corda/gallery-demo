@@ -1,6 +1,7 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
+import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
@@ -18,11 +19,18 @@ import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
 import net.corda.core.utilities.unwrap
 
+/**
+ * Requests an unsigned transaction from [galleryParty] to transfer an art identified by [artworkLinearId] to
+ * [ourIdentity]. It then verifies and validates the transaction and all its dependencies, including validation of
+ * notary identity and signature metadata to produce trusted data for the trusting node in the Token Network.
+ * @param galleryParty the party identifying the gallery in the Art Network.
+ * @param artworkLinearId the Artwork state linear id to transfer.
+ */
 @InitiatingFlow
 @StartableByRPC
 class RequestDraftTransferOfOwnershipFlow(
-    val galleryParty: Party,
-    val artworkLinearId: UniqueIdentifier
+    private val galleryParty: Party,
+    private val artworkLinearId: UniqueIdentifier
 ) : FlowLogic<Pair<WireTransaction, ValidatedDraftTransferOfOwnership>>() {
 
     @Suppress("ClassName")
@@ -37,7 +45,6 @@ class RequestDraftTransferOfOwnershipFlow(
         VERIFYING_DRAFTTX,
         VERIFYING_NOTARY_IDENTITY
     )
-
 
     @Suspendable
     override fun call(): Pair<WireTransaction, ValidatedDraftTransferOfOwnership> {
@@ -118,8 +125,12 @@ class RequestDraftTransferOfOwnershipFlow(
     }
 }
 
+/**
+ * Responder flow for [RequestDraftTransferOfOwnershipFlow].
+ * Creates and passes the unsigned transaction (and its dependencies) to the requesting/validating node.
+ */
 @InitiatedBy(RequestDraftTransferOfOwnershipFlow::class)
-class RequestDraftTransferOfOwnershipFlowHandler(val otherSession: FlowSession) : FlowLogic<Unit>() {
+class RequestDraftTransferOfOwnershipFlowHandler(private val otherSession: FlowSession) : FlowLogic<Unit>() {
 
     @Suppress("ClassName")
     companion object {

@@ -18,11 +18,11 @@ import java.time.Instant
 
 class BasicDSLTest {
 
-    lateinit var seller: NodeHandle
-    lateinit var buyer: NodeHandle
+    private lateinit var seller: NodeHandle
+    private lateinit var buyer: NodeHandle
 
-    lateinit var sellingParty: Party
-    lateinit var buyingParty: Party
+    private lateinit var sellingParty: Party
+    private lateinit var buyingParty: Party
 
     private fun withDriver(test: DriverDSL.() -> Unit) = driver(
         DriverParameters(
@@ -46,7 +46,7 @@ class BasicDSLTest {
         val end = Instant.now()
         val duration = Duration.between(start, end)
 
-        println("Test took ${duration.toString()}")
+        println("Test took $duration")
     }
 
     @Test

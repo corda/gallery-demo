@@ -10,8 +10,8 @@ import org.junit.Test
 
 class ContractTests {
     private val ledgerServices: MockServices = MockServices(listOf("com.r3.gallery.contracts"))
-    var alice = TestIdentity(CordaX500Name("Alice", "TestLand", "US"))
-    var bob = TestIdentity(CordaX500Name("Alice", "TestLand", "US"))
+    private var alice = TestIdentity(CordaX500Name("Alice", "TestLand", "US"))
+    private var bob = TestIdentity(CordaX500Name("Alice", "TestLand", "US"))
 
     @Test
     fun `dummy test`() {

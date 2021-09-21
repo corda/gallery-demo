@@ -39,7 +39,7 @@ internal class CollectSignaturesForComposites(
 }
 
 @InitiatedBy(CollectSignaturesForComposites::class)
-internal class CollectSignaturesForCompositesResponder(private val otherPartySession: FlowSession) : FlowLogic<Unit>() {
+internal class CollectSignaturesForCompositesHandler(private val otherPartySession: FlowSession) : FlowLogic<Unit>() {
 
     @Suspendable
     override fun call() {

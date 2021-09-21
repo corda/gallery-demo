@@ -22,8 +22,8 @@ class AtomicSwapServiceImpl(
     @Autowired val identityRegistry: IdentityRegistry
 ) : AtomicSwapService {
 
-    private val galleryParty = identityRegistry.getArtworkParty(GALLERY)
-    private val sellerParty = identityRegistry.getTokenParty(GALLERY)
+    private val galleryParty get() = identityRegistry.getArtworkParty(GALLERY)
+    private val sellerParty get() = identityRegistry.getTokenParty(GALLERY)
 
     override fun bidForArtwork(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String): Receipt.BidReceipt {
 

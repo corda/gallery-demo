@@ -17,18 +17,21 @@ import net.corda.core.node.StatesToRecord
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
-import com.r3.corda.lib.tokens.workflows.types.PartyAndAmount as PartyAndAmount1
 
-// Some assumptions:
-// - all tokens in this transaction are self issued
-// - all inputs in this transaction are from the same party
-
+/**
+ * Offers [encumberedAmount] of a given [TokenType] from the buyer party on the Token Network to a [sellerParty] in
+ * the same Token Network. The unsigned [WireTransaction] (and some of its properties) that have been validated by
+ * the trusted node on the Art Network iz used to produce the [LockState] encumbrance.
+ * @param verifiedDraftTx the [ValidatedDraftTransferOfOwnership] with the art draft transfer from the Art Network.
+ * @param sellerParty the [Party] to transfer tokens to.
+ * @param encumberedAmount token quantity of [TokenType] to offer
+ */
 @InitiatingFlow
 @StartableByRPC
 class OfferEncumberedTokensFlow(
-    val sellerParty: Party,
-    val verifiedDraftTx: ValidatedDraftTransferOfOwnership,
-    val encumberedAmount: Amount<TokenType>
+    private val sellerParty: Party,
+    private val verifiedDraftTx: ValidatedDraftTransferOfOwnership,
+    private val encumberedAmount: Amount<TokenType>
 ) : FlowLogic<SignedTransaction>() {
 
     @Suppress("ClassName")
@@ -58,20 +61,26 @@ class OfferEncumberedTokensFlow(
 
     @Suspendable
     override fun call(): SignedTransaction {
+
+        // Building a composite key from the two exchanging parties allows eiter party to act as the holder of the
+        // encumbered token. The composite key is registered at both ends of the flow as the local node identity via
+        // the identity service. Adding the key to the identity service keys allows the finality flow to find the
+        // participants and prevents the node from trying to contact other nodes.
         val compositeKey = serviceHub.registerCompositeKey(ourIdentity, sellerParty)
-        val compositeParty = AnonymousParty(compositeKey)
+        val compositeHolderParty = AnonymousParty(compositeKey)
+
         val notary = serviceHub.networkMapCache.notaryIdentities.first()
 
         progressTracker.currentStep = GENERATING_LOCK
         val lockState = LockState(verifiedDraftTx, ourIdentity, sellerParty)
-        val partiesAndAmounts = listOf(PartyAndAmount1(compositeParty, encumberedAmount))
 
         progressTracker.currentStep = GENERATING_TRANSACTION
         val txBuilder = try {
             with(TransactionBuilder(notary = notary)) {
                 addMoveTokens(
                     serviceHub,
-                    partiesAndAmounts,
+                    encumberedAmount,
+                    compositeHolderParty,
                     ourIdentity,
                     listOf(sellerParty).map { it.owningKey },
                     lockState
@@ -99,10 +108,10 @@ class OfferEncumberedTokensFlow(
 
 /**
  * Responder flow for [OfferEncumberedTokensFlow].
- * Finalise push token transaction.
+ * Finalise the encumbered token offer transaction.
  */
 @InitiatedBy(OfferEncumberedTokensFlow::class)
-class OfferEncumberedTokensFlowHandler(val otherSession: FlowSession) : FlowLogic<Unit>() {
+class OfferEncumberedTokensFlowHandler(private val otherSession: FlowSession) : FlowLogic<Unit>() {
     @Suspendable
     override fun call() {
         serviceHub.registerCompositeKey(ourIdentity, otherSession.counterparty)

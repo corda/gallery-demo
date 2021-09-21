@@ -90,7 +90,7 @@ class LockContract : Contract {
                 }.toSet()
                 val actualOutputs: Set<FungibleToken> = tx.outputsOfType(FungibleToken::class.java).toSet()
 
-                require(ourCommand.signers.intersect(listOf(encumberedTxIssuer.owningKey, encumberedTxReceiver.owningKey)).size == 1) {
+                require(ourCommand.signers.intersect(setOf(encumberedTxIssuer.owningKey, encumberedTxReceiver.owningKey)).size == 1) {
                     "Token offer can be retired exclusively by either its issuer or its receiver"
                 }
 

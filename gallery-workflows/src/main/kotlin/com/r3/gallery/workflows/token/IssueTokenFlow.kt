@@ -4,32 +4,30 @@ import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.contracts.utilities.heldBy
 import com.r3.corda.lib.tokens.contracts.utilities.issuedBy
-import com.r3.corda.lib.tokens.contracts.utilities.of
 import com.r3.corda.lib.tokens.workflows.flows.rpc.IssueTokens
 import com.r3.gallery.utils.AuctionCurrency
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.*
-import net.corda.core.identity.AbstractParty
+import net.corda.core.identity.Party
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.utilities.ProgressTracker
 
+/**
+ * Issue an [amount] of tokens with given [currency] for the [receiver] or self.
+ */
 @InitiatingFlow
 @StartableByRPC
 class IssueTokensFlow(
-    val amount: Long,
-    val currency: String,
-    var receiver: AbstractParty? = null
+    private val amount: Long,
+    private val currency: String,
+    private val receiver: Party? = null
 ) : FlowLogic<SignedTransaction>() {
 
-    constructor(amount: Amount<TokenType>, receiver: AbstractParty? = null) : this(
+    constructor(amount: Amount<TokenType>, receiver: Party? = null) : this(
         amount.quantity,
         amount.token.tokenIdentifier,
         receiver
     )
-
-    init {
-        receiver = receiver ?: ourIdentity
-    }
 
     @Suppress("ClassName")
     companion object {
@@ -53,7 +51,7 @@ class IssueTokensFlow(
         val amountOfTarget = Amount(amount, currencyTokenType)
 
         progressTracker.currentStep = GETTING_IDENTITIES
-        val tokenToIssue = amountOfTarget issuedBy ourIdentity heldBy receiver!!
+        val tokenToIssue = amountOfTarget issuedBy ourIdentity heldBy (receiver ?: ourIdentity)
 
         progressTracker.currentStep = ISSUING_TOKENS
         return subFlow(IssueTokens(tokensToIssue = listOf(tokenToIssue), observers = emptyList()))
@@ -61,8 +59,12 @@ class IssueTokensFlow(
 
 }
 
+/**
+ * Responder flow for [IssueTokensFlow].
+ * Sign and finalise the received token transaction.
+ */
 @InitiatedBy(IssueTokensFlow::class)
-open class IssueTokensResponderFlow(private val otherPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
+open class IssueTokensFlowHandler(private val otherPartySession: FlowSession) : FlowLogic<SignedTransaction>() {
     @Suspendable
     override fun call(): SignedTransaction {
         return subFlow(ReceiveFinalityFlow(otherPartySession))

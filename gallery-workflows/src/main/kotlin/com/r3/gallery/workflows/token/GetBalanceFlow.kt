@@ -9,9 +9,12 @@ import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.InitiatingFlow
 import net.corda.core.flows.StartableByRPC
 
+/**
+ * Get the token balance for the given [currency]
+ */
 @InitiatingFlow
 @StartableByRPC
-class GetBalanceFlow(val currency: String) : FlowLogic<Amount<TokenType>>() {
+class GetBalanceFlow(private val currency: String) : FlowLogic<Amount<TokenType>>() {
 
     constructor(currencyTokenType: TokenType) : this(currencyTokenType.tokenIdentifier)
 
