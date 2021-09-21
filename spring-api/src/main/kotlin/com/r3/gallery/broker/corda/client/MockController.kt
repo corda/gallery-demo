@@ -42,7 +42,7 @@ class MockController {
             ArtworkOwnership(
                 UUID.fromString("7be3fd81-f293-40f9-be8b-5e341d20639a") as CordaReference,
                 UUID.fromString("1b7c6f62-0add-4c1e-bb54-ad22829c59c2") as ArtworkId,
-                "O=Alice,L=London,C=GB"
+                "O=Alice, L=London, C=GB"
             )
         )
     }
@@ -66,7 +66,7 @@ class MockController {
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(300),
-                            notary = "O=GBP Notary,L=London,C=GB",
+                            notary = "O=GBP Notary, L=London, C=GB",
                             accepted = true
                         ),
                         BidRecord(
@@ -74,7 +74,7 @@ class MockController {
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(299, CBDC()),
-                            notary = "O=CBDC Notary,L=London,C=GB",
+                            notary = "O=CBDC Notary, L=London, C=GB",
                             accepted = false
                         )
                     )
@@ -91,7 +91,7 @@ class MockController {
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(3999, CBDC()),
-                            notary = "O=CBDC Notary,L=London,C=GB",
+                            notary = "O=CBDC Notary, L=London, C=GB",
                             accepted = false
                         )
                     )
@@ -108,7 +108,7 @@ class MockController {
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(300),
-                            notary = "O=GBP Notary,L=London,C=GB",
+                            notary = "O=GBP Notary, L=London, C=GB",
                             accepted = false
                         ),
                         BidRecord(
@@ -116,7 +116,7 @@ class MockController {
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(493),
-                            notary = "O=GBP Notary,L=London,C=GB",
+                            notary = "O=GBP Notary, L=London, C=GB",
                             accepted = false
                         ),
                         BidRecord(
@@ -124,7 +124,7 @@ class MockController {
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(3999, CBDC()),
-                            notary = "O=CBDC Notary,L=London,C=GB",
+                            notary = "O=CBDC Notary, L=London, C=GB",
                             accepted = false
                         )
                     )
@@ -194,7 +194,7 @@ class MockController {
         logger.info("MOCK Request for balance of parties across network")
         val balances: Map<String, List<NetworkBalancesResponse.Balance>> =
             mapOf(
-                Pair("O=Alice,L=London,C=GB", listOf(
+                Pair("O=Alice, L=London, C=GB", listOf(
                     NetworkBalancesResponse.Balance(
                         GBP.tokenIdentifier,
                         GBP(0),
@@ -206,14 +206,14 @@ class MockController {
                         Amount(30, CBDC())
                     )
                 )),
-                Pair("O=Bob,L=San Francisco,C=US", listOf(
+                Pair("O=Bob, L=San Francisco, C=US", listOf(
                     NetworkBalancesResponse.Balance(
                         GBP.tokenIdentifier,
                         GBP(80),
                         GBP(100)
                     )
                 )),
-                Pair("O=Charlie,L=Mumbai,C=IN", listOf(
+                Pair("O=Charlie, L=Mumbai, C=IN", listOf(
                     NetworkBalancesResponse.Balance(
                         CBDC().tokenIdentifier,
                         Amount(0, CBDC()),
@@ -249,7 +249,7 @@ class MockController {
             listOf(
                 Participant(
                     displayName = "Alice",
-                    x500 = "O=Alice,L=London,C=GB",
+                    x500 = "O=Alice, L=London, C=GB",
                     networkIds = listOf(
                         Participant.NetworkId(
                             CordaRPCNetwork.AUCTION.name,
@@ -268,7 +268,7 @@ class MockController {
                 ),
                 Participant(
                     displayName = "Bob",
-                    x500 = "O=Bob,L=San Francisco,C=US",
+                    x500 = "O=Bob, L=San Francisco, C=US",
                     networkIds = listOf(
                         Participant.NetworkId(
                             CordaRPCNetwork.AUCTION.name,
@@ -283,7 +283,7 @@ class MockController {
                 ),
                 Participant(
                     displayName = "Charlie",
-                    x500 = "O=Charlie,L=Mumbai,C=IN",
+                    x500 = "O=Charlie, L=Mumbai, C=IN",
                     networkIds = listOf(
                         Participant.NetworkId(
                             CordaRPCNetwork.AUCTION.name,
@@ -311,7 +311,7 @@ class MockController {
                 LogUpdateEntry(
                     associatedFlow = "com.r3.gallery.workflows.IssuedArtworkFlow",
                     network = CordaRPCNetwork.AUCTION.name,
-                    x500 = "O=Alice,L=London,C=GB",
+                    x500 = "O=Alice, L=London, C=GB",
                     logRecordId =  "fbba958b-8837-4216-aede-9e7313ba82e0",
                     timestamp = "15:17:08.132263",
                     message =  "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"
@@ -319,7 +319,7 @@ class MockController {
                 LogUpdateEntry(
                     associatedFlow = "com.r3.gallery.workflows.BidOnArtworkFlow",
                     network = CordaRPCNetwork.GBP.name,
-                    x500 = "O=Bob,L=San Francisco,C=US",
+                    x500 = "O=Bob, L=San Francisco, C=US",
                     logRecordId =  "a18a3bb7-1da9-4e72-b595-417f61451a84",
                     timestamp = "16:17:08.132333",
                     message = "Something has happened here on [83HFJKF8736YHG09SDJ]"
@@ -327,7 +327,7 @@ class MockController {
                 LogUpdateEntry(
                     associatedFlow = "com.r3.gallery.workflows.BidOnArtworkFlow",
                     network = CordaRPCNetwork.CBDC.name,
-                    x500 = "O=Charles,L=London,C=GB",
+                    x500 = "O=Charles, L=London, C=GB",
                     logRecordId =  "e555ac7f-6e16-49dc-99c2-f39eb01f72ca0",
                     timestamp = "19:17:13.163322",
                     message =  "[<Unlocked>300 GBP|83HFJKF8736YHG09SDJ] -> [Wallet|SDF7SDF8G9H00ME8569]"
@@ -335,7 +335,7 @@ class MockController {
                 LogUpdateEntry(
                     associatedFlow = "com.r3.gallery.workflows.FinaliseArtworkTransfer",
                     network = CordaRPCNetwork.AUCTION.name,
-                    x500 = "O=Alice,L=London,C=GB",
+                    x500 = "O=Alice, L=London, C=GB",
                     logRecordId =  "50a7c868-c9c7-406c-8d98-14606734aac5",
                     timestamp = "15:17:08.132263",
                     message =  "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"

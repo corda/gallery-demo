@@ -23,7 +23,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
             deployedNamespace,
             "auction-notary",
             "roastario/notary-one:5",
-            "O=Auction Notary,L=London,C=GB",
+            "O=Auction Notary, L=London, C=GB",
             auctionNetworkServices.getNmsService()
     )
 
@@ -85,7 +85,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
             deployedNamespace as String,
             "gbp-notary",
             "roastario/notary-two:5",
-            "O=GBP Notary,L=London,C=GB",
+            "O=GBP Notary, L=London, C=GB",
             gbpNetworkServices.getNmsService()
     )
 
@@ -147,7 +147,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
             deployedNamespace as String,
             "cbdc-notary",
             "roastario/notary-three:5",
-            "O=CBDC Notary,L=London,C=GB",
+            "O=CBDC Notary, L=London, C=GB",
             cbdcNetworkServices.getNmsService()
     )
 

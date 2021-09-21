@@ -4,17 +4,17 @@
     "networkIds": [
       {
         "network": "auction",
-        "x500": "O=Alice,L=London,C=GB",
+        "x500": "O=Alice, L=London, C=GB",
         "publicKey": "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
       },
       {
         "network": "gbp",
-        "x500": "O=Alice,L=London,C=GB",
+        "x500": "O=Alice, L=London, C=GB",
         "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
       },
       {
         "network": "xdc",
-        "x500": "O=Alice,L=London,C=GB",
+        "x500": "O=Alice, L=London, C=GB",
         "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
       }
     ],
@@ -25,12 +25,12 @@
     "networkIds": [
       {
         "network": "auction",
-        "x500": "O=Bob,L=San Francisco,C=US",
+        "x500": "O=Bob, L=San Francisco, C=US",
         "publicKey": "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
       },
       {
         "network": "gbp",
-        "x500": "O=Bob,L=San Francisco,C=US",
+        "x500": "O=Bob, L=San Francisco, C=US",
         "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
       }
     ],
@@ -41,12 +41,12 @@
     "networkIds": [
       {
         "network": "auction",
-        "x500": "O=Charlie,L=Mumbai,C=IN",
+        "x500": "O=Charlie, L=Mumbai, C=IN",
         "publicKey": "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
       },
       {
         "network": "xdc",
-        "x500": "O=Charlie,L=Mumbai,C=IN",
+        "x500": "O=Charlie, L=Mumbai, C=IN",
         "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
       }
     ],

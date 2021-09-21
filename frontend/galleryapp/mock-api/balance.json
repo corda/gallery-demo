@@ -1,6 +1,6 @@
 [
   {
-    "artworkParty": "O=Alice,L=London,C=GB",
+    "artworkParty": "O=Alice, L=London, C=GB",
     "balances": [
       {
         "currencyCode": "GBP",
@@ -15,7 +15,7 @@
     ]
   },
   {
-    "artworkParty": "O=Bob,L=San Francisco,C=US",
+    "artworkParty": "O=Bob, L=San Francisco, C=US",
     "balances": [
       {
         "currencyCode": "GBP",
@@ -25,7 +25,7 @@
     ]
   },
   {
-    "artworkParty": "O=Charlie,L=Mumbai,C=IN",
+    "artworkParty": "O=Charlie, L=Mumbai, C=IN",
     "balances": [
       {
         "currencyCode": "CBDC",
