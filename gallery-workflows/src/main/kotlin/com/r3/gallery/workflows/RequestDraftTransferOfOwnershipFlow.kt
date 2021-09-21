@@ -1,7 +1,6 @@
 package com.r3.gallery.workflows
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.gallery.contracts.ArtworkContract
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.states.ValidatedDraftTransferOfOwnership

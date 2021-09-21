@@ -1,6 +1,7 @@
 package com.r3.gallery.workflows.internal
 
 import co.paralleluniverse.fibers.Suspendable
+import net.corda.core.crypto.CompositeKey
 import net.corda.core.crypto.TransactionSignature
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.FlowSession
@@ -12,8 +13,8 @@ import net.corda.core.utilities.unwrap
 
 /**
  * Collect signatures for the provided [SignedTransaction], from the list of [Party] provided.
- * This is an initiating flow, and is used where some of the required signatures are from
- * [CompositeKey]s. The standard Corda CollectSignaturesFlow will not work in this case.
+ * This is an initiating flow, and is used where some required signatures are from [CompositeKey]s.
+ * The standard Corda CollectSignaturesFlow will not work in this case.
  * @param stx - the [SignedTransaction] to sign
  * @param signers - the list of signing [Party]s
  */
@@ -38,6 +39,9 @@ internal class CollectSignaturesForComposites(
     }
 }
 
+/**
+ * Responder flow for [CollectSignaturesForComposites] flow.
+ */
 @InitiatedBy(CollectSignaturesForComposites::class)
 internal class CollectSignaturesForCompositesHandler(private val otherPartySession: FlowSession) : FlowLogic<Unit>() {
 

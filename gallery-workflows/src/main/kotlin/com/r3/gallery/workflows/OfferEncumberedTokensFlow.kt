@@ -16,6 +16,7 @@ import net.corda.core.identity.Party
 import net.corda.core.node.StatesToRecord
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
+import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.ProgressTracker
 
 /**
