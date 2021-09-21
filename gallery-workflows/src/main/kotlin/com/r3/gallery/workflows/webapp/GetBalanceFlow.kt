@@ -21,7 +21,7 @@ class GetBalanceFlow(private val currency: String) : FlowLogic<NetworkBalancesRe
         val tokenType: TokenType = AuctionCurrency.getInstance(currency)
 
         // no balance available
-        if (tokensInVault.isNullOrEmpty()) {
+        if (tokensInVault.isEmpty()) {
             return NetworkBalancesResponse.Balance(
                 currencyCode = tokenType.tokenIdentifier,
                 encumberedFunds = Amount.zero(tokenType),
@@ -30,7 +30,7 @@ class GetBalanceFlow(private val currency: String) : FlowLogic<NetworkBalancesRe
         }
 
         // filter to available and encumbered
-        val availableTokens = tokensInVault.filter { it.data.holder == ourIdentity && it.data.issuer == ourIdentity }
+        val availableTokens = tokensInVault.filter { it.data.holder.owningKey == ourIdentity.owningKey }
         val availableTokensAmount = if (availableTokens.isNotEmpty()) {
             Amount(availableTokens.sumOf { it.data.amount.quantity }, tokenType)
         } else Amount.zero(tokenType)
