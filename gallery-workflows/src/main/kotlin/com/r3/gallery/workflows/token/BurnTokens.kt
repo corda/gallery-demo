@@ -91,7 +91,7 @@ class BurnTokensHandler(private val otherSession: FlowSession): FlowLogic<Unit>(
             "issuer" -> {
                 val stx = subFlow(object : SignTransactionFlow(otherSession) {
                     override fun checkTransaction(stx: SignedTransaction) {
-                        TODO("Not yet implemented")
+                        // no checks just sign
                     }
                 })
                 subFlow(ReceiveFinalityFlow(otherSession, stx.id, statesToRecord = StatesToRecord.ALL_VISIBLE))
