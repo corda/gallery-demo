@@ -10,7 +10,7 @@ import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
 
 @StartableByRPC
-class GetBalanceFlow : FlowLogic<NetworkBalancesResponse.Balance>() {
+class GetBalanceFlow(private val currency: String) : FlowLogic<NetworkBalancesResponse.Balance>() {
 
     @Suspendable
     override fun call(): NetworkBalancesResponse.Balance {
@@ -18,9 +18,7 @@ class GetBalanceFlow : FlowLogic<NetworkBalancesResponse.Balance>() {
         val tokensInVault = serviceHub.vaultService.queryBy(FungibleToken::class.java)
             .states.map { it.state }
 
-        val tokenType: TokenType = if (serviceHub.networkMapCache.notaryIdentities.first()
-            .name.organisation.contains("GBP")) AuctionCurrency.getInstance("GBP")
-            else AuctionCurrency.getInstance("CBDC")
+        val tokenType: TokenType = AuctionCurrency.getInstance(currency)
 
         // no balance available
         if (tokensInVault.isNullOrEmpty()) {

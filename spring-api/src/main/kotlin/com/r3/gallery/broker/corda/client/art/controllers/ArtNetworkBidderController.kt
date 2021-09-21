@@ -44,7 +44,7 @@ class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClien
     ) : ResponseEntity<Unit> {
         logger.info("Request by ${bidProposal.bidderParty} to bid on ${bidProposal.artworkId} in amount of ${bidProposal.amount} ${bidProposal.currency}")
 
-        bidService.placeBid(bidProposal.bidderParty, bidProposal.artworkId, bidProposal.amount.toLong(), "GBP")
+        bidService.placeBid(bidProposal.bidderParty, bidProposal.artworkId, bidProposal.amount.toLong(), bidProposal.currency)
 
         return asResponse(Unit)
     }

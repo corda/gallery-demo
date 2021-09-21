@@ -126,10 +126,12 @@ class NetworkToolsService(
      */
     fun getBalance(): List<NetworkBalancesResponse> {
         val allBalances = tokenClients.runPerConnectionService {
+            val network = it.associatedNetwork
             it.allConnections()!!.map { rpc ->
                 val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
                 val currentBalance = rpc.proxy.startFlowDynamic(
-                    GetBalanceFlow::class.java
+                    GetBalanceFlow::class.java,
+                    network.name
                 ).returnValue.getOrThrow()
                 Pair(x500, currentBalance)
             }
