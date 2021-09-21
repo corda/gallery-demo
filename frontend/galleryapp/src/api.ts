@@ -16,4 +16,4 @@ export const postBid = (params: PostBidParams) =>
     apiCall<string, PostBidParams>("post", "/bidder/bid", params);
 
 export const postBidAcceptance = (params: PostBidAcceptanceParams) =>
-    apiCall<string, PostBidAcceptanceParams>("post", "/accept-bid", params);
+    apiCall<string, PostBidAcceptanceParams>("post", "/gallery/accept-bid", params);
