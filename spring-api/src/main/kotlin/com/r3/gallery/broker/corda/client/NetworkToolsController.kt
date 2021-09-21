@@ -22,9 +22,7 @@ import org.springframework.web.bind.annotation.*
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
 @RequestMapping("/network")
 class NetworkToolsController(
-    @Autowired private val networkToolsService: NetworkToolsService,
-    @Autowired private val galleryClient: ArtNetworkGalleryClient,
-    @Autowired private val tokenClient: TokenNetworkBuyerClient
+    @Autowired private val networkToolsService: NetworkToolsService
 ) {
 
     companion object {

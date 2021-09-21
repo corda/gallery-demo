@@ -33,14 +33,6 @@ interface ArtNetworkGalleryClient {
     ): ArtworkOwnership
 
     /**
-     * Lists available artwork held by a particular gallery
-     *
-     * @param galleryParty to query for artwork
-     * @return [List][AvailableArtwork]
-     */
-    fun listAvailableArtworks(galleryParty: ArtworkParty): List<AvailableArtwork>
-
-    /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]
      *
@@ -58,4 +50,10 @@ interface ArtNetworkGalleryClient {
      * @return [ArtworkOwnership]
      */
     fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership
+
+    /**
+     * Returns all available artwork states.
+     * @return [List][ArtworkState]
+     */
+    fun getAllArtwork(): List<ArtworkState>
 }

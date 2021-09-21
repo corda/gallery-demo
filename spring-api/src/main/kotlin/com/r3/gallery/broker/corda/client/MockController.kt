@@ -61,7 +61,7 @@ class MockController {
                     true,
                     listOf(
                         BidRecord(
-                            cordaReference = UUID.fromString("d1364c88-55d8-47c2-9587-079aca2caf7e") as CordaReference,
+                            cordaReference = "d1364c88-55d8-47c2-9587-079aca2caf7e",
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(300),
@@ -70,7 +70,7 @@ class MockController {
                             accepted = true
                         ),
                         BidRecord(
-                            cordaReference = UUID.fromString("446404fb-e093-43e2-9664-9555bd8497ff") as CordaReference,
+                            cordaReference = "446404fb-e093-43e2-9664-9555bd8497ff",
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(299, CBDC()),
@@ -87,7 +87,7 @@ class MockController {
                     listed = true,
                     bids = listOf(
                         BidRecord(
-                            cordaReference = UUID.fromString("b80e93dd-1a6b-4678-81fe-84b27acdd951") as CordaReference,
+                            cordaReference = "b80e93dd-1a6b-4678-81fe-84b27acdd951",
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(3999, CBDC()),
@@ -104,7 +104,7 @@ class MockController {
                     listed = true,
                     bids = listOf( // multiple bob bids
                         BidRecord(
-                            cordaReference = UUID.fromString("939d6b8c-c0b6-4a95-983c-87e7fb003084") as CordaReference,
+                            cordaReference = "939d6b8c-c0b6-4a95-983c-87e7fb003084",
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(300),
@@ -113,7 +113,7 @@ class MockController {
                             accepted = false
                         ),
                         BidRecord(
-                            cordaReference = UUID.fromString("e70e16fd-b648-416b-b8a1-8bd795f7ec81") as CordaReference,
+                            cordaReference = "e70e16fd-b648-416b-b8a1-8bd795f7ec81",
                             bidderPublicKey = "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
                             bidderDisplayName = "Bob",
                             amountAndCurrency = GBP(493),
@@ -122,7 +122,7 @@ class MockController {
                             accepted = false
                         ),
                         BidRecord(
-                            cordaReference = UUID.fromString("fb3c71bc-bad3-4a48-9585-41a3a9c8e5b2") as CordaReference,
+                            cordaReference = "fb3c71bc-bad3-4a48-9585-41a3a9c8e5b2",
                             bidderPublicKey = "0x2b4632d08485ff1df2db55b9dafd23347d1c47a457072a1e87be26896549a873",
                             bidderDisplayName = "Charles",
                             amountAndCurrency = Amount(3999, CBDC()),
