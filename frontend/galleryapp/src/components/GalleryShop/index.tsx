@@ -20,7 +20,7 @@ function GalleryShop({ lots, x500 }: Props) {
   const { getFilteredLogs } = useContext(LogsContext);
   const [bidModalToggle, setBidModalToggle] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GalleryLot | null>(null);
-  const logs = getFilteredLogs(x500, "auction");
+  const logs = getFilteredLogs(x500, "AUCTION");
   const { id } = useParams<RouterParams>();
   const user = getUser(id);
 
