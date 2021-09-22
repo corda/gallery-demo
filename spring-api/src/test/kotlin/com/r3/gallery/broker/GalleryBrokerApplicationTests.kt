@@ -2,7 +2,7 @@
 //
 //import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClientImpl
 //import com.r3.gallery.broker.corda.client.art.controllers.ArtNetworkGalleryController
-//import com.r3.gallery.broker.corda.client.art.controllers.asResponse
+//import com.r3.gallery.broker.corda.client.asResponse
 //import com.r3.gallery.broker.corda.rpc.config.ClientProperties
 //import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 //import com.r3.gallery.workflows.webapp.artnetwork.gallery.ListAvailableArtworks

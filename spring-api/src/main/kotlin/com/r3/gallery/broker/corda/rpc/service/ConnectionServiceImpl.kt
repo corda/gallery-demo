@@ -8,15 +8,23 @@ import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
+import net.corda.core.internal.concurrent.fork
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.cache.annotation.EnableCaching
+import org.springframework.context.annotation.Bean
+import org.springframework.scheduling.annotation.Async
+import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.annotation.PreDestroy
+import kotlin.concurrent.thread
 
 /**
  * Generic class for handling RPCClient connections and node interactions
@@ -32,6 +40,8 @@ open class ConnectionServiceImpl(
         private const val MINIMUM_SERVER_PROTOCOL_VERSION = 4
         const val TIMEOUT = 90L
     }
+
+    private val executor: Executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
 
     /**
      * Clients mapped from configurations
@@ -178,7 +188,7 @@ open class ConnectionServiceImpl(
      */
     override fun <A> execute(target: RpcConnectionTarget, block: (CordaRPCConnection) -> A): A {
         val sessionId = target.connect() // open
-        return block(sessions[sessionId]!!) // execute
+        return executor.fork { block(sessions[sessionId]!!) }.get() // execute
     }
 
     /**

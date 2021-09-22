@@ -4,7 +4,6 @@ import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.*
 import com.r3.gallery.api.AvailableArtwork.BidRecord
-import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import net.corda.core.contracts.Amount
 import net.corda.core.crypto.secureRandomBytes

@@ -1,8 +1,9 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
 import com.r3.gallery.api.*
-import com.r3.gallery.broker.corda.client.NetworkToolsController
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
+import com.r3.gallery.broker.corda.client.deferredResult
+import com.r3.gallery.broker.corda.client.toUUID
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.BidService
 import org.slf4j.LoggerFactory
@@ -12,9 +13,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
-import java.time.Duration
-import java.time.Instant
-import java.util.concurrent.ForkJoinPool
 
 /**
  * REST endpoints for Gallery parties on Auction Network
@@ -50,22 +48,17 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         @RequestParam("expiryDays", required = false) expiry: Int = 3,
         @RequestParam("description", required = false) description: String = "",
         @RequestParam("url", required = false) url: String = ""
-    ): DeferredResult<ResponseEntity<*>> {
+    ): DeferredResult<ResponseEntity<ArtworkOwnership>> {
         logger.info("Request by $galleryParty to issue artwork of id $artworkId")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
-            val artworkOwnership = galleryClient.issueArtwork(
+        return deferredResult {
+            galleryClient.issueArtwork(
                     galleryParty,
                     artworkId.toUUID(),
                     expiry,
                     description,
                     url
             )
-            output.setResult(asResponse(artworkOwnership))
         }
-
-        return output
     }
 
     /**
@@ -76,20 +69,14 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     @GetMapping("/list-available-artworks")
     fun listAvailableArtworks(
         @RequestParam("galleryParty", required = false) galleryParty: ArtworkParty?
-    ): DeferredResult<ResponseEntity<*>> {
+    ): DeferredResult<ResponseEntity<List<AvailableArtwork>>> {
         logger.info("Request of artwork listing of ${galleryParty?:"all galleries"}")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
-            val artworks = bidService.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
-            output.setResult(asResponse(artworks))
+        return deferredResult {
+            bidService.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
         }
-
-        return output
     }
 
     /**
-     * TODO: Forward request to bidService
      * REST endpoint to 'ACCEPT' an offer/bid for a piece of artwork
      *
      * @param acceptedBid (JSON)
@@ -97,15 +84,11 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     @PostMapping("/accept-bid", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun acceptBid(
         @RequestBody acceptedBid: AcceptedBid
-    ): DeferredResult<ResponseEntity<*>> {
+    ): DeferredResult<ResponseEntity<Unit>> {
         logger.info("Request by gallery to accept bid for $acceptedBid.artworkId from $acceptedBid.bidderParty")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
+        return deferredResult {
             bidService.awardArtwork(acceptedBid.bidderParty, acceptedBid.artworkId, acceptedBid.currency)
-            output.setResult(asResponse(Unit))
+            Unit
         }
-
-        return output
     }
 }

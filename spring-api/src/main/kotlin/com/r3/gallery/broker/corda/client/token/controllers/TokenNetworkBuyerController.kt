@@ -3,7 +3,7 @@ package com.r3.gallery.broker.corda.client.token.controllers
 import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.TransactionHash
 import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
-import com.r3.gallery.broker.corda.client.art.controllers.asResponse
+import com.r3.gallery.broker.corda.client.deferredResult
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
@@ -11,7 +11,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
-import java.util.concurrent.ForkJoinPool
 
 /**
  * REST endpoints for Buyers on a consideration (GBP or CBDC) network.
@@ -40,16 +39,12 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("amount") amount: Int,
         @RequestParam("currency") currency: String
-    ): DeferredResult<ResponseEntity<*>> {
+    ): DeferredResult<ResponseEntity<Unit>> {
         logger.info("Request by $buyerParty to issue $amount $currency to self")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
+        return deferredResult {
             buyerClient.issueTokens(buyerParty, amount.toLong(), currency)
-            output.setResult(asResponse(Unit))
+            Unit
         }
-
-        return output
     }
 
     /**
@@ -69,11 +64,11 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("amount") amount: Long,
         @RequestParam("currency") currency: String,
         @RequestBody validatedUnsignedArtworkTransferTx: ValidatedUnsignedArtworkTransferTx
-    ): ResponseEntity<TransactionHash> {
+    ): DeferredResult<ResponseEntity<TransactionHash>> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
-        val signedTokenTransferTxId =
+        return deferredResult {
             buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, currency, validatedUnsignedArtworkTransferTx)
-        return asResponse(signedTokenTransferTxId)
+        }
     }
 
     /**
@@ -90,9 +85,10 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("currency") currency: String,
         @RequestParam("encumberedTokensTxHash") encumberedTokensTxHash: String,
-    ): ResponseEntity<TransactionHash> {
+    ): DeferredResult<ResponseEntity<TransactionHash>> {
         logger.info("Request by $buyerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
-        val releasedTokensTxId = buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash)
-        return asResponse(releasedTokensTxId)
+        return deferredResult {
+            buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash)
+        }
     }
 }

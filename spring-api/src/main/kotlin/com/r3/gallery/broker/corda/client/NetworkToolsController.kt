@@ -3,7 +3,6 @@ package com.r3.gallery.broker.corda.client
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.api.Participant
-import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +10,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
-import java.util.concurrent.ForkJoinPool
 
 /**
  * Controller with aggregate access across API layers
@@ -38,15 +36,11 @@ class NetworkToolsController(
     @GetMapping("/participants")
     fun participants(
         @RequestParam("networks", required = false) networks: List<String>?
-    ): DeferredResult<ResponseEntity<*>> {
-        logger.info("Async request for all participants")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
-            output.setResult(asResponse(networkToolsService.participants(networks)))
+    ): DeferredResult<ResponseEntity<List<Participant>>> {
+        logger.info("Request for all participants")
+        return deferredResult {
+            networkToolsService.participants(networks)
         }
-
-        return output
     }
 
     /**
@@ -57,46 +51,36 @@ class NetworkToolsController(
     @GetMapping("/log")
     fun log(
         @RequestParam("index", required = false) index: Int?
-    ): DeferredResult<ResponseEntity<*>> {
+    ): DeferredResult<ResponseEntity<List<LogUpdateEntry>>> {
         logger.info("Request for logs")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
-            output.setResult(asResponse(networkToolsService.getLogs(index)))
+        return deferredResult {
+            networkToolsService.getLogs(index)
         }
-
-        return output
     }
 
     /**
      * Get balances across all parties and networks
      */
     @GetMapping("/balance")
-    fun balance(): DeferredResult<ResponseEntity<*>> {
+    fun balance(): DeferredResult<ResponseEntity<List<NetworkBalancesResponse>>> {
         logger.info("Request for balance of parties across network")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
-            output.setResult(asResponse(networkToolsService.getBalance()))
+        return deferredResult {
+            networkToolsService.getBalance()
         }
-
-        return output
     }
 
     /**
      * Initialise the demo by issuing artwork pieces and funds to the demo parties.
      */
     @GetMapping("/init")
-    fun initializeDemo(): DeferredResult<ResponseEntity<*>> {
+    fun initializeDemo(): DeferredResult<ResponseEntity<Unit>> {
         logger.info("Request for initial issuance to networks.")
-        val output = DeferredResult<ResponseEntity<*>>()
-
-        ForkJoinPool.commonPool().submit {
+        return deferredResult {
             networkToolsService.clearDemo()
-            networkToolsService.initializeDemo()
-            output.setResult(asResponse(Unit))
-        }
+            logger.info("Clearing demo data.")
 
-        return output
+            networkToolsService.initializeDemo()
+            logger.info("Issuing new demo data to networks.")
+        }
     }
 }

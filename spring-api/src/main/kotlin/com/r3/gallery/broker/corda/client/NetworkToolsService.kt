@@ -228,8 +228,8 @@ class NetworkToolsService(
     }
 
     @Async("asyncExecutor")
-    fun <T: FlowLogic<*>> runDynamicOnConnection(proxy: CordaRPCOps, clazz: Class<T>, vararg args: Any): CompletableFuture<*> {
-        val result = proxy.startFlowDynamic(clazz, args).returnValue
-        return result.toCompletableFuture()
+    final inline fun <reified T: FlowLogic<*>> runDynamicOnConnection(proxy: CordaRPCOps, clazz: Class<T>, currency: String? = null): CompletableFuture<*> {
+        val flowHandle = if (currency != null) proxy.startFlowDynamic(clazz, currency) else proxy.startFlowDynamic(clazz)
+        return flowHandle.returnValue.toCompletableFuture()
     }
 }

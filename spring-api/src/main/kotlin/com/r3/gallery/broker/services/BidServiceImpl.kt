@@ -3,7 +3,6 @@ package com.r3.gallery.broker.services
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.api.AvailableArtwork
-import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.broker.services.api.Receipt
 import com.r3.gallery.utils.AuctionCurrency
 import net.corda.core.contracts.Amount
