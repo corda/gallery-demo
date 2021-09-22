@@ -43,16 +43,16 @@ class BidServiceImpl(
     override fun awardArtwork(bidderName: String, artworkId: ArtworkId, encumberedCurrency: String): List<Receipt> {
         logger.info("Processing award artwork $bidderName, $artworkId, $encumberedCurrency in BidService")
 
-        val bidReceipt = bidRepository.retrieve(bidderName, artworkId)
+        val bidReceipt = bidRepository.retrieve(bidderName, artworkId, encumberedCurrency)
 
-        val saleReceipt = swapService.awardArtwork(bidReceipt, encumberedCurrency)
+        val saleReceipt = swapService.awardArtwork(bidReceipt)
         saleRepository.store(saleReceipt)
 
-        bidRepository.remove(bidderName, artworkId)
+        bidRepository.remove(bidderName, artworkId, encumberedCurrency)
 
         // cancel remaining bids
         val cancelReceipts = bidRepository.retrieveAllForId(artworkId).map { failedBid ->
-            swapService.cancelBid(failedBid, encumberedCurrency)
+            swapService.cancelBid(failedBid)
         }
         cancelReceipts.forEach {
             cancellationReceipt -> cancelRepository.store(cancellationReceipt)

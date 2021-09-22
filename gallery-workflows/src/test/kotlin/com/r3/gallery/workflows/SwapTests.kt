@@ -31,6 +31,8 @@ class SwapTests {
     private lateinit var gallery: StartedMockNode
     private lateinit var bidder: StartedMockNode
     private lateinit var buyer: StartedMockNode
+    private lateinit var otherBidder: StartedMockNode
+    private lateinit var otherBuyer: StartedMockNode
 
     @Before
     fun setup() {
@@ -52,6 +54,8 @@ class SwapTests {
         gallery = network.createPartyNode()
         bidder = network.createPartyNode()
         buyer = network.createPartyNode()
+        otherBidder = network.createPartyNode()
+        otherBuyer = network.createPartyNode()
 
         network.runNetwork()
     }
@@ -232,6 +236,140 @@ class SwapTests {
 
         assertTrue(buyerBalanceAfterOffer < buyerInitialBalance)
         assertTrue(buyerBalanceAfterRedeem == buyerInitialBalance)
+    }
+
+    @Test
+    fun `revert steps between four parties by encumbered tx receiver with multiple bids`() {
+        val galleryParty = gallery.info.chooseIdentity()
+        //val bidderParty = bidder.info.chooseIdentity()
+        //val otherBidderParty = otherBidder.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+        val otherBuyerParty = otherBuyer.info.chooseIdentity()
+
+        val artworkState = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.GBP, buyerParty)).apply { network.runNetwork() }
+        otherBuyer.startFlow(IssueTokensFlow(20.GBP, otherBuyerParty)).apply { network.runNetwork() }
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkState.linearId.toString())
+
+        val verifiedDraftTx =
+            bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
+                network.runNetwork()
+            }.getOrThrow().second
+        val otherVerifiedDraftTx =
+            otherBidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
+                network.runNetwork()
+            }.getOrThrow().second
+
+        val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val otherBuyerInitialBalance = otherBuyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        val signedTokensOfferTx =
+            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+        val otherSignedTokensOfferTx =
+            otherBuyer.startFlow(OfferEncumberedTokensFlow(sellerParty, otherVerifiedDraftTx, 10.GBP)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val otherBuyerBalanceAfterOffer = otherBuyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        seller.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTx.id)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+        seller.startFlow(RevertEncumberedTokensFlow(otherSignedTokensOfferTx.id)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val buyerBalanceAfterRevert = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val otherBuyerBalanceAfterRevert = otherBuyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        assertTrue(buyerBalanceAfterOffer < buyerInitialBalance)
+        assertTrue(buyerBalanceAfterRevert == buyerInitialBalance)
+        assertTrue(otherBuyerBalanceAfterOffer < otherBuyerInitialBalance)
+        assertTrue(otherBuyerBalanceAfterRevert == otherBuyerInitialBalance)
+    }
+
+    @Test
+    fun `revert steps between four parties by encumbered tx receiver with multiple bids and a winner`() {
+        val galleryParty = gallery.info.chooseIdentity()
+        val sellerParty = seller.info.chooseIdentity()
+        val buyerParty = buyer.info.chooseIdentity()
+        val otherBuyerParty = otherBuyer.info.chooseIdentity()
+
+        val artworkState = issueArtwork(gallery)
+        buyer.startFlow(IssueTokensFlow(20.GBP, buyerParty)).apply { network.runNetwork() }
+        otherBuyer.startFlow(IssueTokensFlow(20.GBP, otherBuyerParty)).apply { network.runNetwork() }
+
+        // all balances before the auction starts
+        val sellerInitialBalance = seller.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val otherBuyerInitialBalance = otherBuyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        val artworkLinearId = UniqueIdentifier.fromString(artworkState.linearId.toString())
+
+        val verifiedDraftTx =
+            bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
+                network.runNetwork()
+            }.getOrThrow().second
+        val otherVerifiedDraftTx =
+            otherBidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
+                network.runNetwork()
+            }.getOrThrow().second
+
+        val signedTokensOfferTx =
+            buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+        val otherSignedTokensOfferTx =
+            otherBuyer.startFlow(OfferEncumberedTokensFlow(sellerParty, otherVerifiedDraftTx, 10.GBP)).apply {
+                network.runNetwork()
+            }.getOrThrow()
+
+        // all balances after initial art offer
+        val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val otherBuyerBalanceAfterOffer = otherBuyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val sellerBalanceAfterOffers = seller.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+
+        // Accept one of the bids (bidder win, otherBidder lose)
+        val signedArtTransferTx = gallery.startFlow(SignAndFinalizeTransferOfOwnership(verifiedDraftTx.tx)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
+
+        // claim winning bidder's tokens
+        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTx.id, requiredSignature)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+        // early-revert token to losing bidder
+        seller.startFlow(RevertEncumberedTokensFlow(otherSignedTokensOfferTx.id)).apply {
+            network.runNetwork()
+        }.getOrThrow()
+
+
+        // get new balances and ownerships
+        val sellerBalanceAfterUnlock = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val buyerBalanceAfterUnlock = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val otherBuyerBalanceAfterRevert = otherBuyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
+        val artworkItemGallery = queryArtworkState(gallery, false)
+        val artworkItemBidder = queryArtworkState(bidder, false)
+        val artworkItemOtherBidder = queryArtworkState(otherBidder, false)
+
+        // artwork item now belongs to the bidder, buyer has been charged, other buyer refunded
+        assertNotNull(artworkItemBidder)
+        assertNull(artworkItemGallery)
+        assertNull(artworkItemOtherBidder)
+        assertTrue(sellerBalanceAfterOffers == sellerInitialBalance)
+        assertTrue(sellerBalanceAfterUnlock > sellerInitialBalance)
+        assertTrue(buyerBalanceAfterOffer < buyerInitialBalance)
+        assertTrue(buyerBalanceAfterUnlock == buyerBalanceAfterOffer)
+        assertTrue(otherBuyerBalanceAfterOffer < otherBuyerInitialBalance)
+        assertTrue(otherBuyerBalanceAfterRevert == otherBuyerInitialBalance)
     }
 
     @Test
