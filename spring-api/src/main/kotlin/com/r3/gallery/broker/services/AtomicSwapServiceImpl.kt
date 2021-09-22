@@ -52,18 +52,18 @@ class AtomicSwapServiceImpl(
      *
      * @return Details of the sale, with transaction ids for both legs of the swap.
      */
-    override fun awardArtwork(bid: Receipt.BidReceipt, currency: String): Receipt.SaleReceipt {
+    override fun awardArtwork(bid: Receipt.BidReceipt): Receipt.SaleReceipt {
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
-        val tokenTxId = sellerClient.claimTokens(sellerParty, currency, bid.encumberedTokens, proofOfTransfer.notarySignature)
+        val tokenTxId = sellerClient.claimTokens(sellerParty, bid.currency, bid.encumberedTokens, proofOfTransfer.notarySignature)
 
         return Receipt.SaleReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, proofOfTransfer.transactionHash, tokenTxId)
     }
 
-    override fun cancelBid(bid: Receipt.BidReceipt, currency: String): Receipt.CancellationReceipt {
+    override fun cancelBid(bid: Receipt.BidReceipt): Receipt.CancellationReceipt {
 
         val tokenTxId = sellerClient.releaseTokens(
             sellerParty,
-            currency,
+            bid.currency,
             bid.encumberedTokens)
 
         return Receipt.CancellationReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, tokenTxId)
