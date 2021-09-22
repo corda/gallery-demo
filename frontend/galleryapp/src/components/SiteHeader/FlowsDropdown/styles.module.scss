@@ -37,3 +37,19 @@
     height: 80vh;
   }
 }
+
+.label {
+  line-height: 12px;
+  background: #00a47d;
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 5px;
+  color: white;
+}
+
+.timeStamp {
+  position: absolute;
+  top: -3px;
+  left: 10px;
+  font-size: 10px;
+}
