@@ -13,17 +13,15 @@ function Collection({ lots }: Props) {
       {lots.length ? (
         <div className={styles.gallery}>
           {lots
-              .sort((a, b) => {
-                  return a.description < b.description ? -1 : 1;
-              })
-              .map((lot, i) => (
-            <img
-              key={lot.artworkId}
-              className={styles.galleryImage}
-              src={lot.url}
-              alt={lot.description}
-            />
-          ))}
+            .sort((a, b) => {
+              return a.description < b.description ? -1 : 1;
+            })
+            .map((lot, i) => (
+              <div className={styles.galleryImage} key={lot.artworkId}>
+                <img src={lot.url} alt={lot.description} />
+                <div>{lot.description}</div>
+              </div>
+            ))}
         </div>
       ) : (
         <EmptyState

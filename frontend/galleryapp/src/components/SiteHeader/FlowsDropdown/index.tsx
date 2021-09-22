@@ -11,7 +11,9 @@ function FlowsDropdown() {
   const [selectedFlow, setSelectedFlow] = useState<FlowData | null>(null);
   const { logs } = useContext(LogsContext);
 
-  const completedFlows = logs.filter((log) => !!log.completed).map((log) => log.completed);
+  const completedFlows = logs
+    .filter((log) => !!log.completed && !log.completed!.associatedStage.includes("Handler"))
+    .map((log) => log.completed);
 
   const handleLogClick = (selectedFlow: any) => {
     setSelectedFlow(selectedFlow);
@@ -30,22 +32,26 @@ function FlowsDropdown() {
             </button>
           }
         >
-          {completedFlows.map((flow, i) => (
-            <Option
-              key={`${flow!.associatedStage}-${flow!.logRecordId}`}
-              value={flow!.associatedStage}
-              onClick={() => {
-                handleLogClick(flow);
-              }}
-            >
-              {flow!.associatedStage
-                .split(".")
-                //@ts-ignore .at() method doesnt seem to be supported in Typescript
-                .at(-1)
-                .split(/(?=[A-Z])/)
-                .join(" ")}
-            </Option>
-          ))}
+          {completedFlows
+            .sort((a, b) => {
+              return a!.logRecordId > b!.logRecordId ? -1 : 1;
+            })
+            .map((flow, i) => (
+              <Option
+                key={`${flow!.logRecordId}`}
+                value={flow!.associatedStage}
+                onClick={() => {
+                  handleLogClick(flow);
+                }}
+              >
+                {flow!.associatedStage
+                  .split(".")
+                  //@ts-ignore .at() method doesnt seem to be supported in Typescript
+                  .at(-1)
+                  .split(/(?=[A-Z])/)
+                  .join(" ")}
+              </Option>
+            ))}
         </Dropdown>
       </div>
 

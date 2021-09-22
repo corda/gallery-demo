@@ -1,4 +1,4 @@
-import {Position} from "react-flow-renderer";
+import { Position } from "react-flow-renderer";
 
 export enum ParticipantType {
   GalleryOwner,
@@ -61,12 +61,12 @@ export interface Log {
 export interface FlowData {
   associatedStage: string;
   logRecordId: string;
-  states: FlowState[]
-  signers : {[index: string]: boolean}
+  states: FlowState[];
+  signers: { [index: string]: boolean };
 }
 
 export interface FlowState {
-  properties: {[index: string]: string}
+  properties: { [index: string]: string };
   participants: string[];
 }
 

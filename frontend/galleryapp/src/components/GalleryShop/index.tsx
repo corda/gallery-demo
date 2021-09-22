@@ -19,21 +19,21 @@ function GalleryShop({ lots, x500 }: Props) {
   const { getUser } = useContext(UsersContext);
   const { getFilteredLogs } = useContext(LogsContext);
   const [bidModalToggle, setBidModalToggle] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<GalleryLot | null>(null);
+  const [selectedItemIndex, setSelectedItemIndexIndex] = useState<number | null>(null);
   const logs = getFilteredLogs(x500, "AUCTION");
   const { id } = useParams<RouterParams>();
   const user = getUser(id);
 
   if (!user) return null;
 
-  const handleItemClick = (lot: GalleryLot) => {
+  const handleItemClick = (lotIndex: number) => {
     setBidModalToggle(true);
-    setSelectedItem(lot);
+    setSelectedItemIndexIndex(lotIndex);
   };
 
   const handleClose = () => {
     setBidModalToggle(false);
-    setSelectedItem(null);
+    setSelectedItemIndexIndex(null);
   };
 
   return (
@@ -41,23 +41,23 @@ function GalleryShop({ lots, x500 }: Props) {
       <h3>Gallery</h3>
       <ul className={styles.lotList}>
         {lots
-            .sort((a, b) => {
-                return a.description < b.description ? -1 : 1;
-            })
-            .map((lot) => (
-          <ShopItem
-            key={lot.artworkId}
-            lot={lot}
-            onClick={() => handleItemClick(lot)}
-            usersBid={usersBid(lot, user)}
-          />
-        ))}
+          .sort((a, b) => {
+            return a.description < b.description ? -1 : 1;
+          })
+          .map((lot, index) => (
+            <ShopItem
+              key={lot.artworkId}
+              lot={lot}
+              onClick={() => handleItemClick(index)}
+              usersBid={usersBid(lot, user)}
+            />
+          ))}
       </ul>
       <ActivityLog title="Gallery activity log" inline={true} logs={logs} />
       <GalleryBidModal
         open={bidModalToggle}
         onClose={() => handleClose()}
-        selectedArtwork={selectedItem}
+        selectedArtwork={selectedItemIndex !== null ? lots[selectedItemIndex] : null}
         user={user}
       />
     </section>

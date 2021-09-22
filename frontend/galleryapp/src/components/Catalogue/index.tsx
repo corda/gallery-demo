@@ -29,12 +29,12 @@ function Catalogue({ lots }: Props) {
         </thead>
         <tbody>
           {lots
-              .sort((a, b) => {
-                  return a.description < b.description ? -1 : 1;
-              })
-              .map((lot) => (
-            <CatalogueItem key={lot.artworkId} lot={lot} />
-          ))}
+            .sort((a, b) => {
+              return a.description < b.description ? -1 : 1;
+            })
+            .map((lot) => (
+              <CatalogueItem key={lot.artworkId} lot={lot} />
+            ))}
         </tbody>
       </table>
       <div className={styles.log}>

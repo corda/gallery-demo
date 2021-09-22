@@ -6,8 +6,9 @@ import styles from "@Components/SiteHeader/FlowsDropdown/styles.module.scss";
 import { Modal } from "@r3/r3-tooling-design-system";
 import RequestDraftTransferOfOwnershipFlow from "@Components/FlowDiagram/templates/RequestDraftTransferOfOwnershipFlow";
 import OfferEncumberedTokensFlow from "@Components/FlowDiagram/templates/OfferEncumberedTokensFlow";
-import SignAndFinalizeTransferOfOwnership from "@Components/FlowDiagram/templates/SignAndFinalizeTransferOfOwnership";
 import UnlockEncumberedTokensFlow from "@Components/FlowDiagram/templates/UnlockEncumberedTokensFlow";
+import SignAndFinalizeTransferOfOwnership from "@Components/FlowDiagram/templates/SignAndFinalizeTransferOfOwnership";
+
 import { FlowData } from "@Models";
 
 const nodeTypes = {
@@ -18,8 +19,8 @@ const nodeTypes = {
 const templates: { [index: string]: any } = {
   RequestDraftTransferOfOwnershipFlow,
   OfferEncumberedTokensFlow,
-  SignAndFinalizeTransferOfOwnership,
   UnlockEncumberedTokensFlow,
+  SignAndFinalizeTransferOfOwnership,
 };
 
 interface Props {

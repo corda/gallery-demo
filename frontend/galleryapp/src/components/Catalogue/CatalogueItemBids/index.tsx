@@ -36,7 +36,7 @@ function CatalogueItemBids({ bids, open, lotId }: Props) {
       postBidAcceptance({
         bidderParty: bid.bidderDisplayName,
         artworkId: lotId,
-        currency: bid.currencyCode
+        currency: bid.currencyCode,
       });
     }
   }

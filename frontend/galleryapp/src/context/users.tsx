@@ -1,6 +1,6 @@
 import React, { createContext, FC, useCallback, useEffect, useState } from "react";
 import { Participant } from "@Models";
-import {getParticipants} from "@Api";
+import { getParticipants } from "@Api";
 import { convertToKebabCase } from "@Utils";
 
 interface UsersContextInterface {
