@@ -5,15 +5,16 @@ import React, { useContext, useState } from "react";
 import FlowDiagram from "@Components/FlowDiagram";
 import { LogsContext } from "@Context/logs";
 import { FlowData } from "@Models";
+import config from "@Config";
 
 function FlowsDropdown() {
   const [toggledModal, setToggleModal] = useState(false);
   const [selectedFlow, setSelectedFlow] = useState<FlowData | null>(null);
   const { logs } = useContext(LogsContext);
 
-  const completedFlows = logs
-    .filter((log) => !!log.completed && !log.completed!.associatedStage.includes("Handler"))
-    .map((log) => log.completed);
+  const completedFlows = logs.filter(
+    (log) => !!log.completed && !log.completed!.associatedStage.includes("Handler")
+  );
 
   const handleLogClick = (selectedFlow: any) => {
     setSelectedFlow(selectedFlow);
@@ -34,22 +35,35 @@ function FlowsDropdown() {
         >
           {completedFlows
             .sort((a, b) => {
-              return a!.logRecordId > b!.logRecordId ? -1 : 1;
+              const timeA = a.timestamp.split(" ")[3];
+              const timeB = b.timestamp.split(" ")[3];
+              console.log(timeA);
+              if (timeA === timeB) return 0;
+              return timeA < timeB ? -1 : 1;
             })
             .map((flow, i) => (
               <Option
-                key={`${flow!.logRecordId}`}
-                value={flow!.associatedStage}
+                key={`${flow!.completed!.logRecordId}`}
+                value={flow!.completed!.associatedStage}
                 onClick={() => {
-                  handleLogClick(flow);
+                  handleLogClick(flow.completed);
                 }}
               >
-                {flow!.associatedStage
-                  .split(".")
+                {flow!
+                  .completed!.associatedStage.split(".")
                   //@ts-ignore .at() method doesnt seem to be supported in Typescript
                   .at(-1)
                   .split(/(?=[A-Z])/)
                   .join(" ")}
+                <div
+                  className={`${styles.label}`}
+                  style={{
+                    backgroundColor: config.networks[flow.network]?.color,
+                  }}
+                >
+                  {flow.x500}
+                </div>
+                <span className={styles.timeStamp}>{flow.timestamp.split(" ")[3]}</span>
               </Option>
             ))}
         </Dropdown>
