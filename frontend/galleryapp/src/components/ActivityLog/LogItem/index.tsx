@@ -10,7 +10,7 @@ interface Props {
 }
 
 function LogItem({ log }: Props) {
-  const time = log.timestamp.split(' ')[3];
+  const time = log.timestamp.split(" ")[3];
   return (
     <div className={styles.main}>
       <span

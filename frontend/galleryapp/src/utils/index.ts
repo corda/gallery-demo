@@ -1,4 +1,4 @@
-import {Bid, GalleryLot, Participant} from "@Models";
+import { Bid, GalleryLot, Participant } from "@Models";
 import axios from "axios";
 import config from "@Config";
 
@@ -20,15 +20,19 @@ export function lotSold(lot: GalleryLot): boolean {
     .reduce((accumulatedStatus, currentStatus) => accumulatedStatus || currentStatus, false);
 }
 
-export function usersBid(lot: GalleryLot, user: Participant): Bid|undefined {
-  return lot.bids.find(bid => bid.bidderDisplayName === user.x500);
+export function usersBid(lot: GalleryLot, user: Participant): Bid | undefined {
+  return lot.bids.find((bid) => bid.bidderDisplayName === user.x500);
 }
 
-export function getWinningBid(lot: GalleryLot): Bid|undefined {
-  return lot.bids.find(bid => bid.accepted);
+export function getWinningBid(lot: GalleryLot): Bid | undefined {
+  return lot.bids.find((bid) => bid.accepted);
 }
 
-export async function apiCall <T, U  = void>(type: 'get'|'post', path: string, params?:U): Promise<T | null> {
+export async function apiCall<T, U = void>(
+  type: "get" | "post",
+  path: string,
+  params?: U
+): Promise<T | null> {
   try {
     const response = await axios[type](`${config.apiHost}${path}`, params);
     return response.data;

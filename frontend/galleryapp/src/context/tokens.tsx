@@ -1,7 +1,7 @@
 import React, { createContext, FC, useState } from "react";
 import { Balance, Participant, Token } from "@Models";
 import useInterval from "@Hooks/useInterval";
-import {getBalances} from "@Api";
+import { getBalances } from "@Api";
 import { isEqual } from "lodash";
 
 interface TokensContextInterface {

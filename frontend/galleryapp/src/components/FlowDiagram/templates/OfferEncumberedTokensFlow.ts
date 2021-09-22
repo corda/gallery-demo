@@ -118,8 +118,8 @@ const template = (data: FlowData) => [
     data: {
       title: "Encumbrance State",
       networkType: "considerationLedger",
-      properties: data.states[2] ? data.states[2].properties : {},
-      participants: data.states[2] ? data.states[2].participants : [],
+      properties: data.states[3] ? data.states[3].properties : {},
+      participants: data.states[3] ? data.states[3].participants : [],
       handles: [
         {
           type: "target",

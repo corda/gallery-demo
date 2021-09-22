@@ -1,81 +1,12 @@
 import { FlowData } from "@Models";
 
-const labelStyle = {
-  "font-size": "14px",
-  "font-weight": "bold",
-  fill: "#49505f",
-  "font-family": "Monaco",
-};
-
 const template = (data: FlowData) => [
   {
-    id: "f4_2",
-    type: "block",
-    data: {
-      label: "draft Tx",
-    },
-    position: { x: 450, y: 50 },
-  },
-  {
-    id: "f4_3",
-    type: "block",
-    data: {
-      networkType: "green",
-      label: "Transfer",
-      handles: [
-        {
-          type: "source",
-          position: "right",
-        },
-        {
-          type: "target",
-          position: "left",
-        },
-        {
-          type: "target",
-          position: "bottom",
-        },
-      ],
-    },
-    position: { x: 450, y: 92 },
-  },
-  {
-    id: "f4_4",
-    type: "block",
-    data: {
-      label: Object.keys(data.signers)[0],
-      handles: [
-        {
-          type: "source",
-          position: "top",
-        },
-      ],
-    },
-    position: { x: 450, y: 300 },
-  },
-  {
-    id: "f4_5",
+    id: "f3_1",
     type: "flow",
     data: {
-      title: "NFT State",
-      networkType: "nftLedger",
-      properties: data.states[1] ? data.states[1].properties : {},
-      participants: data.states[1] ? data.states[1].participants : [],
-      handles: [
-        {
-          type: "target",
-          position: "left",
-        },
-      ],
-    },
-    position: { x: 800, y: 25 },
-  },
-  {
-    id: "f4_1",
-    type: "flow",
-    data: {
-      title: "NFT State",
-      networkType: "nftLedger",
+      title: "Consideration State",
+      networkType: "considerationLedger",
       properties: data.states[0] ? data.states[0].properties : {},
       participants: data.states[0] ? data.states[0].participants : [],
       handles: [
@@ -87,19 +18,106 @@ const template = (data: FlowData) => [
     },
     position: { x: 0, y: 25 },
   },
-
-  { id: "f4_e1-3", source: "f4_1", target: "f4_3", animated: false, arrowHeadType: "arrow" },
   {
-    id: "f4_e4-3",
-    source: "f4_4",
-    target: "f4_3",
-    animated: true,
-    targetHandle: "bottom",
-    label: "Required Sigs",
-    labelBgStyle: { fill: "#f8f8f8" },
-    labelStyle,
+    id: "f3_2",
+    type: "flow",
+    data: {
+      title: "Encumbrance State",
+      networkType: "considerationLedger",
+      properties: data.states[1] ? data.states[1].properties : {},
+      participants: data.states[1] ? data.states[1].participants : [],
+      handles: [
+        {
+          type: "source",
+          position: "right",
+        },
+      ],
+    },
+    position: { x: 0, y: 480 },
   },
-  { id: "f4_e3-5", source: "f4_3", target: "f4_5", animated: false, arrowHeadType: "arrow" },
+  {
+    id: "f3_3",
+    type: "block",
+    data: {
+      label: "TX 3",
+    },
+    position: { x: 450, y: 150 },
+  },
+  {
+    id: "f3_4",
+    type: "block",
+    data: {
+      label: "Transfer",
+      networkType: "blue",
+      handles: [
+        {
+          type: "source",
+          position: "right",
+        },
+        {
+          type: "target",
+          position: "left",
+        },
+      ],
+    },
+    position: { x: 450, y: 192 },
+  },
+  {
+    id: "f3_5",
+    type: "block",
+    data: {
+      label: "Unlock",
+      networkType: "green",
+      handles: [
+        {
+          type: "source",
+          position: "right",
+        },
+        {
+          type: "target",
+          position: "left",
+        },
+      ],
+    },
+    position: { x: 450, y: 234 },
+  },
+  {
+    id: "f3_6",
+    type: "block",
+    data: {
+      label: Object.keys(data.signers)[0],
+    },
+    position: { x: 450, y: 276 },
+  },
+  {
+    id: "7",
+    type: "block",
+    data: {
+      label: Object.keys(data.signers)[1],
+    },
+    position: { x: 450, y: 318 },
+  },
+  {
+    id: "f3_8",
+    type: "flow",
+    data: {
+      title: "Consideration State",
+      networkType: "considerationLedger",
+      properties: data.states[2] ? data.states[2].properties : {},
+      participants: data.states[2] ? data.states[2].participants : [],
+      handles: [
+        {
+          type: "target",
+          position: "left",
+        },
+      ],
+    },
+    position: { x: 800, y: 25 },
+  },
+
+  { id: "f3_e1-4", source: "f3_1", target: "f3_4", animated: false, arrowHeadType: "arrow" },
+  { id: "f3_e2-5", source: "f3_2", target: "f3_5", animated: false, arrowHeadType: "arrow" },
+  { id: "f3_e4-8", source: "f3_4", target: "f3_8", animated: false, arrowHeadType: "arrow" },
 ];
 
 export default template;
