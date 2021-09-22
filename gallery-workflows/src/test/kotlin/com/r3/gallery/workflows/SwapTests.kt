@@ -235,7 +235,7 @@ class SwapTests {
     }
 
     @Test
-    fun TestCurrencies() {
+    fun `test auction currencies`() {
         AuctionCurrency.getInstance("GBP")
         AuctionCurrency.getInstance("CBDC")
     }

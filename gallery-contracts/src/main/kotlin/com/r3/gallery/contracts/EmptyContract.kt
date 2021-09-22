@@ -1,11 +1,7 @@
 package com.r3.gallery.contracts
 
-import com.r3.gallery.states.EmptyState
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
-import net.corda.core.contracts.Requirements.using
-import net.corda.core.contracts.requireSingleCommand
-import net.corda.core.contracts.requireThat
 import net.corda.core.transactions.LedgerTransaction
 
 class EmptyContract : Contract {

@@ -227,8 +227,6 @@ data class TokenReleaseData(
     val notarySignature: TransactionSignature
 )
 
-typealias EncumberedTokens = CordaReference
-
 enum class CordaRPCNetwork(val netName: String) {
     AUCTION("auction"),
     GBP("gbp"),

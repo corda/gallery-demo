@@ -14,6 +14,12 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 
+/**
+ * Reverts an encumbered token offer to its original holder only. This can be initiated by the creator of the offer only
+ * after the expiry of the lock and only if the token has not been claimed by the receiver before the expiry of the lock.
+ * The receiver of the token offer can execute this flow at any time to return the token to the original token holder.
+ * @param encumberedTxHash the hash of the encumbered toke offer transaction ID.
+ */
 @StartableByRPC
 @InitiatingFlow
 class RevertEncumberedTokensFlow(
@@ -76,10 +82,10 @@ class RevertEncumberedTokensFlow(
 
 /**
  * Responder flow for [RevertEncumberedTokensFlow].
- * Sign and finalise the Redeem encumbered state transaction.
+ * Sign and finalise the reverted token transaction.
  */
 @InitiatedBy(RevertEncumberedTokensFlow::class)
-class RedeemEncumberedTokensFlowHandler(private val otherSession: FlowSession) : FlowLogic<SignedTransaction?>() {
+class RevertEncumberedTokensFlowHandler(private val otherSession: FlowSession) : FlowLogic<SignedTransaction?>() {
     @Suspendable
     override fun call(): SignedTransaction? {
         return if (!serviceHub.myInfo.isLegalIdentity(otherSession.counterparty)) {

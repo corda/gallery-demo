@@ -11,6 +11,9 @@ import net.corda.core.transactions.TransactionBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+/**
+ * Destroys the artwork with the [artworkId]
+ */
 @StartableByRPC
 class DestroyArtwork(private val artworkId: ArtworkId?) : FlowLogic<Unit>() {
 

@@ -15,7 +15,7 @@ import net.corda.core.transactions.TransactionBuilder
 import net.corda.core.utilities.ProgressTracker
 
 /**
- * Unlock the token states encumbered by [lockStateAndRef].
+ * Unlock the token states encumbered by the transaction identified by [encumberedTxHash].
  * @property encumberedTxHash the TX ID of the encumbered token offer transaction
  * @property notarySignature the [TransactionSignature] required to unlock the lock state.
  */
@@ -89,7 +89,7 @@ class UnlockEncumberedTokensFlow(
 
 /**
  * Responder flow for [UnlockEncumberedTokensFlow].
- * Sign and finalise the unlock encumbered state transaction.
+ * Sign and finalise the token state unlock transaction.
  */
 @InitiatedBy(UnlockEncumberedTokensFlow::class)
 class UnlockEncumberedTokensFlowHandler(private val otherSession: FlowSession) : FlowLogic<SignedTransaction?>() {

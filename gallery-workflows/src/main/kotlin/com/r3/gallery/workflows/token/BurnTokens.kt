@@ -16,6 +16,9 @@ import net.corda.core.utilities.unwrap
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+/**
+ * Burn all tokens for the given [currency]
+ */
 @StartableByRPC
 @InitiatingFlow
 class BurnTokens(private val currency: String = "GBP") : FlowLogic<Unit>() {
@@ -76,6 +79,9 @@ class BurnTokens(private val currency: String = "GBP") : FlowLogic<Unit>() {
     }
 }
 
+/**
+ * Responder flow for [BurnTokens] flow
+ */
 @InitiatedBy(BurnTokens::class)
 class BurnTokensHandler(private val otherSession: FlowSession): FlowLogic<Unit>() {
 

@@ -1,10 +1,7 @@
 package com.r3.gallery.utils
 
 import co.paralleluniverse.fibers.Suspendable
-import com.r3.gallery.states.LockState
 import net.corda.core.crypto.*
-import net.corda.core.identity.Party
-import net.corda.core.node.ServiceHub
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 
@@ -58,34 +55,6 @@ fun WireTransaction.generateWireTransactionMerkleTree(): MerkleTree {
     }
 
     return MerkleTree.getMerkleTree(groupHashes)
-}
-
-fun WireTransaction.getLockState(serviceHub: ServiceHub, creator: Party, receiver: Party): LockState {
-    val notaryIdentity = serviceHub.identityService.partyFromKey(notary!!.owningKey)
-        ?: throw IllegalArgumentException("Unable to retrieve party for notary key: ${notary!!.owningKey}")
-    val notaryInfo = serviceHub.networkMapCache.getNodeByLegalIdentity(notary!!)
-        ?: throw IllegalArgumentException("Unable to retrieve notaryInfo for notary: $notary")
-    val signatureMetadata =
-        SignatureMetadata(notaryInfo.platformVersion, Crypto.findSignatureScheme(notary!!.owningKey).schemeNumberID)
-    // TODO: should this have same window or not? If there's an expiry on this
-    return LockState(
-        SignableData(id, signatureMetadata),
-        notaryIdentity,
-        timeWindow!!,
-        creator,
-        receiver,
-        listOf(receiver, creator)
-    )
-}
-
-/**
- * Return the [TransactionSignature] by [Party] on this [SignedTransaction].
- * @param party find transaction signature by this [Party].
- * @return [TransactionSignature] representing the party's signature on this transaction.
- * @throws
- */
-internal fun SignedTransaction.getTransactionSignatureForParty(party: Party): TransactionSignature {
-    return this.sigs.single { it.by == party.owningKey }
 }
 
 /**
