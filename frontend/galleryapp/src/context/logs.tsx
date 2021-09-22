@@ -1,7 +1,7 @@
 import React, { createContext, FC, useState } from "react";
 import { Log } from "@Models";
 import useInterval from "@Hooks/useInterval";
-import {getLogs} from "@Api";
+import { getLogs } from "@Api";
 import { isEqual } from "lodash";
 
 interface LogsContextInterface {

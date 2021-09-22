@@ -20,7 +20,7 @@ function GalleryShop({ lots, x500 }: Props) {
   const { getFilteredLogs } = useContext(LogsContext);
   const [bidModalToggle, setBidModalToggle] = useState(false);
   const [selectedItem, setSelectedItem] = useState<GalleryLot | null>(null);
-  const logs = getFilteredLogs(x500, "auction");
+  const logs = getFilteredLogs(x500, "AUCTION");
   const { id } = useParams<RouterParams>();
   const user = getUser(id);
 
@@ -40,7 +40,11 @@ function GalleryShop({ lots, x500 }: Props) {
     <section className={styles.main}>
       <h3>Gallery</h3>
       <ul className={styles.lotList}>
-        {lots.map((lot) => (
+        {lots
+            .sort((a, b) => {
+                return a.description < b.description ? -1 : 1;
+            })
+            .map((lot) => (
           <ShopItem
             key={lot.artworkId}
             lot={lot}

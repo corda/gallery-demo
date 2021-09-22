@@ -21,7 +21,7 @@ export function lotSold(lot: GalleryLot): boolean {
 }
 
 export function usersBid(lot: GalleryLot, user: Participant): Bid|undefined {
-  return lot.bids.find(bid => bid.bidderDisplayName === user.displayName);
+  return lot.bids.find(bid => bid.bidderDisplayName === user.x500);
 }
 
 export function getWinningBid(lot: GalleryLot): Bid|undefined {

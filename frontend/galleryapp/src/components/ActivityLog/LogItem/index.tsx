@@ -10,13 +10,14 @@ interface Props {
 }
 
 function LogItem({ log }: Props) {
+  const time = log.timestamp.split(' ')[3];
   return (
     <div className={styles.main}>
       <span
         className={styles.colourCode}
         style={{ background: config.networks[log.network].color }}
       />
-      <span className={styles.timestamp}>{log.timestamp}</span>
+      <span className={styles.timestamp}>{time}</span>
       <span className={styles.message}>{formatter(log.message)}</span>
     </div>
   );

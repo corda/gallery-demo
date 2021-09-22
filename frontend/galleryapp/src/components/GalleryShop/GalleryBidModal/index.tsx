@@ -42,6 +42,7 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
     setBidPosted(false);
     onClose();
   }
+
   return selectedArtwork ? (
     <Modal onClose={handleCancel} size="small" title="" withBackdrop open={open}>
       {bidPosted && !biddersBid && (
@@ -90,7 +91,8 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
           </div>
         </>
       )}
-      {biddersBid && (
+
+      {!!biddersBid && (
         <div className="text-center">
           <h4>Bid placed successfully</h4>
           <ul className={styles.bidDetails}>

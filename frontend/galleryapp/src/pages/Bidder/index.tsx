@@ -15,7 +15,7 @@ function Bidder() {
   const { artworks } = useContext(ArtworksContext);
   const user = getUser(id);
   const biddersArt = artworks.filter((lot) => {
-    return !!lot.bids.find((bid) => bid.accepted && bid.bidderDisplayName === user?.displayName);
+    return !!lot.bids.find((bid) => bid.accepted && bid.bidderDisplayName === user?.x500);
   });
 
   return (

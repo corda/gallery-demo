@@ -12,7 +12,11 @@ function Collection({ lots }: Props) {
       <h3>Collection</h3>
       {lots.length ? (
         <div className={styles.gallery}>
-          {lots.map((lot, i) => (
+          {lots
+              .sort((a, b) => {
+                  return a.description < b.description ? -1 : 1;
+              })
+              .map((lot, i) => (
             <img
               key={lot.artworkId}
               className={styles.galleryImage}

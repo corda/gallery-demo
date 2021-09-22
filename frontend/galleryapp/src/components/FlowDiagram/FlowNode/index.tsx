@@ -30,17 +30,22 @@ const FlowNode = ({ data }: Props) => {
           const [key, value] = properties;
           return (
             <li key={key} className={styles.propertyItem}>
-              <div className={styles.propertyKey}>{key}:</div> <div className={styles.propertyValue}>{value}</div>
+              <div className={styles.propertyKey}>{key}:</div>{" "}
+              <div className={styles.propertyValue}>{value}</div>
             </li>
           );
         })}
       </ul>
-      <ul>
+      <ul className={styles.properties}>
         <li>
           <h6>Participants</h6>
         </li>
         {data.participants.map((participant) => {
-          return <li key={participant}>{participant}</li>;
+          return (
+            <li key={participant} className={styles.propertyItem}>
+              <div className={styles.propertyValue}>{participant}</div>
+            </li>
+          );
         })}
       </ul>
     </div>
