@@ -17,5 +17,5 @@ export const getGallery = (userDisplayName?: string) => {
 export const postBid = (params: PostBidParams) =>
     apiCall<string, PostBidParams>("post", "/bidder/bid", params);
 
-export const postBidAcceptance = (params: PostBidAcceptanceParams) =>
-    apiCall<string, PostBidAcceptanceParams>("post", "/accept-bid", params);
+export const postBidAcceptance = (params: { artworkId: string; currency: string; bidderParty: string }) =>
+    apiCall<string, PostBidAcceptanceParams>("post", "/gallery/accept-bid", params);

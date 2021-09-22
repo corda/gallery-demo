@@ -35,8 +35,15 @@ typealias TokenParty = String
 
 /**
  * Log entry templated for UI output.
- * - message can/should include formatting tokens for resolving the
- * display on the frontend.
+ * The message can/should include formatting tokens for resolving the display on the frontend.
+ *
+ * @property associatedFlow which is being tracked in StateMachine
+ * @property network of the action
+ * @property x500 of the initiator
+ * @property logRecordId unique ID for this update
+ * @property timestamp of the update
+ * @property message of the update itself; ProgressTracker.Step
+ * @property completed a completion log representing the details of any transaction or output of the associated flow.
  */
 data class LogUpdateEntry(
     val associatedFlow: String,
@@ -122,17 +129,17 @@ data class AvailableArtwork(
     val description: String,
     val url: String,
     val listed: Boolean,
+    val expiryDate: Date,
     val bids: List<BidRecord>
 ) {
     // A record of a bid placed against a single artworkId
     @CordaSerializable
     data class BidRecord(
-        val cordaReference: CordaReference, // UNIQUE
+        val cordaReference: String, // UNIQUE
         val bidderPublicKey: String,
         val bidderDisplayName: ArtworkParty,
         val amountAndCurrency: Amount<TokenType>, // will expand to amount, currencyCode
         val notary: ArtworkParty,
-        val expiryDate: Date,
         val accepted: Boolean
     )
 }
@@ -145,6 +152,25 @@ data class ArtworkOwnership(
     val cordaReference: CordaReference,
     val artworkId: ArtworkId,
     val artworkOwner: ArtworkParty
+)
+
+/**
+ * Used to deserialize bid proposals
+ */
+data class BidProposal(
+    val bidderParty: String,
+    val artworkId: ArtworkId,
+    val amount: String,
+    val currency: String
+)
+
+/**
+ * Used to deserialize bid acceptance requests
+ */
+data class AcceptedBid(
+    val bidderParty: String,
+    val artworkId: ArtworkId,
+    val currency: String
 )
 
 typealias TransactionHash = String
@@ -200,8 +226,6 @@ data class TokenReleaseData(
     val encumberedTokens: TransactionHash,
     val notarySignature: TransactionSignature
 )
-
-typealias EncumberedTokens = CordaReference
 
 enum class CordaRPCNetwork(val netName: String) {
     AUCTION("auction"),

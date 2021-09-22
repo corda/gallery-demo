@@ -10,67 +10,123 @@ import net.corda.core.messaging.StateMachineUpdate
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import net.corda.core.utilities.getOrThrow
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Subscription
 import java.time.Instant
 import java.util.*
-import kotlin.collections.HashSet
 
 typealias ProgressUpdateSubscription = Subscription
 typealias LogRetrievalIdx = Int
 
 /**
  * Stores and returns log updates based on a set of rpc proxies
- * TODO: FE poll tracking based on index of updates list?
  */
 @Component
 class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
+    /**
+     * Companion object contains whitelisting/blacklisting for use in filtering progress tracker updates to most
+     * relevant flows.
+     */
+    companion object {
+        val logger: Logger =  LoggerFactory.getLogger(LogService::class.java)
+        val flowsToTrackProgress = listOf(
+                "RequestDraftTransferOfOwnershipFlow",
+                "RequestDraftTransferOfOwnershipFlowHandler",
+                "OfferEncumberedTokensFlow",
+                "OfferEncumberedTokensFlowHandler",
+                "SignAndFinalizeTransferOfOwnership",
+                "SignAndFinaliseTxForPushHandler",
+                "UnlockEncumberedTokensFlow",
+                "UnlockEncumberedTokensFlowHandler",
+                "RevertEncumberedTokensFlow",
+                "RedeemEncumberedTokensFlowHandler"
+        )
+        val flowsToExplicitlyIgnore = listOf(
+                "FindOwnedArtworksFlow",
+                "GetBalanceFlow"
+        )
+        val flowsToIgnoreCompletionUpdate = listOf(
+                "RequestDraftTransferOfOwnershipFlowHandler",
+                "OfferEncumberedTokensFlowHandler",
+                "SignAndFinaliseTxForPushHandler",
+                // "UnlockEncumberedTokensFlowHandler" may not be null
+                // "RedeemEncumberedTokensFlowHandler" may not be null
+        )
+    }
+
     private val stateMachineSubscriptions: MutableList<Subscription> = ArrayList()
-    private val progressSubscriptions: MutableSet<Pair<StateMachineRunId, ProgressUpdateSubscription>> = HashSet()
+    private val progressSubscriptions: MutableMap<StateMachineRunId, ProgressUpdateSubscription> = HashMap()
     private val progressUpdates: MutableList<LogUpdateEntry> =  ArrayList()
+    private val stateMachineRunIdToFlowName: MutableMap<StateMachineRunId, String> = HashMap()
     var isInitialized: Boolean = false
 
+    /**
+     * Creates subscriptions to statemachine observables through RPC proxies.
+     *
+     * Each update is based on ProgressTracker.Step definitions in the Flow being transitioned through the StateMachine
+     * and transformed to a DTO [LogUpdateEntry]
+     */
     fun initSubscriptions() {
+        if (isInitialized) return // final check for race-condition.
+
         listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp).forEach {
             val currentNetwork = it.associatedNetwork
             it.allConnections()!!.map { connection -> connection.proxy }.forEach { rpc ->
 
                 val firingX500 = rpc.nodeInfo().legalIdentities.first().name
-                val subscription = rpc.stateMachinesFeed().updates.subscribe { smUpdate ->
+                val subscription = rpc.stateMachinesFeed().updates.subscribe subscriptionSet@{ smUpdate ->
+                    // event for Flow being added to the StateMachine track
                     if (smUpdate is StateMachineUpdate.Added) {
                         val smUpdateInfo = smUpdate.stateMachineInfo
+                        val flowForUpdate = smUpdateInfo.flowLogicClassName
+                        stateMachineRunIdToFlowName[smUpdate.id] = flowForUpdate // track flow name to id
 
-                        // add progress update subscription
-                        smUpdateInfo.progressTrackerStepAndUpdates?.updates?.subscribe { update ->
-                            if (!update.contains("Structural step change")) {
-                                val updateProposal = LogUpdateEntry(
-                                    associatedFlow = smUpdateInfo.flowLogicClassName,
-                                    network = currentNetwork.name,
-                                    x500 = firingX500.toString(),
-                                    logRecordId = smUpdate.id.toString(),
-                                    timestamp = Date.from(Instant.now()).toString(),
-                                    message = update
-                                )
-                                // avoid duplicates
-                                if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
+                        if ( // filter out blacklist (polling flows) and only consider targets
+                                flowsToExplicitlyIgnore.any { flowName -> flowName in flowForUpdate } ||
+                                !flowsToTrackProgress.any { flowName -> flowName in flowForUpdate }
+                        ) return@subscriptionSet
+
+                        smUpdateInfo.progressTrackerStepAndUpdates?.let { feed ->
+                            feed.updates.toBlocking().forEach { msg ->
+                                // ignore structural step change updates and add context to Starting and Done messages.
+                                if (!msg.contains("Structural step change")) {
+                                    val update_ = if (msg == "Starting" || msg == "Done") { "$msg ${flowForUpdate}."}
+                                    else msg
+                                    val updateProposal = LogUpdateEntry(
+                                            associatedFlow = flowForUpdate,
+                                            network = currentNetwork.name,
+                                            x500 = firingX500.toString(),
+                                            logRecordId = UUID.randomUUID().toString(),
+                                            timestamp = Date.from(Instant.now()).toString(),
+                                            message = update_
+                                    )
+                                    // Avoid duplicates - see LogUpdateEntry.equals
+                                    if (updateProposal !in progressUpdates) progressUpdates.add(updateProposal)
+                                }
                             }
-                        }.also { pSub -> progressSubscriptions.add(Pair(smUpdateInfo.id, pSub!!)) }
+                        }
                     }
+                    // event for Flow exiting StateMachine
                     if (smUpdate is StateMachineUpdate.Removed) {
-                        val logRecordId = smUpdate.id.toString()
-                        val associatedFlow = fetchFlowLogicClassFromLogRecordId(logRecordId)
-                        if ( // filter for target completions
-                            associatedFlow.contains("RequestDraftTransferOfOwnershipFlow") ||
-                            associatedFlow.contains("OfferEncumberedTokensFlow") ||
-                            associatedFlow.contains("SignAndFinalize") ||
-                            associatedFlow.contains("UnlockEncumberedTokensFlow") ||
-                            associatedFlow.contains("IssueTokensFlow")
-                        ) {
+                        try {
+                            val associatedFlow = stateMachineRunIdToFlowName[smUpdate.id]
                             val signers: Map<CordaX500Name, Boolean>
+
+                            if ( // filter out blacklist (polling flows) and only consider targets
+                                    flowsToExplicitlyIgnore.any { flowName -> flowName in associatedFlow!! } ||
+                                    !flowsToTrackProgress.any { flowName -> flowName in associatedFlow!! } ||
+                                    flowsToIgnoreCompletionUpdate.any { flowName -> flowName in associatedFlow!! }
+                            ) return@subscriptionSet
+
+                            // Cast to correct Object for decomposition to serialized states of 'completed' property
+                            // Wire and SignedTransaction are converted to [LedgerTransaction] and ContractStates resolved
+                            // via StatesFromTXFlow.
                             val states: List<ContractState> = if (
-                                associatedFlow.contains("RequestDraftTransferOfOwnershipFlow")
+                                    associatedFlow!!.contains("RequestDraftTransferOfOwnershipFlow")
                             ) { // target flows are all SignedTransaction except RequestDraft which is pair
                                 val wtx = (smUpdate.result.getOrThrow() as Pair<*,*>).first as WireTransaction
                                 signers = wtx.requiredSigningKeys.associate { pKey ->
@@ -80,45 +136,44 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                             } else {
                                 val stx = smUpdate.result.getOrThrow() as SignedTransaction
                                 signers = stx.requiredSigningKeys.associate { pKey ->
-                                    val hasSigned: Boolean = stx.getMissingSigners().contains(pKey)
+                                    val hasSigned: Boolean = !stx.getMissingSigners().contains(pKey)
                                     Pair(rpc.partyFromKey(pKey)!!.name, hasSigned)
                                 }
                                 rpc.startFlowDynamic(StatesFromTXFlow::class.java, stx).returnValue.getOrThrow()
                             }
+
+                            val logRecordId = UUID.randomUUID().toString()
                             progressUpdates.add(
-                                LogUpdateEntry(
-                                    associatedFlow = associatedFlow,
-                                    network = currentNetwork.name,
-                                    x500 = firingX500.toString(),
-                                    logRecordId = logRecordId,
-                                    timestamp = Date.from(Instant.now()).toString(),
-                                    message = "",
-                                    completed = LogUpdateEntry.FlowCompletionLog(
-                                        associatedStage = associatedFlow,
-                                        logRecordId = logRecordId,
-                                        states = states,
-                                        signers = signers
+                                    LogUpdateEntry(
+                                            associatedFlow = associatedFlow,
+                                            network = currentNetwork.name,
+                                            x500 = firingX500.toString(),
+                                            logRecordId = logRecordId,
+                                            timestamp = Date.from(Instant.now()).toString(),
+                                            message = "",
+                                            completed = LogUpdateEntry.FlowCompletionLog(
+                                                    associatedStage = associatedFlow,
+                                                    logRecordId = logRecordId,
+                                                    states = states,
+                                                    signers = signers
+                                            )
                                     )
-                                )
                             )
+
+                            progressSubscriptions.remove(smUpdate.id) // remove subscription after completion
+                        } catch (e: Error) {
+                            logger.error("Error in smUpdate removal ${e.message}")
+                            isInitialized = false
+                            // error will kill subscription reset on next log poll.
+                            stateMachineSubscriptions.clear()
+                            progressSubscriptions.clear()
                         }
-                        removeProgressSubscriptions() // remove subscriptions
                     }
                 }
+                logger.info("StateMachine Subscription set for $firingX500")
                 stateMachineSubscriptions.add(subscription)
             }
         }
-    }
-
-    private fun fetchFlowLogicClassFromLogRecordId(id: String): String {
-        return progressUpdates.find { it.logRecordId == id }!!.associatedFlow
-    }
-
-    /**
-     * Unsubscribes and removes all progress subscriptions under a StateMachineRunId
-     */
-    private fun removeProgressSubscriptions() {
-        progressSubscriptions.removeIf { it.second.isUnsubscribed }
     }
 
     /**
@@ -136,5 +191,13 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
         val updatesSubList = progressUpdates.subList(retrievalIdx, lastIndex)
 
         return Pair(lastIndex, updatesSubList)
+    }
+
+    /**
+     * Clears / resets logs
+     */
+    fun clearLogs() {
+        progressSubscriptions.clear()
+        progressUpdates.clear()
     }
 }

@@ -13,6 +13,7 @@ import net.corda.core.utilities.ProgressTracker
 @InitiatingFlow
 class BasicFlowInitiator(private val participant: Party) : FlowLogic<SignedTransaction>() {
 
+    @Suppress("ClassName")
     companion object {
         object GENERATING_TRANSACTION : ProgressTracker.Step("Generating transaction based on new IOU.")
         object VERIFYING_TRANSACTION : ProgressTracker.Step("Verifying contract constraints.")

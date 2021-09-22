@@ -88,7 +88,7 @@ class SwapTests {
                 network.runNetwork()
             }.getOrThrow().second
 
-        val signedTokensOfferTxId =
+        val signedTokensOfferTx =
             buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
                 network.runNetwork()
             }.getOrThrow()
@@ -99,7 +99,7 @@ class SwapTests {
 
         val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
 
-        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTxId.id, requiredSignature)).apply {
+        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTx.id, requiredSignature)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -132,7 +132,7 @@ class SwapTests {
                 network.runNetwork()
             }.getOrThrow().second
 
-        val signedTokensOfferTxId =
+        val signedTokensOfferTx =
             buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.CBDC)).apply {
                 network.runNetwork()
             }.getOrThrow()
@@ -143,7 +143,7 @@ class SwapTests {
 
         val requiredSignature = signedArtTransferTx.getNotaryTransactionSignature()
 
-        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTxId.id, requiredSignature)).apply {
+        seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTx.id, requiredSignature)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -179,14 +179,14 @@ class SwapTests {
 
         val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
-        val signedTokensOfferTxId =
+        val signedTokensOfferTx =
             buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
                 network.runNetwork()
             }.getOrThrow()
 
         val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
-        buyer.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTxId.id)).apply {
+        buyer.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTx.id)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -217,14 +217,14 @@ class SwapTests {
 
         val buyerInitialBalance = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
-        val signedTokensOfferTxId =
+        val signedTokensOfferTx =
             buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
                 network.runNetwork()
             }.getOrThrow()
 
         val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).also { network.runNetwork() }.getOrThrow()
 
-        seller.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTxId.id)).apply {
+        seller.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTx.id)).apply {
             network.runNetwork()
         }.getOrThrow()
 
@@ -235,7 +235,7 @@ class SwapTests {
     }
 
     @Test
-    fun TestCurrencies() {
+    fun `test auction currencies`() {
         AuctionCurrency.getInstance("GBP")
         AuctionCurrency.getInstance("CBDC")
     }

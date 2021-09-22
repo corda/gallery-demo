@@ -3,25 +3,25 @@ package com.r3.gallery.workflows.webapp
 import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.r3.corda.lib.tokens.contracts.types.TokenType
-import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.NetworkBalancesResponse
+import com.r3.gallery.utils.AuctionCurrency
 import net.corda.core.contracts.Amount
 import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
 
 @StartableByRPC
-class GetBalanceFlow : FlowLogic<NetworkBalancesResponse.Balance>() {
+class GetBalanceFlow(private val currency: String) : FlowLogic<NetworkBalancesResponse.Balance>() {
 
     @Suspendable
     override fun call(): NetworkBalancesResponse.Balance {
-        val tokensHeld = serviceHub.vaultService.queryBy(FungibleToken::class.java)
+        // Tokens in ledger also include states from encumbrance where ourIdentity might not be holder.
+        val tokensInVault = serviceHub.vaultService.queryBy(FungibleToken::class.java)
             .states.map { it.state }
 
-        val tokenType: TokenType = if (serviceHub.networkMapCache.notaryIdentities.first()
-            .name.organisation.contains("GBP")) GBP else TokenType("CBDC", 2)
+        val tokenType: TokenType = AuctionCurrency.getInstance(currency)
 
         // no balance available
-        if (tokensHeld.isNullOrEmpty()) {
+        if (tokensInVault.isEmpty()) {
             return NetworkBalancesResponse.Balance(
                 currencyCode = tokenType.tokenIdentifier,
                 encumberedFunds = Amount.zero(tokenType),
@@ -30,10 +30,12 @@ class GetBalanceFlow : FlowLogic<NetworkBalancesResponse.Balance>() {
         }
 
         // filter to available and encumbered
-        val availableTokens = tokensHeld.filter { it.encumbrance == null }
-        val availableTokensAmount = Amount(availableTokens.sumOf { it.data.amount.quantity }, tokenType)
+        val availableTokens = tokensInVault.filter { it.data.holder.owningKey == ourIdentity.owningKey }
+        val availableTokensAmount = if (availableTokens.isNotEmpty()) {
+            Amount(availableTokens.sumOf { it.data.amount.quantity }, tokenType)
+        } else Amount.zero(tokenType)
 
-        val encumberedTokens = tokensHeld.minus(availableTokens)
+        val encumberedTokens = tokensInVault.filter { it.encumbrance != null  && it.data.issuer == ourIdentity }
         val encumberedTokensAmount = if (encumberedTokens.isNotEmpty())
             Amount(encumberedTokens.sumOf { it.data.amount.quantity }, tokenType)
         else Amount.zero(tokenType)

@@ -212,8 +212,8 @@ class KubernetesDeployment {
             )
     }
 
-    def buildNMSDeployment = { String devNamespace, String networkServiceName, String imageName ->
-        return NetworkServicesDeployment.buildNMSDeployment(devNamespace, networkServiceName, imageName)
+    def buildNMSDeployment = { String devNamespace, String networkServiceName ->
+        return NetworkServicesDeployment.buildNMSDeployment(devNamespace, networkServiceName)
     }
 
     def buildWebAppDeployment = {

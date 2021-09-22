@@ -5,7 +5,6 @@ import com.r3.gallery.api.RpcConnectionTarget
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
-import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
 import net.corda.core.node.NodeInfo
 

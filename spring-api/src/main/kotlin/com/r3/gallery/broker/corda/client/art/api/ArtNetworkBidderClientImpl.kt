@@ -1,10 +1,11 @@
 package com.r3.gallery.broker.corda.client.art.api
 
-import com.r3.gallery.api.*
+import com.r3.gallery.api.ArtworkId
+import com.r3.gallery.api.ArtworkParty
+import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
 import com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow
-import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.serialization.serialize
 import org.slf4j.LoggerFactory
@@ -12,6 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
+/**
+ * An implementation of [ArtNetworkBidderClient]
+ */
 @Component
 class ArtNetworkBidderClientImpl(
     @Autowired private val connectionManager: ConnectionManager
@@ -19,7 +23,7 @@ class ArtNetworkBidderClientImpl(
 
     private lateinit var artNetworkBidderCS: ConnectionService
 
-    // init client and set associated network
+    /** Initialize client */
     @PostConstruct
     private fun postConstruct() {
         artNetworkBidderCS = connectionManager.auction
@@ -29,11 +33,14 @@ class ArtNetworkBidderClientImpl(
         private val logger = LoggerFactory.getLogger(ArtNetworkBidderClientImpl::class.java)
     }
 
-    override fun issueTokens(bidderParty: TokenParty, amount: Long, currency: String) {
-        logger.info("Starting IssueTokensFlow via $bidderParty for $amount $currency")
-        artNetworkBidderCS.startFlow(bidderParty, IssueTokensFlow::class.java, amount, currency, bidderParty)
-    }
-
+    /**
+     * TODO Move to AtomicSwapService
+     * Used by bidder to request an unsigned draft transaction of the artwork transfer from gallery
+     *
+     * @param bidder of the artwork
+     * @param gallery holding the artwork
+     * @param artworkId represented the target artwork
+     */
     override fun requestDraftTransferOfOwnership(
         bidder: ArtworkParty,
         gallery: ArtworkParty,

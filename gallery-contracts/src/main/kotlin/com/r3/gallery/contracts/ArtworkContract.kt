@@ -4,12 +4,13 @@ import com.r3.gallery.states.ArtworkState
 import net.corda.core.contracts.*
 import net.corda.core.contracts.CommandData
 import net.corda.core.contracts.Contract
+import net.corda.core.contracts.Requirements.using
 import net.corda.core.transactions.LedgerTransaction
 import java.security.PublicKey
 
 class ArtworkContract : Contract {
     companion object {
-        const val ID = "com.r3.gallery.contracts.ArtworkContract"
+        const val ARTWORKCONTRACTID: ContractClassName = "com.r3.gallery.contracts.ArtworkContract"
     }
 
     interface Commands : CommandData {
@@ -37,6 +38,16 @@ class ArtworkContract : Contract {
                     "Only the 'owner' property can change" using (inputItem == outputItem.copy(owner = inputItem.owner))
                     "The 'owner' property must change" using (outputItem.owner != inputItem.owner)
                     "The previous and new owner only must sign a transfer transaction" using (signers == setOf(outputItem.owner.owningKey, inputItem.owner.owningKey))
+                }
+            }
+        }
+
+        class Destroy : TypeOnlyCommandData(), Commands {
+            override fun verifyCommand(tx: LedgerTransaction, signers: Set<PublicKey>) {
+                "Expected zero AuctionItemState output" using (tx.outputsOfType(ArtworkState::class.java).isEmpty())
+                val inputItems = tx.inputsOfType(ArtworkState::class.java)
+                inputItems.forEach {
+                    "Only the owner of the artwork can destroy it" using (signers.contains(it.owner.owningKey))
                 }
             }
         }

@@ -11,7 +11,7 @@
         "bidderDisplayName": "Bob GBP",
         "amount": 250,
         "currencyCode": "GBP",
-        "notary": "O=GBP Notary,L=London,C=GB",
+        "notary": "O=GBP Notary, L=London, C=GB",
         "expiryDate": "15:17:08.132263",
         "accepted": false
       },
@@ -21,7 +21,7 @@
         "bidderDisplayName": "Charles CBDC",
         "amount": 250,
         "currencyCode": "CBDC",
-        "notary": "O=CBDC Notary,L=London,C=GB",
+        "notary": "O=CBDC Notary, L=London, C=GB",
         "expiryDate": "15:17:08.132263",
         "accepted": true
       }
@@ -39,7 +39,7 @@
         "bidderDisplayName": "Bob GBP",
         "amount": 25000.33,
         "currencyCode": "GBP",
-        "notary": "O=GBP Notary,L=London,C=GB",
+        "notary": "O=GBP Notary, L=London, C=GB",
         "expiryDate": "15:17:08.132263",
         "accepted": false
       },
@@ -49,7 +49,7 @@
         "bidderDisplayName": "Charles CBDC",
         "amount": 1999.00,
         "currencyCode": "CBDC",
-        "notary": "O=CBDC Notary,L=London,C=GB",
+        "notary": "O=CBDC Notary, L=London, C=GB",
         "expiryDate": "15:17:08.132263",
         "accepted": true
       }
@@ -67,7 +67,7 @@
         "bidderDisplayName": "Bob GBP",
         "amount": 25000.33,
         "currencyCode": "GBP",
-        "notary": "O=GBP Notary,L=London,C=GB",
+        "notary": "O=GBP Notary, L=London, C=GB",
         "expiryDate": "15:17:08.132263",
         "accepted": false
       },
@@ -77,7 +77,7 @@
         "bidderDisplayName": "Charles CBDC",
         "amount": 1999.00,
         "currencyCode": "CBDC",
-        "notary": "O=CBDC Notary,L=London,C=GB",
+        "notary": "O=CBDC Notary, L=London, C=GB",
         "expiryDate": "15:17:08.132263",
         "accepted": false
       }

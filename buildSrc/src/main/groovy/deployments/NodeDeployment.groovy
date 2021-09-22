@@ -3,6 +3,7 @@ package deployments
 
 import io.kubernetes.client.custom.Quantity
 import io.kubernetes.client.openapi.models.*
+import org.apache.commons.lang3.RandomStringUtils
 
 import java.util.function.Consumer
 
@@ -75,7 +76,8 @@ class NodeDeployment implements Iterable<Object> {
                                               String identifier,
                                               String x500,
                                               String imageName,
-                                              String imageVersion) {
+                                              String imageVersion
+    ) {
         def dnsSafeIdentifier = identifier.toLowerCase()
 
         def nodeComponents = NodeResources.createNodeComponents(devNamespace, dnsSafeIdentifier, x500, imageName)
@@ -99,7 +101,10 @@ class NodeDeployment implements Iterable<Object> {
                 .endSelector()
                 .withNewTemplate()
                 .withNewMetadata()
-                .withLabels([run: "$dnsSafeIdentifier-node".toString()])
+                .withLabels([
+                        run: "$dnsSafeIdentifier-node".toString(),
+                        restartRandomId: RandomStringUtils.randomAlphabetic(6).toLowerCase()
+                ])
                 .endMetadata()
                 .withNewSpec()
                 .withNewSecurityContext()
@@ -152,7 +157,7 @@ class NodeDeployment implements Iterable<Object> {
                 .addNewInitContainer()
                 .withName("initial-registration")
                 .withImage("${imageName}:${imageVersion}")
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy("Always")
                 .withCommand("config-generator")
                 .withArgs("--generic", "--exit-on-generate")
                 .withVolumeMounts(
@@ -179,7 +184,7 @@ class NodeDeployment implements Iterable<Object> {
                 .addNewInitContainer()
                 .withName("run-migration")
                 .withImage("${imageName}:${imageVersion}")
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy("Always")
                 .withCommand("bash")
                 .withArgs("run-dbmigration.sh")
                 .withVolumeMounts(
@@ -195,7 +200,7 @@ class NodeDeployment implements Iterable<Object> {
                 .addNewContainer()
                 .withName("$dnsSafeIdentifier-node")
                 .withImage("${imageName}:${imageVersion}")
-                .withImagePullPolicy("IfNotPresent")
+                .withImagePullPolicy("Always")
                 .withPorts(
                         new V1ContainerPortBuilder().withName("p2pport").withContainerPort(P2P_PORT).build(),
                         new V1ContainerPortBuilder().withName("rpcport").withContainerPort(RPC_PORT).build(),

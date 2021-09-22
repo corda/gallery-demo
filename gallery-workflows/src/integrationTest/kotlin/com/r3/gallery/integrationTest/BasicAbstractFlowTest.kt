@@ -8,20 +8,17 @@ import net.corda.testing.core.DUMMY_NOTARY_NAME
 import net.corda.testing.node.*
 import org.junit.After
 import org.junit.Before
-import java.util.*
 
 abstract class BasicAbstractFlowTest {
-    lateinit var network: MockNetwork
+    private lateinit var network: MockNetwork
 
-    lateinit var seller: StartedMockNode
-    lateinit var buyer: StartedMockNode
+    private lateinit var seller: StartedMockNode
+    private lateinit var buyer: StartedMockNode
 
-    lateinit var sellingParty: Party
-    lateinit var receivingParty: Party
+    private lateinit var sellingParty: Party
+    private lateinit var receivingParty: Party
 
-    val tokenIdentifier = UUID.randomUUID()
-
-    val mockNetworkParameters = MockNetworkParameters(
+    private val mockNetworkParameters = MockNetworkParameters(
         networkParameters = testNetworkParameters(minimumPlatformVersion = 5),
         cordappsForAllNodes = listOf(
             TestCordapp.findCordapp("com.r3.gallery.contracts"),

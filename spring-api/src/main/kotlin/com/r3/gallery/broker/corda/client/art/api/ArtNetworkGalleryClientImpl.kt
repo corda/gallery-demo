@@ -7,9 +7,10 @@ import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
 import com.r3.gallery.workflows.artwork.FindArtworkFlow
-import com.r3.gallery.workflows.artwork.FindOwnedArtworksFlow
+import com.r3.gallery.workflows.artwork.FindArtworksFlow
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import net.corda.core.internal.toX500Name
+import net.corda.core.messaging.startFlow
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.serialize
@@ -21,6 +22,9 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 import javax.annotation.PostConstruct
 
+/**
+ * Implementation of [ArtNetworkGalleryClient]
+ */
 @Component
 class ArtNetworkGalleryClientImpl(
     @Autowired private val connectionManager: ConnectionManager
@@ -39,7 +43,14 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * Create a state representing ownership of the artwork with the id [artworkId], assigned to the gallery.
+     * Issues an [ArtworkState] representing ownership of the artwork with the id [artworkId], assigned to the gallery.
+     *
+     * @param galleryParty who will issue/own the artwork
+     * @param artworkId a unique UUID to identify the artwork by
+     * @param expiry an [Instant] which will default to 3 days from 'now' if not provided
+     * @param description of the artwork
+     * @param url of the asset/img representing the artwork
+     * @return [ArtworkOwnership]
      */
     override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, expiry: Instant?, description: String, url: String): ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
@@ -52,19 +63,12 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * List out the artworks still held by the gallery.
-     */
-    override fun listAvailableArtworks(galleryParty: ArtworkParty): List<ArtworkId> {
-        logger.info("Starting ListAvailableArtworks flow via $galleryParty")
-        return artNetworkGalleryCS.startFlow(galleryParty, FindOwnedArtworksFlow::class.java)
-            .map { it.state.data.artworkId }
-    }
-
-    /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
      * obtaining a [ProofOfTransferOfOwnership]
      *
-     * @return Proof that ownership of the artwork has been transferred.
+     * @param galleryParty who holds the artwork
+     * @param unsignedArtworkTransferTx byte code representation of the transaction
+     * @return [ProofOfTransferOfOwnership] that ownership of the artwork has been transferred.
      */
     override fun finaliseArtworkTransferTx(
         galleryParty: ArtworkParty,
@@ -92,7 +96,20 @@ class ArtNetworkGalleryClientImpl(
     }
 
     /**
-     * Returns the ArtworkState associated with the ArtworkId
+     * Returns all available artwork states.
+     * @return [List][ArtworkState]
+     */
+    override fun getAllArtwork(): List<ArtworkState> {
+        return artNetworkGalleryCS.allConnections()!!.flatMap {
+            it.proxy.startFlow(::FindArtworksFlow).returnValue.get()
+        }
+    }
+
+    /**
+     * Query a representation of the ownership of the artwork with id [artworkId]
+     *
+     * @param artworkId
+     * @return [ArtworkOwnership]
      */
     internal fun ArtworkParty.artworkIdToState(artworkId: ArtworkId): ArtworkState {
         logger.info("Fetching ArtworkState for artworkId $artworkId")

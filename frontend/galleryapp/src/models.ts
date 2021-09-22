@@ -103,6 +103,7 @@ export interface PostBidParams {
 }
 
 export interface PostBidAcceptanceParams {
-  galleryParty: string;
-  cordaReference: string;
+  bidderParty: string;
+  artworkId: string;
+  currency: string;
 }

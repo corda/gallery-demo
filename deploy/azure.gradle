@@ -16,14 +16,7 @@ def hostPrefix = rootProject.ext.'host.prefix' as String
 task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def auctionNetworkServices = kdeployment.buildNMSDeployment.call(
             deployedNamespace,
-            "auction-nms",
-            nmsImageName
-    )
-    def auctionNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            deployedNamespace,
-            "auction-notary",
-            "roastario/notary-one:5",
-            auctionNetworkServices.getNmsService()
+            "auction-nms"
     )
 
     // Node deployment
@@ -38,7 +31,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
         if ((node.get("networks") as List).contains("auction")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeStatefulSet.call(
+            def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
                     deployedNamespace,
                     auctionNetworkServices.nmsService.metadata.name,
@@ -52,7 +45,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
             // add an ingress rule for routing to service
           ingressRules.add(
                     new IngressRule(
-                            hostPrefix + currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            hostPrefix + currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -66,7 +59,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
             ingressRules
     )
 
-    deployments = [auctionNetworkServices, auctionIngress, auctionNotaryDeployment, *auctionNodeDeployments]
+    deployments = [auctionNetworkServices, auctionIngress, *auctionNodeDeployments]
     fileName = "auctionNetworkDeployment"
 }
 
@@ -77,14 +70,7 @@ task buildAuctionNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCre
 task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def gbpNetworkServices = kdeployment.buildNMSDeployment.call(
             deployedNamespace,
-            "gbp-nms",
-            nmsImageName
-    )
-    def gbpNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            deployedNamespace as String,
-            "gbp-notary",
-            "roastario/notary-two:5",
-            gbpNetworkServices.getNmsService()
+            "gbp-nms"
     )
 
     // Node deployment
@@ -99,7 +85,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
         if ((node.get("networks") as List).contains("gbp")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeStatefulSet.call(
+            def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
                     deployedNamespace as String,
                     gbpNetworkServices.nmsService.metadata.name,
@@ -113,7 +99,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
             // add an ingress rule for routing to service
             ingressRules.add(
                     new IngressRule(
-                            hostPrefix + currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            hostPrefix + currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -127,7 +113,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
             ingressRules
     )
 
-    deployments = [gbpNetworkServices, gbpIngress, gbpNotaryDeployment, *gbpNodeDeployments]
+    deployments = [gbpNetworkServices, gbpIngress, *gbpNodeDeployments]
     fileName = "gbpNetworkDeployment"
 }
 
@@ -138,14 +124,7 @@ task buildGbpNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']
 task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds']) {
     def cbdcNetworkServices = kdeployment.buildNMSDeployment.call(
             deployedNamespace,
-            "cbdc-nms",
-            nmsImageName
-    )
-    def cbdcNotaryDeployment = NotaryDeployment.buildNotaryDeployment(
-            deployedNamespace as String,
-            "cbdc-notary",
-            "roastario/notary-three:5",
-            cbdcNetworkServices.getNmsService()
+            "cbdc-nms"
     )
 
     // Node deployment
@@ -160,7 +139,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
         if ((node.get("networks") as List).contains("cbdc")) {
             println "Configuring ${node.toString()} for deployment."
 
-            def currentNode = kdeployment.buildNodeStatefulSet.call(
+            def currentNode = kdeployment.buildNodeDeployment.call(
                     ledgerRegCred,
                     deployedNamespace as String,
                     cbdcNetworkServices.nmsService.metadata.name,
@@ -174,7 +153,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
             // add an ingress rule for routing to service
             ingressRules.add(
                     new IngressRule(
-                            hostPrefix + currentNode.getNodeStatefulSet().metadata.name + ingressHostSuffix,
+                            hostPrefix + currentNode.getNodeDeployment().metadata.name + ingressHostSuffix,
                             10201,
                             currentNode.nodeService
                     )
@@ -188,7 +167,7 @@ task buildCbdcNetwork(type: DeploymentTask, dependsOn: ['buildNamespaceAndCreds'
             ingressRules
     )
 
-    deployments = [cbdcNetworkServices, cbdcIngress, cbdcNotaryDeployment, *cbdcNodeDeployments]
+    deployments = [cbdcNetworkServices, cbdcIngress, *cbdcNodeDeployments]
     fileName = "cbdcNetworkDeployment"
 }
 

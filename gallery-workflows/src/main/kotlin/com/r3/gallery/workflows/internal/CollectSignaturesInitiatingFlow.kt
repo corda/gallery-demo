@@ -21,7 +21,7 @@ internal class CollectSignaturesInitiatingFlow(
 }
 
 @InitiatedBy(CollectSignaturesInitiatingFlow::class)
-internal class CollectSignaturesResponder(private val session: FlowSession) : FlowLogic<SignedTransaction>() {
+internal class CollectSignaturesInitiatingFlowHandler(private val session: FlowSession) : FlowLogic<SignedTransaction>() {
 
     @Suspendable
     override fun call(): SignedTransaction {
