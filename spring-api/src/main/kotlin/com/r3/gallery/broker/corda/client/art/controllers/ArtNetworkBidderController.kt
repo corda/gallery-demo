@@ -7,11 +7,13 @@ import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkBidderClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.BidService
+import com.r3.gallery.utils.AuctionCurrency
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import kotlin.math.pow
 
 /**
  * REST endpoints for Bidder parties on Auction Network
@@ -43,7 +45,10 @@ class ArtNetworkBidderController(private val bidderClient: ArtNetworkBidderClien
     ) : ResponseEntity<Unit> {
         logger.info("Request by ${bidProposal.bidderParty} to bid on ${bidProposal.artworkId} in amount of ${bidProposal.amount} ${bidProposal.currency}")
 
-        bidService.placeBid(bidProposal.bidderParty, bidProposal.artworkId, bidProposal.amount.toLong(), bidProposal.currency)
+        // convert representation
+        val bidAmount = bidProposal.amount.toDouble()
+        val bidAmountLong = (bidAmount*10.0.pow(AuctionCurrency.getInstance(bidProposal.currency).fractionDigits)).toLong()
+        bidService.placeBid(bidProposal.bidderParty, bidProposal.artworkId, bidAmountLong, bidProposal.currency)
 
         return asResponse(Unit)
     }
