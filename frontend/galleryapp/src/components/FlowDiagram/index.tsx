@@ -34,7 +34,6 @@ function FlowDiagram({ selectedFlow, open, onClose }: Props) {
   //@ts-ignore .at() method doesnt seem to be supported in Typescript
   const stageName = selectedFlow.associatedStage.split(".").at(-1);
 
-  console.log(templates[stageName]);
   const template = templates[stageName] ? templates[stageName](selectedFlow) : [];
   return (
     <Modal

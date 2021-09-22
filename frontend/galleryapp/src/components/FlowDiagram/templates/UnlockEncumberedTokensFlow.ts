@@ -9,23 +9,6 @@ const labelStyle = {
 
 const template = (data: FlowData) => [
   {
-    id: "f4_1",
-    type: "flow",
-    data: {
-      title: "NFT State",
-      networkType: "nftLedger",
-      properties: data.states[0] ? data.states[0].properties : {},
-      participants: data.states[0] ? data.states[0].participants : [],
-      handles: [
-        {
-          type: "source",
-          position: "right",
-        },
-      ],
-    },
-    position: { x: 0, y: 25 },
-  },
-  {
     id: "f4_2",
     type: "block",
     data: {
@@ -54,7 +37,7 @@ const template = (data: FlowData) => [
         },
       ],
     },
-    position: { x: 450, y: 99 },
+    position: { x: 450, y: 92 },
   },
   {
     id: "f4_4",
@@ -86,6 +69,23 @@ const template = (data: FlowData) => [
       ],
     },
     position: { x: 800, y: 25 },
+  },
+  {
+    id: "f4_1",
+    type: "flow",
+    data: {
+      title: "NFT State",
+      networkType: "nftLedger",
+      properties: data.states[0] ? data.states[0].properties : {},
+      participants: data.states[0] ? data.states[0].participants : [],
+      handles: [
+        {
+          type: "source",
+          position: "right",
+        },
+      ],
+    },
+    position: { x: 0, y: 25 },
   },
 
   { id: "f4_e1-3", source: "f4_1", target: "f4_3", animated: false, arrowHeadType: "arrow" },

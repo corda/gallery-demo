@@ -32,7 +32,7 @@ function FlowsDropdown() {
         >
           {completedFlows.map((flow, i) => (
             <Option
-              key={flow!.associatedStage}
+              key={`${flow!.associatedStage}-${flow!.logRecordId}`}
               value={flow!.associatedStage}
               onClick={() => {
                 handleLogClick(flow);
