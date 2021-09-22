@@ -13,20 +13,25 @@ import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.workflows.artwork.DestroyArtwork
 import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.webapp.GetBalanceFlow
+import liquibase.pro.packaged.T
+import net.corda.core.flows.FlowLogic
 import net.corda.core.internal.hash
+import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.task.SimpleAsyncTaskExecutor
-import org.springframework.stereotype.Component
+import org.springframework.scheduling.annotation.Async
+import org.springframework.stereotype.Service
 import java.util.*
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
-@Component
+@Service
 class NetworkToolsService(
     @Autowired private val connectionManager: ConnectionManager,
     @Autowired private val artNetworkGalleryClient: ArtNetworkGalleryClient,
@@ -202,20 +207,29 @@ class NetworkToolsService(
     fun clearDemo() {
         // destroy (off-ledger any outstanding art pieces
         connectionManager.auction.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(DestroyArtwork::class.java).returnValue.get()
+//            it.proxy.startFlowDynamic(DestroyArtwork::class.java).returnValue.get()
+            runDynamicOnConnection(it.proxy, DestroyArtwork::class.java)
         }
 
         // Release locks and burn tokens on GBP network
         connectionManager.gbp.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP").returnValue.get()
+//            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP").returnValue.get()
+            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "GBP")
         }
 
         // Release locks and burn tokens on CBDC network
         connectionManager.cbdc.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC").returnValue.get()
+//            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC").returnValue.get()
+            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "CBDC")
         }
 
         // clear logs from service
         if (logService.isInitialized) logService.clearLogs()
+    }
+
+    @Async("asyncExecutor")
+    fun <T: FlowLogic<*>> runDynamicOnConnection(proxy: CordaRPCOps, clazz: Class<T>, vararg args: Any): CompletableFuture<*> {
+        val result = proxy.startFlowDynamic(clazz, args).returnValue
+        return result.toCompletableFuture()
     }
 }

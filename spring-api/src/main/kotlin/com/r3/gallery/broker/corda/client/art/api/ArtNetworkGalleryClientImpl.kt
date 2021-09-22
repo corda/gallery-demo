@@ -18,7 +18,10 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import org.springframework.web.context.request.async.DeferredResult
+import java.time.Duration
 import java.time.Instant
 import javax.annotation.PostConstruct
 
@@ -32,7 +35,6 @@ class ArtNetworkGalleryClientImpl(
 
     private lateinit var artNetworkGalleryCS: ConnectionService
 
-    // init client and set associated network
     @PostConstruct
     private fun postConstruct() {
         artNetworkGalleryCS = connectionManager.auction
@@ -52,9 +54,10 @@ class ArtNetworkGalleryClientImpl(
      * @param url of the asset/img representing the artwork
      * @return [ArtworkOwnership]
      */
-    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, expiry: Instant?, description: String, url: String): ArtworkOwnership {
+    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, expiry: Int, description: String, url: String): ArtworkOwnership {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
-        val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId, expiry, description, url)
+        val expInstant = Instant.now().plus(Duration.ofDays( 3))
+        val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId, expInstant, description, url)
         return ArtworkOwnership(
             state.linearId.id,
             state.artworkId,
@@ -87,6 +90,10 @@ class ArtNetworkGalleryClientImpl(
 
     /**
      * Get a representation of the ownership of the artwork with id [artworkId] by the gallery [galleryParty]
+     *
+     * @param galleryParty to search for ownership on
+     * @param artworkId identifying the target art
+     * @return [ArtworkOwnership]
      */
     override fun getOwnership(galleryParty: ArtworkParty, artworkId: ArtworkId): ArtworkOwnership {
         logger.info("Fetching ownership record for $galleryParty with artworkId: $artworkId")
@@ -100,6 +107,7 @@ class ArtNetworkGalleryClientImpl(
      * @return [List][ArtworkState]
      */
     override fun getAllArtwork(): List<ArtworkState> {
+        logger.info("Retrieving all artwork on Auction Network")
         return artNetworkGalleryCS.allConnections()!!.flatMap {
             it.proxy.startFlow(::FindArtworksFlow).returnValue.get()
         }

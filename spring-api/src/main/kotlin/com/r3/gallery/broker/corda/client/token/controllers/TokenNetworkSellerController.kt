@@ -25,7 +25,7 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     }
 
     /**
-     * TODO: this is a testing endpoint, the claim will be an intermediary process of the BidService/acceptBid hook.
+     * TODO: Testing endpoint, the claim will be an intermediary process of the BidService/acceptBid hook.
      * REST endpoint for seller to claim tokens after finalising a draft transfer of artwork which satisfies the encumbrance
      * lock of a bid.
      *
@@ -46,7 +46,7 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     }
 
     /**
-     * TODO: this is a testing endpoint, the claim will be an intermediary process of the BidService/acceptBid hook.
+     * TODO: Testing endpoint, the claim will be an intermediary process of the BidService/acceptBid hook.
      * REST endpoint to release tokens which are pending POA/encumbered in the case that another bid was accepted, or
      * that the seller no longer wishes to continue the auction. In this case these tokens will be reverted/released
      * to original bidders.

@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.context.request.async.DeferredResult
+import java.util.concurrent.ForkJoinPool
 
 /**
  * REST endpoints for Buyers on a consideration (GBP or CBDC) network.
@@ -27,7 +29,7 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     /**
      * REST endpoint to Issue tokens on a consideration network
      *
-     * TODO - NOTE: not currently supported in UI. This endpoint is for future use.
+     * TODO: Not currently supported in UI. This endpoint is for future use.
      *
      * @param buyerParty to issue the tokens
      * @param amount of tokens
@@ -38,10 +40,16 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("amount") amount: Int,
         @RequestParam("currency") currency: String
-    ): ResponseEntity<Unit> {
+    ): DeferredResult<ResponseEntity<*>> {
         logger.info("Request by $buyerParty to issue $amount $currency to self")
-        buyerClient.issueTokens(buyerParty, amount.toLong(), currency)
-        return asResponse(Unit)
+        val output = DeferredResult<ResponseEntity<*>>()
+
+        ForkJoinPool.commonPool().submit {
+            buyerClient.issueTokens(buyerParty, amount.toLong(), currency)
+            output.setResult(asResponse(Unit))
+        }
+
+        return output
     }
 
     /**
@@ -69,7 +77,7 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     }
 
     /**
-     * TODO: Note, this manual release is not currently implemented in the UI. The scenario is if the seller accepts no winner.
+     * TODO: This manual release is not currently implemented in the UI. The scenario is if the seller accepts no winner.
      * REST endpoint for releasing tokens at buyer request after an auction expiry where the seller did not respond
      * with a proof-of-action.
      *
