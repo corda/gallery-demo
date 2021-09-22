@@ -8,6 +8,8 @@
   header {
     border-bottom: solid 1px var(--color-dark-gray-400);
     display: flex;
+    justify-content: space-between;
+    align-items: baseline;
   }
 
   h6 {
@@ -15,6 +17,26 @@
     padding-bottom: 10px;
     text-transform: uppercase;
   }
+
+  &.expanded {
+    position: fixed;
+    z-index: 10;
+    bottom: 0;
+    width: 100vw;
+    left: 0;
+    height: 90vh;
+  }
+}
+
+.overlay {
+  content: "";
+  position: fixed;
+  background: rgba(29, 35, 67, 0.36);
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  left: 0;
+  z-index: 9;
 }
 
 .log {
@@ -27,4 +49,13 @@
   font-size: 12px;
   border-radius: 0 0 4px 6px;
   padding: 10px;
+
+  &.expanded {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1);
+    height: 70vh;
+    width: 70vw;
+  }
 }

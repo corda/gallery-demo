@@ -131,7 +131,7 @@ const template = (data: FlowData) => [
   },
 
   { id: "f2_e1-3", source: "f2_1", target: "f2_3", animated: false, arrowHeadType: "arrow" },
-  { id: "f2_e3-8", source: "f2_3", target: "f2_7", animated: false, arrowHeadType: "arrow" },
+  { id: "f2_e3-7", source: "f2_3", target: "f2_7", animated: false, arrowHeadType: "arrow" },
   { id: "f2_e3-8", source: "f2_3", target: "f2_8", animated: false, arrowHeadType: "arrow" },
   { id: "f2_e4-9", source: "f2_4", target: "f2_9", animated: false, arrowHeadType: "arrow" },
 ];
