@@ -40,7 +40,11 @@ function GalleryShop({ lots, x500 }: Props) {
     <section className={styles.main}>
       <h3>Gallery</h3>
       <ul className={styles.lotList}>
-        {lots.map((lot) => (
+        {lots
+            .sort((a, b) => {
+                return a.description < b.description ? -1 : 1;
+            })
+            .map((lot) => (
           <ShopItem
             key={lot.artworkId}
             lot={lot}
