@@ -4,18 +4,22 @@ import { Dropdown, Option } from "@r3/r3-tooling-design-system";
 import React, { useContext, useState } from "react";
 import FlowDiagram from "@Components/FlowDiagram";
 import { LogsContext } from "@Context/logs";
-import { FlowData } from "@Models";
+import { FlowData, Log } from "@Models";
 import config from "@Config";
 
 function FlowsDropdown() {
   const [toggledModal, setToggleModal] = useState(false);
   const [selectedFlow, setSelectedFlow] = useState<FlowData | null>(null);
   const { logs } = useContext(LogsContext);
+  const tmpFlowsObj: { [key: string]: Log } = {};
 
-  const completedFlows = logs.filter(
-    (log) => !!log.completed && !log.completed!.associatedStage.includes("Handler")
-  );
-
+  logs.forEach((log) => {
+    if (!log.completed || log.completed!.associatedStage.includes("Handler")) {
+      return;
+    }
+    tmpFlowsObj[`${log.x500}-${log.timestamp}-${log.network}`] = log;
+  });
+  const completedFlows = Object.entries(tmpFlowsObj).map((pair) => pair[1]);
   const handleLogClick = (selectedFlow: any) => {
     setSelectedFlow(selectedFlow);
     setToggleModal(true);
@@ -37,7 +41,6 @@ function FlowsDropdown() {
             .sort((a, b) => {
               const timeA = a.timestamp.split(" ")[3];
               const timeB = b.timestamp.split(" ")[3];
-              console.log(timeA);
               if (timeA === timeB) return 0;
               return timeA < timeB ? -1 : 1;
             })
@@ -55,14 +58,14 @@ function FlowsDropdown() {
                   .at(-1)
                   .split(/(?=[A-Z])/)
                   .join(" ")}
-                <div
+                <span
                   className={`${styles.label}`}
                   style={{
                     backgroundColor: config.networks[flow.network]?.color,
                   }}
                 >
                   {flow.x500}
-                </div>
+                </span>
                 <span className={styles.timeStamp}>{flow.timestamp.split(" ")[3]}</span>
               </Option>
             ))}

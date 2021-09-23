@@ -38,7 +38,7 @@ function Catalogue({ lots }: Props) {
         </tbody>
       </table>
       <div className={styles.log}>
-        <ActivityLog title="Gallery Item Audit Log" inline={true} logs={logs} />
+        <ActivityLog title="Auction Audit Log" inline={true} logs={logs} />
       </div>
     </section>
   );
