@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.lang.IllegalArgumentException
+import kotlin.concurrent.thread
 
 /**
  * Implementation of [TokenNetworkBuyerClient]
@@ -45,7 +46,9 @@ class TokenNetworkBuyerClientImpl(
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val buyerParty = connService.wellKnownPartyFromName(buyer, buyer)
-        connService.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
+        thread {
+            connService.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
+        }
     }
 
     /**
@@ -79,7 +82,7 @@ class TokenNetworkBuyerClientImpl(
             sellerParty,
             verifiedDraftTx,
             encumberedAmount
-        )
+        ).returnValue.get()
         return tx.id.toString()
     }
 
@@ -100,7 +103,7 @@ class TokenNetworkBuyerClientImpl(
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val encumberedTxHash = SecureHash.parse(encumberedTokens)
-        val stx = connService.startFlow(buyer, RevertEncumberedTokensFlow::class.java, encumberedTxHash)
+        val stx = connService.startFlow(buyer, RevertEncumberedTokensFlow::class.java, encumberedTxHash).returnValue.get()
         return stx.id.toString()
     }
 

@@ -28,6 +28,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
@@ -130,7 +131,7 @@ class NetworkToolsService(
             if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
             val result = logService.getProgressUpdates(index ?: 0)
             this.logResult = CopyOnWriteArrayList(result.second)
-            initialLatch?.let { initialLatch.countDown() }
+            initialLatch?.countDown()
         }
 
         initialLatch?.let { initialLatch.await() }
@@ -151,26 +152,23 @@ class NetworkToolsService(
                 val network = it.associatedNetwork
                 it.allConnections()!!.map { rpc ->
                     val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
-                    val currentBalance = rpc.proxy.startFlowDynamic(
-                            GetBalanceFlow::class.java,
-                            network.name
-                    ).returnValue.getOrThrow()
-                    Pair(x500, currentBalance)
+                    runDynamicOnConnection(proxy = rpc.proxy, GetBalanceFlow::class.java, network.name)
+                            .thenApply { currBalance -> Pair(x500, currBalance as NetworkBalancesResponse.Balance) }
                 }
-            }.flatten()
-            val balanceList = allBalances.groupBy { it.first }
+            }.flatten().map { it.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS) }
+            val bal = allBalances.groupBy { it.first }
                     .entries.map {
                         NetworkBalancesResponse(
                                 x500 = it.key.toString(),
                                 partyBalances = it.value.map { balance -> balance.second }
                         )
                     }
-            this.balanceResult = CopyOnWriteArrayList(balanceList)
-            initialLatch?.let { initialLatch.countDown() }
+            this.balanceResult = CopyOnWriteArrayList(bal)
+            initialLatch?.countDown()
         }
-        initialLatch?.let { initialLatch.await() }
 
-        return this.balanceResult!!
+        initialLatch?.let { initialLatch.await() }
+        return balanceResult!!
     }
 
     /**
@@ -182,7 +180,6 @@ class NetworkToolsService(
         listOf(
             Pair("A Thousand Plateaus", "A_Thousand_Plateaus.png"),
             Pair("Cities of the Red Night", "Cities_of_the_Red_Night.png"),
-            Pair("The Funeral of Being", "The_Funeral_of_Being.png"),
             Pair("All Watched Over By Machines", "All_Watched_Over_By_Machines_Of_Loving_Grace.png"),
             Pair("The Eerie Bliss", "The_Eerie_Bliss_and_Torture_of_Solitude.png"),
             Pair("The Masque of the Red Death", "The_Masque_of_the_Red_Death.png")
@@ -199,6 +196,8 @@ class NetworkToolsService(
         tokenNetworkBuyerClient.issueTokens(BOB, 500000, "GBP")
         // CBDC issued to Charlie
         tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC")
+
+        if (!logService.isInitialized) logService.initSubscriptions()
     }
 
     /**
@@ -207,20 +206,17 @@ class NetworkToolsService(
     fun clearDemo() {
         // destroy (off-ledger any outstanding art pieces
         connectionManager.auction.allConnections()!!.forEach {
-//            it.proxy.startFlowDynamic(DestroyArtwork::class.java).returnValue.get()
-            runDynamicOnConnection(it.proxy, DestroyArtwork::class.java)
+            runDynamicOnConnection(it.proxy, DestroyArtwork::class.java).getOrThrow()
         }
 
         // Release locks and burn tokens on GBP network
         connectionManager.gbp.allConnections()!!.forEach {
-//            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP").returnValue.get()
-            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "GBP")
+            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "GBP").getOrThrow()
         }
 
         // Release locks and burn tokens on CBDC network
         connectionManager.cbdc.allConnections()!!.forEach {
-//            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC").returnValue.get()
-            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "CBDC")
+            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "CBDC").getOrThrow()
         }
 
         // clear logs from service

@@ -3,26 +3,25 @@ package com.r3.gallery.broker.corda.client.art.api
 import com.r3.gallery.api.*
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
+import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership
 import com.r3.gallery.workflows.artwork.FindArtworkFlow
 import com.r3.gallery.workflows.artwork.FindArtworksFlow
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
-import net.corda.core.internal.toX500Name
+import net.corda.core.concurrent.CordaFuture
 import net.corda.core.messaging.startFlow
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
 import net.corda.core.serialization.serialize
-import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
-import org.springframework.web.context.request.async.DeferredResult
 import java.time.Duration
 import java.time.Instant
+import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 
 /**
@@ -54,15 +53,12 @@ class ArtNetworkGalleryClientImpl(
      * @param url of the asset/img representing the artwork
      * @return [ArtworkOwnership]
      */
-    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, expiry: Int, description: String, url: String): ArtworkOwnership {
+    override fun issueArtwork(galleryParty: ArtworkParty, artworkId: ArtworkId, expiry: Int, description: String, url: String): CordaFuture<ArtworkState> {
         logger.info("Starting IssueArtworkFlow via $galleryParty for $artworkId")
         val expInstant = Instant.now().plus(Duration.ofDays( 3))
         val state = artNetworkGalleryCS.startFlow(galleryParty, IssueArtworkFlow::class.java, artworkId, expInstant, description, url)
-        return ArtworkOwnership(
-            state.linearId.id,
-            state.artworkId,
-            state.owner.nameOrNull()!!.toX500Name().toString()
-        )
+
+        return state.returnValue
     }
 
     /**
@@ -80,12 +76,15 @@ class ArtNetworkGalleryClientImpl(
         logger.info("Starting SignAndFinalizeTransferOfOwnership flow via $galleryParty")
         val unsignedTx: WireTransaction =
             SerializedBytes<WireTransaction>(unsignedArtworkTransferTx.transactionBytes).deserialize()
-        val signedTx: SignedTransaction =
+        val proofOfTransfer: ProofOfTransferOfOwnership? =
             artNetworkGalleryCS.startFlow(galleryParty, SignAndFinalizeTransferOfOwnership::class.java, unsignedTx)
-        return ProofOfTransferOfOwnership(
-            transactionHash = signedTx.id.toString(),
-            notarySignature = TransactionSignature(signedTx.getNotaryTransactionSignature().serialize().bytes)
-        )
+                    .returnValue.toCompletableFuture().thenApply {
+                        ProofOfTransferOfOwnership(
+                                transactionHash = it.id.toString(),
+                                notarySignature = TransactionSignature(it.getNotaryTransactionSignature().serialize().bytes)
+                        )
+                    }.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS)
+        return proofOfTransfer!!
     }
 
     /**
@@ -121,6 +120,8 @@ class ArtNetworkGalleryClientImpl(
      */
     internal fun ArtworkParty.artworkIdToState(artworkId: ArtworkId): ArtworkState {
         logger.info("Fetching ArtworkState for artworkId $artworkId")
-        return artNetworkGalleryCS.startFlow(this, FindArtworkFlow::class.java, artworkId)
+        return artNetworkGalleryCS.startFlow(this, FindArtworkFlow::class.java, artworkId).returnValue.get(
+                ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS
+        )
     }
 }

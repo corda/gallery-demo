@@ -2,6 +2,7 @@ package com.r3.gallery.broker.corda.client.art.api
 
 import com.r3.gallery.api.*
 import com.r3.gallery.states.ArtworkState
+import net.corda.core.concurrent.CordaFuture
 import java.time.Instant
 
 /**
@@ -25,7 +26,7 @@ interface ArtNetworkGalleryClient {
         expiry: Int = 3,
         description: String = "",
         url: String = ""
-    ): ArtworkOwnership
+    ): CordaFuture<ArtworkState>
 
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,

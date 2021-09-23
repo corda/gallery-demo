@@ -22,7 +22,7 @@ export const TokensProvider: FC = ({ children }) => {
   useInterval(async () => {
     const bs = await getBalances();
     if (bs && !isEqual(bs, balances)) setBalances(bs);
-  }, 2000);
+  }, 3000);
 
   function getTokensByUser(user: Participant): Token[] {
     if (!user.networkIds[0]) return [];

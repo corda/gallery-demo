@@ -1,11 +1,15 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
-import com.r3.gallery.api.*
+import com.r3.gallery.api.AcceptedBid
+import com.r3.gallery.api.ArtworkOwnership
+import com.r3.gallery.api.ArtworkParty
+import com.r3.gallery.api.AvailableArtwork
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.deferredResult
 import com.r3.gallery.broker.corda.client.toUUID
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.BidService
+import net.corda.core.internal.toX500Name
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -57,7 +61,13 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
                     expiry,
                     description,
                     url
-            )
+            ).toCompletableFuture().thenApply {
+                ArtworkOwnership(
+                        it.linearId.id,
+                        it.artworkId,
+                        it.owner.nameOrNull()!!.toX500Name().toString()
+                )
+            }.get()
         }
     }
 

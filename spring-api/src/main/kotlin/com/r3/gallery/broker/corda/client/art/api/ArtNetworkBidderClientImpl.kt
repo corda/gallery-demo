@@ -5,12 +5,14 @@ import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
+import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.serialization.serialize
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 
 /**
@@ -55,14 +57,14 @@ class ArtNetworkBidderClientImpl(
             RequestDraftTransferOfOwnershipFlow::class.java,
             galleryParty,
             UniqueIdentifier.fromString(artworkId.toString())
-        )
-
-        with(validatedDraftTx) {
-            return ValidatedUnsignedArtworkTransferTx(
-                second.tx.serialize().bytes,
-                second.controllingNotary.serialize().bytes,
-                second.notarySignatureMetadata.serialize().bytes
+        ).returnValue.toCompletableFuture().thenApply {
+            ValidatedUnsignedArtworkTransferTx(
+                    it.second.tx.serialize().bytes,
+                    it.second.controllingNotary.serialize().bytes,
+                    it.second.notarySignatureMetadata.serialize().bytes
             )
         }
+
+        return  validatedDraftTx.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS)
     }
 }
