@@ -22,7 +22,7 @@ export const LogsProvider: FC = ({ children }) => {
   useInterval(async () => {
     const ls = await getLogs();
     if (ls && !isEqual(ls, logs)) setLogs(ls);
-  }, 2000);
+  }, 3000);
 
   function getFilteredLogs(x500: string | null, network: string): Log[] {
     return logs.filter((log) => {

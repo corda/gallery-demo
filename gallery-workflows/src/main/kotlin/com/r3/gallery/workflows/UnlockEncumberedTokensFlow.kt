@@ -59,12 +59,11 @@ class UnlockEncumberedTokensFlow(
             party == ourIdentity && it.state.encumbrance != null
         }
 
-        val compositeKey = tokensStates.first().state.data.holder.owningKey
         val outputStates = tokensStates.map { it.state.data.withNewHolder(ourIdentity) }
 
         progressTracker.currentStep = GENERATING_TRANSACTION
         val txBuilder = TransactionBuilder(notary = encumberedTx.notary!!)
-            .addMoveTokens(tokensStates, outputStates, listOf(compositeKey))
+            .addMoveTokens(tokensStates, outputStates, listOf())
             .addInputState(lockStates)
             .addCommand(Command(LockContract.Release(notarySignature), ourIdentity.owningKey))
 

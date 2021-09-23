@@ -4,6 +4,7 @@ import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.TransactionHash
 import com.r3.gallery.api.TransactionSignature
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
+import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.workflows.RevertEncumberedTokensFlow
 import com.r3.gallery.workflows.UnlockEncumberedTokensFlow
 import net.corda.core.crypto.SecureHash
@@ -12,6 +13,7 @@ import net.corda.core.serialization.deserialize
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 /**
  * Implementation of [TokenNetworkSellerClient]
@@ -52,7 +54,7 @@ class TokenNetworkSellerClientImpl(
             UnlockEncumberedTokensFlow::class.java,
             encumberedTokensTxId,
             requiredSignature
-        )
+        ).returnValue.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS)
         return signedTx.id.toString()
     }
 

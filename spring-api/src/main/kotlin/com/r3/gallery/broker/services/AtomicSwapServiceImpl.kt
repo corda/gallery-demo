@@ -15,11 +15,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class AtomicSwapServiceImpl(
-    @Autowired val galleryClient: ArtNetworkGalleryClient,
-    @Autowired val bidderClient: ArtNetworkBidderClient,
-    @Autowired val buyerClient: TokenNetworkBuyerClient,
-    @Autowired val sellerClient: TokenNetworkSellerClient,
-    @Autowired val identityRegistry: IdentityRegistry
+        @Autowired val galleryClient: ArtNetworkGalleryClient,
+        @Autowired val bidderClient: ArtNetworkBidderClient,
+        @Autowired val buyerClient: TokenNetworkBuyerClient,
+        @Autowired val sellerClient: TokenNetworkSellerClient,
+        @Autowired val identityRegistry: IdentityRegistry
 ) : AtomicSwapService {
 
     private val galleryParty get() = identityRegistry.getArtworkParty(GALLERY)

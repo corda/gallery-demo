@@ -3,13 +3,14 @@ package com.r3.gallery.broker.corda.client.token.controllers
 import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.TransactionHash
 import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
-import com.r3.gallery.broker.corda.client.art.controllers.asResponse
+import com.r3.gallery.broker.corda.client.deferredResult
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.context.request.async.DeferredResult
 
 /**
  * REST endpoints for Buyers on a consideration (GBP or CBDC) network.
@@ -27,7 +28,7 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     /**
      * REST endpoint to Issue tokens on a consideration network
      *
-     * TODO - NOTE: not currently supported in UI. This endpoint is for future use.
+     * TODO: Not currently supported in UI. This endpoint is for future use.
      *
      * @param buyerParty to issue the tokens
      * @param amount of tokens
@@ -38,10 +39,12 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("amount") amount: Int,
         @RequestParam("currency") currency: String
-    ): ResponseEntity<Unit> {
+    ): DeferredResult<ResponseEntity<Unit>> {
         logger.info("Request by $buyerParty to issue $amount $currency to self")
-        buyerClient.issueTokens(buyerParty, amount.toLong(), currency)
-        return asResponse(Unit)
+        return deferredResult {
+            buyerClient.issueTokens(buyerParty, amount.toLong(), currency)
+            Unit
+        }
     }
 
     /**
@@ -61,15 +64,15 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("amount") amount: Long,
         @RequestParam("currency") currency: String,
         @RequestBody validatedUnsignedArtworkTransferTx: ValidatedUnsignedArtworkTransferTx
-    ): ResponseEntity<TransactionHash> {
+    ): DeferredResult<ResponseEntity<TransactionHash>> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
-        val signedTokenTransferTxId =
+        return deferredResult {
             buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, currency, validatedUnsignedArtworkTransferTx)
-        return asResponse(signedTokenTransferTxId)
+        }
     }
 
     /**
-     * TODO: Note, this manual release is not currently implemented in the UI. The scenario is if the seller accepts no winner.
+     * TODO: This manual release is not currently implemented in the UI. The scenario is if the seller accepts no winner.
      * REST endpoint for releasing tokens at buyer request after an auction expiry where the seller did not respond
      * with a proof-of-action.
      *
@@ -82,9 +85,10 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
         @RequestParam("buyerParty") buyerParty: TokenParty,
         @RequestParam("currency") currency: String,
         @RequestParam("encumberedTokensTxHash") encumberedTokensTxHash: String,
-    ): ResponseEntity<TransactionHash> {
+    ): DeferredResult<ResponseEntity<TransactionHash>> {
         logger.info("Request by $buyerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
-        val releasedTokensTxId = buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash)
-        return asResponse(releasedTokensTxId)
+        return deferredResult {
+            buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash)
+        }
     }
 }

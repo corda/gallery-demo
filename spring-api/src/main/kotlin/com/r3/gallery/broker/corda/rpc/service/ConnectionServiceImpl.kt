@@ -8,6 +8,7 @@ import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
+import net.corda.core.messaging.FlowHandle
 import net.corda.core.node.NodeInfo
 import net.corda.core.utilities.NetworkHostAndPort
 import org.slf4j.LoggerFactory
@@ -15,7 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import javax.annotation.PreDestroy
 
 /**
@@ -30,8 +32,10 @@ open class ConnectionServiceImpl(
         private val logger = LoggerFactory.getLogger(ConnectionServiceImpl::class.java)
 
         private const val MINIMUM_SERVER_PROTOCOL_VERSION = 4
-        const val TIMEOUT = 90L
+        const val TIMEOUT = 180L
     }
+
+    private val executor: Executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors())
 
     /**
      * Clients mapped from configurations
@@ -184,13 +188,13 @@ open class ConnectionServiceImpl(
     /**
      * Starts a flow via rpc against a target
      */
-    override fun <T> startFlow(networkParty: String, logicType: Class<out FlowLogic<T>>, vararg args: Any?): T {
+    override fun <T> startFlow(networkParty: String, logicType: Class<out FlowLogic<T>>, vararg args: Any?): FlowHandle<T> {
         return execute(getConnectionTarget(networkParty)) { connections ->
             connections.proxy.startFlowDynamic(
                 logicType,
                 *args
             )
-        }.returnValue.get(TIMEOUT, TimeUnit.SECONDS)
+        }
     }
 
     /**
