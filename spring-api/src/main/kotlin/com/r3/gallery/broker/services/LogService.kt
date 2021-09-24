@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import rx.Subscription
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -96,6 +97,8 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
 
                             smUpdateInfo.progressTrackerStepAndUpdates?.let { feed ->
                                 thread {
+                                    val logRecordId = UUID.randomUUID().toString()
+                                    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(Date.from(Instant.now()))
                                     progressSubscriptions[smUpdateInfo.id] = (feed.updates.subscribe { msg ->
                                         // ignore structural step change updates and add context to Starting and Done messages.
                                         if (!msg.contains("Structural step change")) {
@@ -105,8 +108,8 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                                     associatedFlow = flowForUpdate,
                                                     network = currentNetwork.name,
                                                     x500 = firingX500.toString(),
-                                                    logRecordId = UUID.randomUUID().toString(),
-                                                    timestamp = Date.from(Instant.now()).toString(),
+                                                    logRecordId = logRecordId,
+                                                    timestamp = sdf,
                                                     message = update_
                                             )
                                             // Avoid duplicates - see LogUpdateEntry.equals
@@ -156,13 +159,14 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                             flowHandle.returnValue.toCompletableFuture().also { cfState ->
                                 val txStates = cfState.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS)
                                 val logRecordId = UUID.randomUUID().toString()
+                                val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX").format(Date.from(Instant.now()))
                                 progressUpdates.add(
                                         LogUpdateEntry(
                                                 associatedFlow = associatedFlow,
                                                 network = currentNetwork.name,
                                                 x500 = firingX500.toString(),
                                                 logRecordId = logRecordId,
-                                                timestamp = Date.from(Instant.now()).toString(),
+                                                timestamp = sdf,
                                                 message = "",
                                                 completed = LogUpdateEntry.FlowCompletionLog(
                                                         associatedStage = associatedFlow,
