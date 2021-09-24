@@ -88,7 +88,7 @@ class NetworkToolsService(
     fun participants(networks: List<String>?) : List<Participant> {
         logger.info("Attempting to fetch participants from all networks: ${CordaRPCNetwork.values()}")
         val allNetworkIds = networkClients.runPerConnectionService {
-            val currentNetwork = it.associatedNetwork.netName
+            val currentNetwork = it.associatedNetwork.name
             logger.info("Polling participants from $currentNetwork")
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
                 .map { nodeInfo ->

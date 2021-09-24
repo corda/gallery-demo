@@ -230,8 +230,8 @@ data class TokenReleaseData(
     val notarySignature: TransactionSignature
 )
 
-enum class CordaRPCNetwork(val netName: String) {
-    AUCTION("auction"),
-    GBP("gbp"),
-    CBDC("cbdc")
+enum class CordaRPCNetwork {
+    AUCTION,
+    GBP,
+    CBDC
 }
