@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 /**
+ * TODO: Refresh this class
  * MOCK REST endpoints for Gallery parties on Auction Network
  *
  * See application.properties, mock.controller.enabled property for setting this controller to active.

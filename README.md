@@ -1,3 +1,6 @@
+[//]: # (TODO: Update with diagrams and latest arch description and module mapping)
+[//]: # (TODO: Git squash redundant commit msgs)
+
 # gallery-demo
 
 A demo of swaps in an auction scenario with three distinct Corda Networks

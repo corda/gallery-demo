@@ -3,7 +3,7 @@ package com.r3.gallery.broker.services
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
-import com.r3.gallery.workflows.webapp.StatesFromTXFlow
+import com.r3.gallery.workflows.webapp.ContractStatesFromTxFlow
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.messaging.StateMachineUpdate
@@ -154,8 +154,8 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                                     Pair(rpc.partyFromKey(pKey)!!.name, hasSigned)
                                 }
                             }
-                            val flowHandle = if (wtx != null) rpc.startFlowDynamic(StatesFromTXFlow::class.java, wtx)
-                                    else rpc.startFlowDynamic(StatesFromTXFlow::class.java, stx)
+                            val flowHandle = if (wtx != null) rpc.startFlowDynamic(ContractStatesFromTxFlow::class.java, wtx)
+                                    else rpc.startFlowDynamic(ContractStatesFromTxFlow::class.java, stx)
                             flowHandle.returnValue.toCompletableFuture().also { cfState ->
                                 val txStates = cfState.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS)
                                 val logRecordId = UUID.randomUUID().toString()

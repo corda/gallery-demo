@@ -10,7 +10,7 @@ import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 
 @StartableByRPC
-class StatesFromTXFlow(private val namedByHash: NamedByHash): FlowLogic<List<ContractState>>() {
+class ContractStatesFromTxFlow(private val namedByHash: NamedByHash): FlowLogic<List<ContractState>>() {
 
     @Suspendable
     override fun call(): List<ContractState> {

@@ -12,8 +12,7 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.workflows.artwork.DestroyArtwork
 import com.r3.gallery.workflows.token.BurnTokens
-import com.r3.gallery.workflows.webapp.GetBalanceFlow
-import liquibase.pro.packaged.T
+import com.r3.gallery.workflows.webapp.GetEncumberedAndAvailableBalanceFlow
 import net.corda.core.flows.FlowLogic
 import net.corda.core.internal.hash
 import net.corda.core.messaging.CordaRPCOps
@@ -152,7 +151,7 @@ class NetworkToolsService(
                 val network = it.associatedNetwork
                 it.allConnections()!!.map { rpc ->
                     val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
-                    runDynamicOnConnection(proxy = rpc.proxy, GetBalanceFlow::class.java, network.name)
+                    runDynamicOnConnection(proxy = rpc.proxy, GetEncumberedAndAvailableBalanceFlow::class.java, network.name)
                             .thenApply { currBalance -> Pair(x500, currBalance as NetworkBalancesResponse.Balance) }
                 }
             }.flatten().map { it.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS) }

@@ -6,6 +6,7 @@ import com.r3.gallery.broker.services.api.Receipt.*
 import com.r3.gallery.states.ArtworkState
 import net.corda.core.identity.Party
 
+// TODO remove this hardcode (identity registry in atomic swap service should
 const val GALLERY = "O=Alice, L=London, C=GB"
 
 interface AtomicSwapService {
