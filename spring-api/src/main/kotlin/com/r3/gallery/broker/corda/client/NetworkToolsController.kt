@@ -10,6 +10,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
+import java.util.concurrent.CompletableFuture
+import java.util.stream.Collectors
 
 /**
  * Controller with aggregate access across API layers
@@ -36,10 +38,10 @@ class NetworkToolsController(
     @GetMapping("/participants")
     fun participants(
         @RequestParam("networks", required = false) networks: List<String>?
-    ): DeferredResult<ResponseEntity<List<Participant>>> {
+    ): CompletableFuture<ResponseEntity<List<Participant>>> {
         logger.info("Request for all participants")
-        return deferredResult {
-            networkToolsService.participants(networks)
+        return CompletableFuture.supplyAsync {
+            asResponse(networkToolsService.participants(networks))
         }
     }
 
@@ -62,10 +64,29 @@ class NetworkToolsController(
      * Get balances across all parties and networks
      */
     @GetMapping("/balance")
-    fun balance(): DeferredResult<ResponseEntity<List<NetworkBalancesResponse>>> {
+    fun balance(): CompletableFuture<ResponseEntity<List<NetworkBalancesResponse>>> {
         logger.info("Request for balance of parties across network")
-        return deferredResult {
-            networkToolsService.getBalance()
+        return CompletableFuture.supplyAsync {
+            val queryResult = networkToolsService.getBalance()
+            asResponse(
+                    queryResult.entries.let {
+                        it.map { x500BalanceMap ->
+                            val completableBalancesFutures = x500BalanceMap.value
+                            val allFutures = CompletableFuture.allOf(*completableBalancesFutures.toTypedArray())
+                            allFutures.let { _ ->
+                                val balances = completableBalancesFutures.stream()
+                                        .map { completableBalancesFuture ->
+                                            completableBalancesFuture.join()
+                                        }.collect(Collectors.toList()).toList()
+
+                                NetworkBalancesResponse(
+                                        x500 = x500BalanceMap.key,
+                                        partyBalances = balances
+                                )
+                            }
+                        }
+                    }
+            )
         }
     }
 

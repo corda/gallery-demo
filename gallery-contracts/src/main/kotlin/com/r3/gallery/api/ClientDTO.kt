@@ -107,7 +107,7 @@ data class Participant(
  */
 @CordaSerializable
 data class NetworkBalancesResponse(
-    val x500: String,
+    val x500: CordaX500Name,
     val partyBalances: List<Balance>
 ) {
     /**

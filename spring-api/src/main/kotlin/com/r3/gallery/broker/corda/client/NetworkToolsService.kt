@@ -13,7 +13,10 @@ import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.workflows.artwork.DestroyArtwork
 import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.webapp.GetEncumberedAndAvailableBalanceFlow
+import liquibase.pro.packaged.ew
+import liquibase.pro.packaged.it
 import net.corda.core.flows.FlowLogic
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.internal.hash
 import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.utilities.getOrThrow
@@ -140,34 +143,18 @@ class NetworkToolsService(
     /**
      * Returns Balances of all parties
      */
-    fun getBalance(): List<NetworkBalancesResponse> {
-        var initialLatch: CountDownLatch? = null
-        if (this.balanceResult == null) {
-            initialLatch = CountDownLatch(1)
-        }
+    fun getBalance(): Map<CordaX500Name, List<CompletableFuture<NetworkBalancesResponse.Balance>>> {
+        val balance  = tokenClients.runPerConnectionService {
+            val network = it.associatedNetwork
+            it.allConnections()!!.map { rpc ->
+                val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
+                val balanceFuture = runDynamicOnConnection(proxy = rpc.proxy, GetEncumberedAndAvailableBalanceFlow::class.java, currency = network.name)
+                        .thenApply { currBalance -> currBalance as NetworkBalancesResponse.Balance }
+                Pair(x500, balanceFuture)
+            }
+        }.flatten()
 
-        taskExecutor.execute {
-            val allBalances = tokenClients.runPerConnectionService {
-                val network = it.associatedNetwork
-                it.allConnections()!!.map { rpc ->
-                    val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
-                    runDynamicOnConnection(proxy = rpc.proxy, GetEncumberedAndAvailableBalanceFlow::class.java, network.name)
-                            .thenApply { currBalance -> Pair(x500, currBalance as NetworkBalancesResponse.Balance) }
-                }
-            }.flatten().map { it.get(ConnectionServiceImpl.TIMEOUT, TimeUnit.SECONDS) }
-            val bal = allBalances.groupBy { it.first }
-                    .entries.map {
-                        NetworkBalancesResponse(
-                                x500 = it.key.toString(),
-                                partyBalances = it.value.map { balance -> balance.second }
-                        )
-                    }
-            this.balanceResult = CopyOnWriteArrayList(bal)
-            initialLatch?.countDown()
-        }
-
-        initialLatch?.let { initialLatch.await() }
-        return balanceResult!!
+        return balance.groupBy { it.first }.mapValues { x500pair -> x500pair.value.map { it.second } }
     }
 
     /**
@@ -222,8 +209,7 @@ class NetworkToolsService(
         if (logService.isInitialized) logService.clearLogs()
     }
 
-    @Async("asyncExecutor")
-    final inline fun <reified T: FlowLogic<*>> runDynamicOnConnection(proxy: CordaRPCOps, clazz: Class<T>, currency: String? = null): CompletableFuture<*> {
+    private inline fun <reified T: FlowLogic<*>> runDynamicOnConnection(proxy: CordaRPCOps, clazz: Class<T>, currency: String? = null): CompletableFuture<*> {
         val flowHandle = if (currency != null) proxy.startFlowDynamic(clazz, currency) else proxy.startFlowDynamic(clazz)
         return flowHandle.returnValue.toCompletableFuture()
     }
