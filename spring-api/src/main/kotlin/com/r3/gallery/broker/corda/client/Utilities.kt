@@ -3,9 +3,9 @@ package com.r3.gallery.broker.corda.client
 import com.r3.gallery.broker.corda.client.exceptions.InvalidArtworkIdException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.context.request.async.DeferredResult
 import java.util.*
-import kotlin.concurrent.thread
+import java.util.concurrent.CompletableFuture
+import java.util.stream.Collectors
 
 /** Simple parser for UUID from string with custom error */
 internal fun String.toUUID() : UUID {
@@ -19,11 +19,15 @@ internal fun String.toUUID() : UUID {
 /** wraps a RESTful response in an entity with OK status */
 internal fun <T> asResponse(obj: T) : ResponseEntity<T> = ResponseEntity.status(HttpStatus.OK).body(obj)
 
-/** creates a Deferred result using kotlin thread and wrapped in ResponseEntity */
-internal fun <T> deferredResult(block: () -> T): DeferredResult<ResponseEntity<T>> {
-    val output = DeferredResult<ResponseEntity<T>>()
-    thread {
-        output.setResult(asResponse(block.invoke()))
-    }
-    return  output
+/** Simultaneously resolves a list of Completable Futures and returns a list of results. */
+fun <T> joinFuturesFromList(futures: List<CompletableFuture<out T>>, returnUnit: Boolean = false): List<T> {
+    return CompletableFuture.allOf(*futures.toTypedArray())
+            .let { _ ->
+                futures.stream()
+                        .map { future ->
+                            // if requesting Unit values, then transform
+                            if (returnUnit) future.thenApply { it.let {  } }
+                            future.join()
+                        }.collect(Collectors.toList()).toList()
+            }
 }

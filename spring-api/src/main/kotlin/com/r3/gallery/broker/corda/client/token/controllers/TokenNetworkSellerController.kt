@@ -3,17 +3,20 @@ package com.r3.gallery.broker.corda.client.token.controllers
 import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.TokenReleaseData
 import com.r3.gallery.api.TransactionHash
-import com.r3.gallery.broker.corda.client.deferredResult
+import com.r3.gallery.broker.corda.client.asResponse
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
+import java.util.concurrent.CompletableFuture
 
 /**
  * REST endpoints for Sellers on a consideration (GBP or CBDC) network.
+ *
+ * These endpoints are for TESTING only and not called by the UI. They can be called directly to control certain stages
+ * of the atomic swap.
  */
 @CrossOrigin
 @RestController
@@ -39,10 +42,10 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
         @RequestParam("sellerParty") sellerParty: TokenParty,
         @RequestParam("currency") currency: String,
         @RequestBody tokenReleaseData: TokenReleaseData
-    ): DeferredResult<ResponseEntity<TransactionHash>> {
+    ): CompletableFuture<ResponseEntity<TransactionHash>> {
         logger.info("Request by $sellerParty to claim tokens from encumbered tx ${tokenReleaseData.encumberedTokens} with signature ${tokenReleaseData.notarySignature}")
-        return deferredResult {
-            sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature)
+        return CompletableFuture.supplyAsync {
+            asResponse(sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature))
         }
     }
 
@@ -61,10 +64,10 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
         @RequestParam("sellerParty") sellerParty: TokenParty,
         @RequestParam("currency") currency: String,
         @RequestParam("encumberedTokensTxHash") encumberedTokensTxHash: String,
-    ): DeferredResult<ResponseEntity<TransactionHash>> {
+    ): CompletableFuture<ResponseEntity<TransactionHash>> {
         logger.info("Request by $sellerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
-        return deferredResult {
-            sellerClient.releaseTokens(sellerParty, currency, encumberedTokensTxHash)
+        return CompletableFuture.supplyAsync {
+            asResponse(sellerClient.releaseTokens(sellerParty, currency, encumberedTokensTxHash))
         }
     }
 }

@@ -5,7 +5,8 @@ import com.r3.gallery.api.ArtworkOwnership
 import com.r3.gallery.api.ArtworkParty
 import com.r3.gallery.api.AvailableArtwork
 import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
-import com.r3.gallery.broker.corda.client.deferredResult
+import com.r3.gallery.broker.corda.client.asResponse
+import com.r3.gallery.broker.corda.client.joinFuturesFromList
 import com.r3.gallery.broker.corda.client.toUUID
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.BidService
@@ -16,7 +17,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
+import java.util.concurrent.CompletableFuture
 
 /**
  * REST endpoints for Gallery parties on Auction Network
@@ -52,22 +53,22 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
         @RequestParam("expiryDays", required = false) expiry: Int = 3,
         @RequestParam("description", required = false) description: String = "",
         @RequestParam("url", required = false) url: String = ""
-    ): DeferredResult<ResponseEntity<ArtworkOwnership>> {
+    ): CompletableFuture<ResponseEntity<ArtworkOwnership>> {
         logger.info("Request by $galleryParty to issue artwork of id $artworkId")
-        return deferredResult {
-            galleryClient.issueArtwork(
-                    galleryParty,
-                    artworkId.toUUID(),
-                    expiry,
-                    description,
-                    url
-            ).toCompletableFuture().thenApply {
+        return galleryClient.issueArtwork(
+                galleryParty,
+                artworkId.toUUID(),
+                expiry,
+                description,
+                url
+        ).toCompletableFuture().thenApply {
+            asResponse(
                 ArtworkOwnership(
-                        it.linearId.id,
-                        it.artworkId,
-                        it.owner.nameOrNull()!!.toX500Name().toString()
+                    it.linearId.id,
+                    it.artworkId,
+                    it.owner.nameOrNull()!!.toX500Name().toString()
                 )
-            }.get()
+            )
         }
     }
 
@@ -79,10 +80,13 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     @GetMapping("/list-available-artworks")
     fun listAvailableArtworks(
         @RequestParam("galleryParty", required = false) galleryParty: ArtworkParty?
-    ): DeferredResult<ResponseEntity<List<AvailableArtwork>>> {
+    ): CompletableFuture<ResponseEntity<List<AvailableArtwork>>> {
         logger.info("Request of artwork listing of ${galleryParty?:"all galleries"}")
-        return deferredResult {
-            bidService.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
+        return CompletableFuture.supplyAsync {
+            val futureList = bidService.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
+            asResponse(
+                    joinFuturesFromList(futureList).flatten()
+            )
         }
     }
 
@@ -94,11 +98,10 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     @PostMapping("/accept-bid", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun acceptBid(
         @RequestBody acceptedBid: AcceptedBid
-    ): DeferredResult<ResponseEntity<Unit>> {
+    ): CompletableFuture<ResponseEntity<Unit>> {
         logger.info("Request by gallery to accept bid for $acceptedBid.artworkId from $acceptedBid.bidderParty")
-        return deferredResult {
+        return CompletableFuture.runAsync {
             bidService.awardArtwork(acceptedBid.bidderParty, acceptedBid.artworkId, acceptedBid.currency)
-            Unit
-        }
+        }.thenApply { asResponse(Unit) }
     }
 }
