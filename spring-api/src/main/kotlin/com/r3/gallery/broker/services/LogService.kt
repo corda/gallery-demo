@@ -57,8 +57,8 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                 "RequestDraftTransferOfOwnershipFlowHandler",
                 "OfferEncumberedTokensFlowHandler",
                 "SignAndFinaliseTxForPushHandler",
-                // "UnlockEncumberedTokensFlowHandler" may not be null
-                // "RedeemEncumberedTokensFlowHandler" may not be null
+                "UnlockEncumberedTokensFlowHandler",
+                "RedeemEncumberedTokensFlowHandler"
         )
     }
 
@@ -73,8 +73,9 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
             val progressUpdateSubscription: ProgressUpdateSubscription
     )
 
-    private val stateMachineSubscriptions: MutableList<Subscription> = ArrayList()
-    private val progressSubscriptions: MutableMap<StateMachineRunId, ProgressUpdateSubscription> = ConcurrentHashMap()
+    private val networkList: List<ConnectionService> = listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp)
+    private val stateMachineSubscriptions: MutableMap<Subscription, Pair<CordaRPCNetwork, CordaX500Name>> = ConcurrentHashMap()
+    private val progressSubscriptions: MutableMap<StateMachineRunId, ProjectUpdateIdentity> = ConcurrentHashMap()
     private val progressUpdates: CopyOnWriteArrayList<LogUpdateEntry> =  CopyOnWriteArrayList()
 
     /**
