@@ -9,12 +9,14 @@ import com.r3.gallery.utils.AuctionCurrency
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
 import com.r3.gallery.workflows.RevertEncumberedTokensFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
+import net.corda.core.concurrent.CordaFuture
 import net.corda.core.contracts.Amount
 import net.corda.core.crypto.SecureHash
 import net.corda.core.crypto.SignatureMetadata
 import net.corda.core.identity.Party
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,14 +43,13 @@ class TokenNetworkBuyerClientImpl(
      * @param amount to issue
      * @param currency string representation of the token description
      */
-    override fun issueTokens(buyer: TokenParty, amount: Long, currency: String) {
+    override fun issueTokens(buyer: TokenParty, amount: Long, currency: String): CordaFuture<SignedTransaction> {
         logger.info("Starting IssueTokensFlow via $buyer for $amount $currency")
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val buyerParty = connService.wellKnownPartyFromName(buyer, buyer)
-        thread {
-            connService.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
-        }
+
+        return connService.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty).returnValue
     }
 
     /**

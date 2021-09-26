@@ -72,19 +72,12 @@ class NetworkToolsController(
                     queryResult.entries.let {
                         it.map { x500BalanceMap ->
                             val completableBalancesFutures = x500BalanceMap.value
-                            val allFutures = CompletableFuture.allOf(*completableBalancesFutures.toTypedArray())
-                            allFutures.let { _ ->
-                                val balances = completableBalancesFutures.stream()
-                                        .map { completableBalancesFuture ->
-                                            completableBalancesFuture.join()
-                                        }.collect(Collectors.toList()).toList()
-
+                            val balances = joinFuturesFromList(completableBalancesFutures)
                                 NetworkBalancesResponse(
                                         x500 = x500BalanceMap.key,
                                         partyBalances = balances
                                 )
                             }
-                        }
                     }
             )
         }
@@ -94,14 +87,26 @@ class NetworkToolsController(
      * Initialise the demo by issuing artwork pieces and funds to the demo parties.
      */
     @GetMapping("/init")
-    fun initializeDemo(): DeferredResult<ResponseEntity<Unit>> {
+    fun initializeDemo(): CompletableFuture<ResponseEntity<Unit>> {
         logger.info("Request for initial issuance to networks.")
-        return deferredResult {
-            networkToolsService.clearDemo()
-            logger.info("Clearing demo data.")
-
-            networkToolsService.initializeDemo()
-            logger.info("Issuing new demo data to networks.")
+        return CompletableFuture.supplyAsync {
+            val initFutures = networkToolsService.initializeDemo()
+            joinFuturesFromList(initFutures, true)
+        }.thenApply {
+            asResponse(Unit)
         }
     }
+}
+
+/** simultaneously resolves a list of Completable Futures and returns a list of results. */
+fun <T> joinFuturesFromList(futures: List<CompletableFuture<out T>>, returnUnit: Boolean = false): List<T> {
+    return CompletableFuture.allOf(*futures.toTypedArray())
+            .let { _ ->
+                futures.stream()
+                        .map { future ->
+                            // if requesting Unit values, then transform
+                            if (returnUnit) future.thenApply { it.let {  } }
+                            future.join()
+                        }.collect(Collectors.toList()).toList()
+            }
 }

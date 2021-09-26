@@ -13,24 +13,19 @@ import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.workflows.artwork.DestroyArtwork
 import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.webapp.GetEncumberedAndAvailableBalanceFlow
-import liquibase.pro.packaged.ew
-import liquibase.pro.packaged.it
 import net.corda.core.flows.FlowLogic
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.internal.hash
 import net.corda.core.messaging.CordaRPCOps
-import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.core.task.SimpleAsyncTaskExecutor
-import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import javax.annotation.PostConstruct
 
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
@@ -160,7 +155,11 @@ class NetworkToolsService(
     /**
      * Reset or Initialize auction demo conditions
      */
-    fun initializeDemo() {
+    fun initializeDemo(): List<CompletableFuture<out Any>> {
+        logger.info("Issuing new demo data to networks.")
+        val completableFutures: MutableList<CompletableFuture<out Any>> = CopyOnWriteArrayList()
+        completableFutures.addAll(clearDemo())
+
         // artworks
         val urlPrefix = "/assets/artwork/"
         listOf(
@@ -170,46 +169,51 @@ class NetworkToolsService(
             Pair("The Eerie Bliss", "The_Eerie_Bliss_and_Torture_of_Solitude.png"),
             Pair("The Masque of the Red Death", "The_Masque_of_the_Red_Death.png")
         ).forEach { // issue with default expiry of 3 days.
-            artNetworkGalleryClient.issueArtwork(
+            completableFutures.add(artNetworkGalleryClient.issueArtwork(
                 galleryParty = ALICE,
                 artworkId = UUID.randomUUID(),
                 description = it.first,
                 url = urlPrefix+it.second
-            )
+            ).toCompletableFuture())
         }
 
         // GBP issued to Bob
-        tokenNetworkBuyerClient.issueTokens(BOB, 500000, "GBP")
+        completableFutures.add(tokenNetworkBuyerClient.issueTokens(BOB, 500000, "GBP").toCompletableFuture())
         // CBDC issued to Charlie
-        tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC")
+        completableFutures.add(tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC").toCompletableFuture())
 
         if (!logService.isInitialized) logService.initSubscriptions()
+        return completableFutures
     }
 
     /**
      * Consumes all relevant tokens and art to reset the auction demo state
      */
-    fun clearDemo() {
+    private fun clearDemo(): List<CompletableFuture<out Any>> {
+        logger.info("Clearing demo data.")
+        val completableFutures: MutableList<CompletableFuture<out Any>> = CopyOnWriteArrayList()
+
         // destroy (off-ledger any outstanding art pieces
-        connectionManager.auction.allConnections()!!.forEach {
-            runDynamicOnConnection(it.proxy, DestroyArtwork::class.java).getOrThrow()
+        connectionManager.auction.allConnections()!!.map {
+            completableFutures.add(runDynamicOnConnection(it.proxy, DestroyArtwork::class.java))
         }
 
         // Release locks and burn tokens on GBP network
-        connectionManager.gbp.allConnections()!!.forEach {
-            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "GBP").getOrThrow()
+        connectionManager.gbp.allConnections()!!.map {
+            completableFutures.add(runDynamicOnConnection(it.proxy, BurnTokens::class.java, "GBP"))
         }
 
         // Release locks and burn tokens on CBDC network
-        connectionManager.cbdc.allConnections()!!.forEach {
-            runDynamicOnConnection(it.proxy, BurnTokens::class.java, "CBDC").getOrThrow()
+        connectionManager.cbdc.allConnections()!!.map {
+            completableFutures.add(runDynamicOnConnection(it.proxy, BurnTokens::class.java, "CBDC"))
         }
 
         // clear logs from service
         if (logService.isInitialized) logService.clearLogs()
+        return completableFutures
     }
 
-    private inline fun <reified T: FlowLogic<*>> runDynamicOnConnection(proxy: CordaRPCOps, clazz: Class<T>, currency: String? = null): CompletableFuture<*> {
+    private inline fun <reified T: FlowLogic<Any>> runDynamicOnConnection(proxy: CordaRPCOps, clazz: Class<T>, currency: String? = null): CompletableFuture<out Any> {
         val flowHandle = if (currency != null) proxy.startFlowDynamic(clazz, currency) else proxy.startFlowDynamic(clazz)
         return flowHandle.returnValue.toCompletableFuture()
     }
