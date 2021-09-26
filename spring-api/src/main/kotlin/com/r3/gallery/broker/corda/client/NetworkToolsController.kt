@@ -46,22 +46,23 @@ class NetworkToolsController(
     }
 
     /**
-     * Log returns progressUpdates for Node Level state-machine updates
+     * REST endpoint for log returns progressUpdates for Node Level state-machine updates
      *
      * @param index to retrieve a subset of log updates, defaults to returning full set of all updates
      */
     @GetMapping("/log")
     fun log(
         @RequestParam("index", required = false) index: Int?
-    ): DeferredResult<ResponseEntity<List<LogUpdateEntry>>> {
+    ): CompletableFuture<ResponseEntity<List<LogUpdateEntry>>> {
         logger.info("Request for logs")
-        return deferredResult {
-            networkToolsService.getLogs(index)
+        networkToolsService.getLogs(index)
+        return CompletableFuture.supplyAsync {
+            asResponse(networkToolsService.getLogs(index))
         }
     }
 
     /**
-     * Get balances across all parties and networks
+     * REST Get balances across all parties and networks
      */
     @GetMapping("/balance")
     fun balance(): CompletableFuture<ResponseEntity<List<NetworkBalancesResponse>>> {
@@ -96,17 +97,17 @@ class NetworkToolsController(
             asResponse(Unit)
         }
     }
-}
 
-/** simultaneously resolves a list of Completable Futures and returns a list of results. */
-fun <T> joinFuturesFromList(futures: List<CompletableFuture<out T>>, returnUnit: Boolean = false): List<T> {
-    return CompletableFuture.allOf(*futures.toTypedArray())
-            .let { _ ->
-                futures.stream()
-                        .map { future ->
-                            // if requesting Unit values, then transform
-                            if (returnUnit) future.thenApply { it.let {  } }
-                            future.join()
-                        }.collect(Collectors.toList()).toList()
-            }
+    /** Simultaneously resolves a list of Completable Futures and returns a list of results. */
+    private fun <T> joinFuturesFromList(futures: List<CompletableFuture<out T>>, returnUnit: Boolean = false): List<T> {
+        return CompletableFuture.allOf(*futures.toTypedArray())
+                .let { _ ->
+                    futures.stream()
+                            .map { future ->
+                                // if requesting Unit values, then transform
+                                if (returnUnit) future.thenApply { it.let {  } }
+                                future.join()
+                            }.collect(Collectors.toList()).toList()
+                }
+    }
 }

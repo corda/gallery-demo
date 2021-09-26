@@ -107,8 +107,8 @@ class ArtNetworkGalleryClientImpl(
      */
     override fun getAllArtwork(): List<ArtworkState> {
         logger.info("Retrieving all artwork on Auction Network")
-        return artNetworkGalleryCS.allConnections()!!.flatMap {
-            it.proxy.startFlow(::FindArtworksFlow).returnValue.get()
+        return artNetworkGalleryCS.allProxies()!!.flatMap {
+            it.value.second.startFlow(::FindArtworksFlow).returnValue.get()
         }
     }
 

@@ -5,7 +5,9 @@ import com.r3.gallery.api.RpcConnectionTarget
 import net.corda.client.rpc.CordaRPCConnection
 import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FlowLogic
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.identity.Party
+import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.messaging.FlowHandle
 import net.corda.core.node.NodeInfo
 
@@ -23,7 +25,17 @@ interface ConnectionService {
     /**
      * Returns CordaRPCConnection for all available clients
      */
-    fun allConnections(): List<CordaRPCConnection>?
+    fun allProxies(): Map<CordaX500Name, Pair<CordaRPCNetwork, CordaRPCOps>>?
+
+    /**
+     * Returns any available active proxy or null
+     */
+    fun anyProxy(): CordaRPCOps?
+
+    /**
+     * Return proxy for network party
+     */
+    fun proxyForParty(networkParty: String): CordaRPCOps
 
     /**
      * Returns all live target connections to node based on destination
