@@ -1,7 +1,7 @@
 package com.r3.gallery.broker.corda.client.art.controllers
 
 import com.r3.gallery.api.BidProposal
-import com.r3.gallery.broker.corda.client.deferredResult
+import com.r3.gallery.broker.corda.client.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.BidService
 import com.r3.gallery.utils.AuctionCurrency
@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
+import java.util.concurrent.CompletableFuture
 import kotlin.math.pow
 
 /**
@@ -39,13 +39,14 @@ class ArtNetworkBidderController() {
     @PostMapping("/bid")
     fun bid(
         @RequestBody bidProposal: BidProposal
-    ) : DeferredResult<ResponseEntity<Unit>> {
+    ) : CompletableFuture<ResponseEntity<Unit>> {
         logger.info("Request by ${bidProposal.bidderParty} to bid on ${bidProposal.artworkId} in amount of ${bidProposal.amount} ${bidProposal.currency}")
-        return deferredResult {
-            // convert representation
+        return CompletableFuture.runAsync {
             val bidAmount = bidProposal.amount.toDouble()
             val bidAmountLong = (bidAmount*10.0.pow(AuctionCurrency.getInstance(bidProposal.currency).fractionDigits)).toLong()
             bidService.placeBid(bidProposal.bidderParty, bidProposal.artworkId, bidAmountLong, bidProposal.currency)
+        }.thenApply {
+            asResponse(Unit)
         }
     }
 }

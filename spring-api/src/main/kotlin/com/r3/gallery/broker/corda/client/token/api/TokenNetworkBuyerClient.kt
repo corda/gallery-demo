@@ -1,7 +1,9 @@
 package com.r3.gallery.broker.corda.client.token.api
 
 import com.r3.gallery.api.*
+import net.corda.core.concurrent.CordaFuture
 import net.corda.core.identity.Party
+import net.corda.core.transactions.SignedTransaction
 
 /**
  * Execute flows against Corda nodes running a Token (GBP or CBDC) application, acting as the buyer
@@ -15,7 +17,7 @@ interface TokenNetworkBuyerClient {
      * @param amount to issue
      * @param currency string representation of the token description
      */
-    fun issueTokens(buyer: TokenParty, amount: Long, currency: String = "GBP")
+    fun issueTokens(buyer: TokenParty, amount: Long, currency: String = "GBP"): CordaFuture<SignedTransaction>
 
     /**
      * Creates a transaction to encumber tokens against a lock requiring a notary signature on an unsigned artwork transfer

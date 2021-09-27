@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.context.request.async.DeferredResult
+import java.util.concurrent.CompletableFuture
 
 /**
  * Controller with aggregate access across API layers
@@ -36,36 +36,49 @@ class NetworkToolsController(
     @GetMapping("/participants")
     fun participants(
         @RequestParam("networks", required = false) networks: List<String>?
-    ): DeferredResult<ResponseEntity<List<Participant>>> {
+    ): CompletableFuture<ResponseEntity<List<Participant>>> {
         logger.info("Request for all participants")
-        return deferredResult {
-            networkToolsService.participants(networks)
+        return CompletableFuture.supplyAsync {
+            asResponse(networkToolsService.participants(networks))
         }
     }
 
     /**
-     * Log returns progressUpdates for Node Level state-machine updates
+     * REST endpoint for log returns progressUpdates for Node Level state-machine updates
      *
      * @param index to retrieve a subset of log updates, defaults to returning full set of all updates
      */
     @GetMapping("/log")
     fun log(
         @RequestParam("index", required = false) index: Int?
-    ): DeferredResult<ResponseEntity<List<LogUpdateEntry>>> {
+    ): CompletableFuture<ResponseEntity<List<LogUpdateEntry>>> {
         logger.info("Request for logs")
-        return deferredResult {
-            networkToolsService.getLogs(index)
+        networkToolsService.getLogs(index)
+        return CompletableFuture.supplyAsync {
+            asResponse(networkToolsService.getLogs(index))
         }
     }
 
     /**
-     * Get balances across all parties and networks
+     * REST Get balances across all parties and networks
      */
     @GetMapping("/balance")
-    fun balance(): DeferredResult<ResponseEntity<List<NetworkBalancesResponse>>> {
+    fun balance(): CompletableFuture<ResponseEntity<List<NetworkBalancesResponse>>> {
         logger.info("Request for balance of parties across network")
-        return deferredResult {
-            networkToolsService.getBalance()
+        return CompletableFuture.supplyAsync {
+            val queryResult = networkToolsService.getBalance()
+            asResponse(
+                    queryResult.entries.let {
+                        it.map { x500BalanceMap ->
+                            val completableBalancesFutures = x500BalanceMap.value
+                            val balances = joinFuturesFromList(completableBalancesFutures)
+                                NetworkBalancesResponse(
+                                        x500 = x500BalanceMap.key,
+                                        partyBalances = balances
+                                )
+                            }
+                    }
+            )
         }
     }
 
@@ -73,14 +86,13 @@ class NetworkToolsController(
      * Initialise the demo by issuing artwork pieces and funds to the demo parties.
      */
     @GetMapping("/init")
-    fun initializeDemo(): DeferredResult<ResponseEntity<Unit>> {
+    fun initializeDemo(): CompletableFuture<ResponseEntity<Unit>> {
         logger.info("Request for initial issuance to networks.")
-        return deferredResult {
-            networkToolsService.clearDemo()
-            logger.info("Clearing demo data.")
-
-            networkToolsService.initializeDemo()
-            logger.info("Issuing new demo data to networks.")
+        return CompletableFuture.runAsync {
+            val initFutures = networkToolsService.initializeDemo()
+            joinFuturesFromList(initFutures, true)
+        }.thenApply {
+            asResponse(Unit)
         }
     }
 }

@@ -9,6 +9,7 @@ import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.services.api.Receipt
 import com.r3.gallery.states.ArtworkState
+import net.corda.core.concurrent.CordaFuture
 import net.corda.core.identity.Party
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -69,7 +70,7 @@ class AtomicSwapServiceImpl(
         return Receipt.CancellationReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, tokenTxId)
     }
 
-    override fun getAllArtworks(): List<ArtworkState> {
+    override fun getAllArtworks(): List<CordaFuture<List<ArtworkState>>> {
         return galleryClient.getAllArtwork()
     }
 

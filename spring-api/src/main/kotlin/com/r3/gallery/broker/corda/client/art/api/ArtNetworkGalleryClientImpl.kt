@@ -105,10 +105,10 @@ class ArtNetworkGalleryClientImpl(
      * Returns all available artwork states.
      * @return [List][ArtworkState]
      */
-    override fun getAllArtwork(): List<ArtworkState> {
+    override fun getAllArtwork(): List<CordaFuture<List<ArtworkState>>> {
         logger.info("Retrieving all artwork on Auction Network")
-        return artNetworkGalleryCS.allConnections()!!.flatMap {
-            it.proxy.startFlow(::FindArtworksFlow).returnValue.get()
+        return artNetworkGalleryCS.allProxies()!!.map {
+            it.value.second.startFlow(::FindArtworksFlow).returnValue
         }
     }
 

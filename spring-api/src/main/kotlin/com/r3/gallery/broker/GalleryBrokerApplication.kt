@@ -18,18 +18,3 @@ class GalleryBrokerApplication
 fun main(args: Array<String>) {
 	runApplication<GalleryBrokerApplication>(*args)
 }
-
-@Configuration
-@EnableAsync
-class AsyncConfiguration {
-	@Bean(name = ["asyncExecutor"])
-	fun asyncExecutor(): Executor {
-		val executor = ThreadPoolTaskExecutor()
-		executor.corePoolSize = 4
-		executor.maxPoolSize = 4
-		executor.setQueueCapacity(100)
-		executor.setThreadNamePrefix("AsyncThread-")
-		executor.initialize()
-		return executor
-	}
-}
