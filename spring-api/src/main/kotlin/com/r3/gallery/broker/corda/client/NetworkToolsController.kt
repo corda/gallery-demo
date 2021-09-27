@@ -39,7 +39,9 @@ class NetworkToolsController(
     ): CompletableFuture<ResponseEntity<List<Participant>>> {
         logger.info("Request for all participants")
         return CompletableFuture.supplyAsync {
-            asResponse(networkToolsService.participants(networks))
+            networkToolsService.participants(networks)
+        }.thenApply {
+            asResponse(it)
         }
     }
 
@@ -53,9 +55,10 @@ class NetworkToolsController(
         @RequestParam("index", required = false) index: Int?
     ): CompletableFuture<ResponseEntity<List<LogUpdateEntry>>> {
         logger.info("Request for logs")
-        networkToolsService.getLogs(index)
         return CompletableFuture.supplyAsync {
-            asResponse(networkToolsService.getLogs(index))
+            networkToolsService.getLogs(index)
+        }.thenApply {
+            asResponse(it)
         }
     }
 
@@ -66,18 +69,19 @@ class NetworkToolsController(
     fun balance(): CompletableFuture<ResponseEntity<List<NetworkBalancesResponse>>> {
         logger.info("Request for balance of parties across network")
         return CompletableFuture.supplyAsync {
-            val queryResult = networkToolsService.getBalance()
+            networkToolsService.getBalance()
+        }.thenApply { balanceList ->
             asResponse(
-                    queryResult.entries.let {
-                        it.map { x500BalanceMap ->
-                            val completableBalancesFutures = x500BalanceMap.value
-                            val balances = joinFuturesFromList(completableBalancesFutures)
-                                NetworkBalancesResponse(
-                                        x500 = x500BalanceMap.key,
-                                        partyBalances = balances
-                                )
-                            }
+                balanceList.entries.let {
+                    it.map { x500BalanceMap ->
+                        val completableBalancesFutures = x500BalanceMap.value
+                        val balances = joinFuturesFromList<NetworkBalancesResponse.Balance>(completableBalancesFutures)
+                        NetworkBalancesResponse(
+                                x500 = x500BalanceMap.key,
+                                partyBalances = balances
+                        )
                     }
+                }
             )
         }
     }

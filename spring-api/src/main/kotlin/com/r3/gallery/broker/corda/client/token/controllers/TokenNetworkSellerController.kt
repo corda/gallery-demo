@@ -45,7 +45,9 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     ): CompletableFuture<ResponseEntity<TransactionHash>> {
         logger.info("Request by $sellerParty to claim tokens from encumbered tx ${tokenReleaseData.encumberedTokens} with signature ${tokenReleaseData.notarySignature}")
         return CompletableFuture.supplyAsync {
-            asResponse(sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature))
+            sellerClient.claimTokens(sellerParty, currency, tokenReleaseData.encumberedTokens, tokenReleaseData.notarySignature)
+        }.thenApply {
+            asResponse(it)
         }
     }
 
@@ -67,7 +69,9 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     ): CompletableFuture<ResponseEntity<TransactionHash>> {
         logger.info("Request by $sellerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
         return CompletableFuture.supplyAsync {
-            asResponse(sellerClient.releaseTokens(sellerParty, currency, encumberedTokensTxHash))
+            sellerClient.releaseTokens(sellerParty, currency, encumberedTokensTxHash)
+        }.thenApply {
+            asResponse(it)
         }
     }
 }

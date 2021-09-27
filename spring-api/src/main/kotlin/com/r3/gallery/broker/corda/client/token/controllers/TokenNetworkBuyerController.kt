@@ -46,7 +46,9 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     ): CompletableFuture<ResponseEntity<SignedTransaction>> {
         logger.info("Request by $buyerParty to issue $amount $currency to self")
         return CompletableFuture.supplyAsync {
-            asResponse(buyerClient.issueTokens(buyerParty, amount.toLong(), currency).toCompletableFuture().join())
+            buyerClient.issueTokens(buyerParty, amount.toLong(), currency).toCompletableFuture().join()
+        }.thenApply {
+            asResponse(it)
         }
     }
 
@@ -70,7 +72,9 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     ): CompletableFuture<ResponseEntity<TransactionHash>> {
         logger.info("Request by $buyerParty to issue tokens for $amount")
         return CompletableFuture.supplyAsync {
-            asResponse(buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, currency, validatedUnsignedArtworkTransferTx))
+            buyerClient.transferEncumberedTokens(buyerParty, sellerParty, amount, currency, validatedUnsignedArtworkTransferTx)
+        }.thenApply {
+            asResponse(it)
         }
     }
 
@@ -91,7 +95,9 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     ): CompletableFuture<ResponseEntity<TransactionHash>> {
         logger.info("Request by $buyerParty to release unspent tokens from encumbered offer $encumberedTokensTxHash")
         return CompletableFuture.supplyAsync {
-            asResponse(buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash))
+            buyerClient.releaseTokens(buyerParty, currency, encumberedTokensTxHash)
+        }.thenApply {
+            asResponse(it)
         }
     }
 }

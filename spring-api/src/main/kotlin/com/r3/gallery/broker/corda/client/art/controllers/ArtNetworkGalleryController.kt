@@ -83,9 +83,10 @@ class ArtNetworkGalleryController(private val galleryClient: ArtNetworkGalleryCl
     ): CompletableFuture<ResponseEntity<List<AvailableArtwork>>> {
         logger.info("Request of artwork listing of ${galleryParty?:"all galleries"}")
         return CompletableFuture.supplyAsync {
-            val futureList = bidService.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
+            bidService.listAvailableArtworks(galleryParty ?: "O=Alice, L=London, C=GB")
+        }.thenApply {
             asResponse(
-                    joinFuturesFromList(futureList).flatten()
+                    joinFuturesFromList(it).flatten()
             )
         }
     }
