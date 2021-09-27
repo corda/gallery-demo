@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CopyOnWriteArrayList
 
 @Component
 class BidServiceImpl(
@@ -24,6 +25,8 @@ class BidServiceImpl(
     companion object {
         private val logger = LoggerFactory.getLogger(BidServiceImpl::class.java)
     }
+
+    private val listAvailableArtworkCache: MutableList<CompletableFuture<List<AvailableArtwork>>> = CopyOnWriteArrayList()
 
     override fun placeBid(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String) {
         logger.info("Processing bid $bidderName, $artworkId, $bidAmount, $currency in BidService")
@@ -63,11 +66,17 @@ class BidServiceImpl(
      */
     override fun listAvailableArtworks(galleryParty: ArtworkParty): List<CompletableFuture<List<AvailableArtwork>>> {
         logger.info("Listing available artworks via $galleryParty")
+        return if (listAvailableArtworkCache.isNotEmpty()) listAvailableArtworkCache.also {
+            updateArtworkCache()
+        } else updateArtworkCache().let { listAvailableArtworkCache }
+    }
 
+    private fun updateArtworkCache() {
         val artworks = swapService.getAllArtworks()
         val completableFutureArtworkList = artworks.map { artworkFuture -> artworkFuture.toCompletableFuture() }
 
-        return completableFutureArtworkList.map { completableFuture ->
+        listAvailableArtworkCache.clear()
+        listAvailableArtworkCache.addAll(completableFutureArtworkList.map { completableFuture ->
             completableFuture.thenApplyAsync { artworks ->
                 artworks.map { artwork ->
                     // get both bids and sales for target artwork
@@ -109,6 +118,6 @@ class BidServiceImpl(
                     )
                 }
             }
-        }
+        })
     }
 }

@@ -73,6 +73,8 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
             val progressUpdateSubscription: ProgressUpdateSubscription
     )
 
+    private var progressCache: MutableList<LogUpdateEntry> = CopyOnWriteArrayList()
+
     private val networkList: List<ConnectionService> = listOf(connectionManager.auction, connectionManager.cbdc, connectionManager.gbp)
     private val stateMachineSubscriptions: MutableMap<Subscription, Pair<CordaRPCNetwork, CordaX500Name>> = ConcurrentHashMap()
     private val progressSubscriptions: MutableMap<StateMachineRunId, ProjectUpdateIdentity> = ConcurrentHashMap()
@@ -274,13 +276,16 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
     fun getProgressUpdates(retrievalIdx: LogRetrievalIdx = 0): List<LogUpdateEntry> {
         subscribeToRpcConnectionStateMachines()
         val lastIndex = progressUpdates.lastIndex+1
+        if (retrievalIdx == lastIndex || lastIndex == -1) return emptyList() // no activity
 
-        // no new updates
-        return if (retrievalIdx == lastIndex || lastIndex == -1) {
-            emptyList()
-        } else {
-            progressUpdates.subList(retrievalIdx, lastIndex)
-        }
+        return if (progressCache.isNotEmpty()) progressCache.also {
+            updateCache(retrievalIdx, lastIndex)
+        } else updateCache(retrievalIdx, lastIndex).let { progressCache }
+    }
+
+    private fun updateCache(retrievalIdx: LogRetrievalIdx, lastIndex: LogRetrievalIdx) {
+        progressCache.clear()
+        progressCache.addAll(progressUpdates.subList(retrievalIdx, lastIndex))
     }
 
     /**

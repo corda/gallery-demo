@@ -13,18 +13,16 @@ import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.workflows.artwork.DestroyArtwork
 import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.webapp.GetEncumberedAndAvailableBalanceFlow
-import net.corda.core.flows.FlowLogic
 import net.corda.core.identity.CordaX500Name
 import net.corda.core.internal.hash
-import net.corda.core.messaging.CordaRPCOps
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.core.task.SimpleAsyncTaskExecutor
 import org.springframework.stereotype.Service
 import java.util.*
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
@@ -46,6 +44,8 @@ class NetworkToolsService(
         const val CHARLIE = "O=Charlie, L=Mumbai, C=IN"
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
+
+    private val balanceCache: MutableMap<CordaX500Name, List<CompletableFuture<NetworkBalancesResponse.Balance>>> = ConcurrentHashMap()
 
     private lateinit var networkClients: List<ConnectionService>
     private lateinit var tokenClients: List<ConnectionService>
@@ -124,17 +124,24 @@ class NetworkToolsService(
      * Returns Balances of all parties on each network they belong, with categories for encumbered and available tokens.
      */
     fun getBalance(): Map<CordaX500Name, List<CompletableFuture<NetworkBalancesResponse.Balance>>> {
+        return if (balanceCache.isNotEmpty()) balanceCache.also {
+            updateBalanceCache()
+        } else updateBalanceCache().let { balanceCache }
+    }
+
+    private fun updateBalanceCache() {
         val balance  = tokenClients.runPerConnectionService {
             it.allProxies()!!.map { connection ->
                 val x500 = connection.key
                 val (network, proxy) = connection.value
                 val balanceFuture = proxy.startFlowDynamic(GetEncumberedAndAvailableBalanceFlow::class.java, network.name).returnValue.toCompletableFuture()
-                                .thenApply { currBalance -> currBalance as NetworkBalancesResponse.Balance }
+                        .thenApply { currBalance -> currBalance as NetworkBalancesResponse.Balance }
                 Pair(x500, balanceFuture)
             }
         }.flatten()
 
-        return balance.groupBy { it.first }.mapValues { x500pair -> x500pair.value.map { it.second } }
+        balanceCache.clear()
+        balanceCache.putAll(balance.groupBy { it.first }.mapValues { x500pair -> x500pair.value.map { it.second } })
     }
 
     /**
