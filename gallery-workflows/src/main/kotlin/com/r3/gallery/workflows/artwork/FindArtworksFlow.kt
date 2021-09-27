@@ -8,7 +8,8 @@ import net.corda.core.flows.StartableByRPC
 import net.corda.core.node.services.queryBy
 
 /**
- * Find all artwork states for the local node
+ * Find all artwork states for the local node.
+ * @return the [List] of [ArtworkState]s.
  */
 @StartableByRPC
 @InitiatingFlow
@@ -17,10 +18,6 @@ class FindArtworksFlow :
 
     @Suspendable
     override fun call(): List<ArtworkState> {
-        return serviceHub
-            .vaultService
-            .queryBy<ArtworkState>()
-            .states
-            .map { it.state.data }
+        return serviceHub.vaultService.queryBy<ArtworkState>().states.map { it.state.data }
     }
 }

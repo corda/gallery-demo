@@ -59,9 +59,9 @@ class ArtNetworkBidderClientImpl(
             UniqueIdentifier.fromString(artworkId.toString())
         ).returnValue.toCompletableFuture().thenApply {
             ValidatedUnsignedArtworkTransferTx(
-                    it.second.tx.serialize().bytes,
-                    it.second.controllingNotary.serialize().bytes,
-                    it.second.notarySignatureMetadata.serialize().bytes
+                    it.tx.serialize().bytes,
+                    it.controllingNotary.serialize().bytes,
+                    it.notarySignatureMetadata.serialize().bytes
             )
         }
 

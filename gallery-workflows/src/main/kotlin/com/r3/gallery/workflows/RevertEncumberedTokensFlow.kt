@@ -19,12 +19,11 @@ import net.corda.core.utilities.ProgressTracker
  * after the expiry of the lock and only if the token has not been claimed by the receiver before the expiry of the lock.
  * The receiver of the token offer can execute this flow at any time to return the token to the original token holder.
  * @param encumberedTxHash the hash of the encumbered toke offer transaction ID.
+ * @return the token reversal transaction, signed and finalised.
  */
 @StartableByRPC
 @InitiatingFlow
-class RevertEncumberedTokensFlow(
-    private val encumberedTxHash: SecureHash,
-) : FlowLogic<SignedTransaction>() {
+class RevertEncumberedTokensFlow(private val encumberedTxHash: SecureHash) : FlowLogic<SignedTransaction>() {
 
     @Suppress("ClassName")
     companion object {

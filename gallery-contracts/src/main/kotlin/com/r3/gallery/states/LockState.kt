@@ -45,6 +45,8 @@ data class LockState(
         receiver
     )
 
+    val compositeKey: PublicKey = CompositeKey.Builder().addKeys(participants.map { it.owningKey }).build(1)
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -55,12 +57,6 @@ data class LockState(
         if (controllingNotary != other.controllingNotary) return false
         if (timeWindow != other.timeWindow) return false
         return true
-    }
-
-    fun getCompositeKey(): PublicKey {
-        return CompositeKey.Builder()
-            .addKeys(participants.map { it.owningKey })
-            .build(1)
     }
 
     override fun hashCode(): Int {

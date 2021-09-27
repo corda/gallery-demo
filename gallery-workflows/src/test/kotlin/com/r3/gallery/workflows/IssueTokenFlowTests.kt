@@ -2,14 +2,13 @@ package com.r3.gallery.workflows
 
 import com.r3.corda.lib.tokens.money.GBP
 import com.r3.corda.lib.tokens.workflows.utilities.tokenBalance
+import com.r3.gallery.workflows.internal.mockNetwork
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
 import net.corda.core.utilities.getOrThrow
 import net.corda.testing.internal.chooseIdentity
 import net.corda.testing.node.MockNetwork
-import net.corda.testing.node.MockNetworkParameters
 import net.corda.testing.node.StartedMockNode
-import net.corda.testing.node.TestCordapp
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -23,14 +22,9 @@ class IssueTokenFlowTests {
 
     @Before
     fun setup() {
-        network = MockNetwork(MockNetworkParameters(cordappsForAllNodes = listOf(
-            TestCordapp.findCordapp("com.r3.gallery.contracts"),
-            TestCordapp.findCordapp("com.r3.gallery.workflows"),
-            TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts"),
-        )))
+        network = mockNetwork()
         a = network.createPartyNode()
         b = network.createPartyNode()
-        network.runNetwork()
     }
 
     @After
@@ -43,7 +37,7 @@ class IssueTokenFlowTests {
         val aParty = a.info.chooseIdentity()
 
         val issueFlow = IssueTokensFlow(1000, GBP.tokenIdentifier, aParty)
-        val stx = a.startFlow(issueFlow).also { network.runNetwork() }.getOrThrow()
+        val stx = a.startFlow(issueFlow).getOrThrow()
 
         val balance = a.services.vaultService.tokenBalance(GBP)
         assertNotNull(stx)
@@ -54,10 +48,10 @@ class IssueTokenFlowTests {
     fun `can get balance`() {
         val aParty = a.info.chooseIdentity()
         val issueFlow = IssueTokensFlow(1000, GBP.tokenIdentifier, aParty)
-        a.startFlow(issueFlow).also { network.runNetwork() }
+        a.startFlow(issueFlow).getOrThrow()
 
         val balanceFlow = GetBalanceFlow(GBP)
-        val balance = a.startFlow(balanceFlow).also { network.runNetwork() }.getOrThrow()
+        val balance = a.startFlow(balanceFlow).getOrThrow()
 
         assertEquals(10.GBP, balance)
     }

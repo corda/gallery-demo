@@ -25,7 +25,8 @@ import net.corda.core.utilities.ProgressTracker
  * the trusted node on the Art Network iz used to produce the [LockState] encumbrance.
  * @param verifiedDraftTx the [ValidatedDraftTransferOfOwnership] with the art draft transfer from the Art Network.
  * @param sellerParty the [Party] to transfer tokens to.
- * @param encumberedAmount token quantity of [TokenType] to offer
+ * @param encumberedAmount token quantity of [TokenType] to offer.
+ * @return the encumbered token transaction, signed and finalised.
  */
 @InitiatingFlow
 @StartableByRPC
