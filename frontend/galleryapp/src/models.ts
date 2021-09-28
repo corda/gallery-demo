@@ -107,3 +107,7 @@ export interface PostBidAcceptanceParams {
   artworkId: string;
   currency: string;
 }
+
+export interface GetLogParams {
+  index: number
+}

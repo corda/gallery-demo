@@ -1,13 +1,14 @@
 import { Badge } from "@r3/r3-tooling-design-system";
-import config from "@Config";
-import { FC } from "react";
+import {FC, useContext} from "react";
+import {UsersContext} from "@Context/users";
 
 interface Props {
   currencyCode: string;
 }
 
 const CurrencyBadge: FC<Props> = ({ currencyCode, children }) => {
-  const currencyColor = config.networks[currencyCode].color;
+  const { networkColours } = useContext(UsersContext);
+  const currencyColor = networkColours[currencyCode];
 
   return (
     <Badge customColour={currencyColor} variant="gray">

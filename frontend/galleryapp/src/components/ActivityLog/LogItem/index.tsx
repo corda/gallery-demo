@@ -1,23 +1,25 @@
 import styles from "./styles.module.scss";
 import { Log } from "@Models";
-import config from "@Config";
 import Locked from "@Assets/padlock.svg";
 import Unlocked from "@Assets/unlocked.svg";
 import LogDirectionArrow from "@Assets/logDirectionArrow.svg";
+import dayjs from 'dayjs'
+import {useContext} from "react";
+import {UsersContext} from "@Context/users";
 
 interface Props {
   log: Log;
 }
 
 function LogItem({ log }: Props) {
-  const time = log.timestamp.split(" ")[3];
+  const { networkColours } = useContext(UsersContext);
   return (
     <div className={styles.main}>
       <span
         className={styles.colourCode}
-        style={{ background: config.networks[log.network].color }}
+        style={{ background: networkColours[log.network]}}
       />
-      <span className={styles.timestamp}>{time}</span>
+      <span className={styles.timestamp}>{dayjs(log.timestamp).format("HH:mm:ss:SSS")}</span>
       <span className={styles.message}>{formatter(log.message)}</span>
     </div>
   );
