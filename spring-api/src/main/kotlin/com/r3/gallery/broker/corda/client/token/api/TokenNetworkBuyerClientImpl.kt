@@ -9,17 +9,20 @@ import com.r3.gallery.utils.AuctionCurrency
 import com.r3.gallery.workflows.OfferEncumberedTokensFlow
 import com.r3.gallery.workflows.RevertEncumberedTokensFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
+import net.corda.core.concurrent.CordaFuture
 import net.corda.core.contracts.Amount
 import net.corda.core.crypto.SecureHash
 import net.corda.core.crypto.SignatureMetadata
 import net.corda.core.identity.Party
 import net.corda.core.serialization.SerializedBytes
 import net.corda.core.serialization.deserialize
+import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.lang.IllegalArgumentException
+import kotlin.concurrent.thread
 
 /**
  * Implementation of [TokenNetworkBuyerClient]
@@ -40,12 +43,13 @@ class TokenNetworkBuyerClientImpl(
      * @param amount to issue
      * @param currency string representation of the token description
      */
-    override fun issueTokens(buyer: TokenParty, amount: Long, currency: String) {
+    override fun issueTokens(buyer: TokenParty, amount: Long, currency: String): CordaFuture<SignedTransaction> {
         logger.info("Starting IssueTokensFlow via $buyer for $amount $currency")
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val buyerParty = connService.wellKnownPartyFromName(buyer, buyer)
-        connService.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty)
+
+        return connService.startFlow(buyer, IssueTokensFlow::class.java, amount, currency, buyerParty).returnValue
     }
 
     /**
@@ -79,7 +83,7 @@ class TokenNetworkBuyerClientImpl(
             sellerParty,
             verifiedDraftTx,
             encumberedAmount
-        )
+        ).returnValue.get()
         return tx.id.toString()
     }
 
@@ -100,7 +104,7 @@ class TokenNetworkBuyerClientImpl(
         val connService = connectionManager.connectToCurrencyNetwork(currency)
 
         val encumberedTxHash = SecureHash.parse(encumberedTokens)
-        val stx = connService.startFlow(buyer, RevertEncumberedTokensFlow::class.java, encumberedTxHash)
+        val stx = connService.startFlow(buyer, RevertEncumberedTokensFlow::class.java, encumberedTxHash).returnValue.get()
         return stx.id.toString()
     }
 

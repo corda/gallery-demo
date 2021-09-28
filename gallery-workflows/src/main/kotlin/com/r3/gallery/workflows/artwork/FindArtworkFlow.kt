@@ -10,6 +10,7 @@ import net.corda.core.flows.StartableByRPC
 import net.corda.core.node.services.queryBy
 
 /**
+ * TODO combine FindArtwork flows to a single with overloaded constructors
  * Finds an artwork state based on its ID
  * @param artworkId the UUID of the artwork (not the state linear id)
  */

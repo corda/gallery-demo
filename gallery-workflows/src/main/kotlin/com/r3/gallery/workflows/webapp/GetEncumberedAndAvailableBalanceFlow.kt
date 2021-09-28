@@ -10,7 +10,7 @@ import net.corda.core.flows.FlowLogic
 import net.corda.core.flows.StartableByRPC
 
 @StartableByRPC
-class GetBalanceFlow(private val currency: String) : FlowLogic<NetworkBalancesResponse.Balance>() {
+class GetEncumberedAndAvailableBalanceFlow(private val currency: String) : FlowLogic<NetworkBalancesResponse.Balance>() {
 
     @Suspendable
     override fun call(): NetworkBalancesResponse.Balance {

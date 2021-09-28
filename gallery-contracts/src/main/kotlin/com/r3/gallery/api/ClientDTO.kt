@@ -1,5 +1,6 @@
 package com.r3.gallery.api
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.ContractState
@@ -106,7 +107,7 @@ data class Participant(
  */
 @CordaSerializable
 data class NetworkBalancesResponse(
-    val x500: String,
+    val x500: CordaX500Name,
     val partyBalances: List<Balance>
 ) {
     /**
@@ -157,6 +158,7 @@ data class ArtworkOwnership(
 /**
  * Used to deserialize bid proposals
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class BidProposal(
     val bidderParty: String,
     val artworkId: ArtworkId,
@@ -167,6 +169,7 @@ data class BidProposal(
 /**
  * Used to deserialize bid acceptance requests
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class AcceptedBid(
     val bidderParty: String,
     val artworkId: ArtworkId,
@@ -227,8 +230,8 @@ data class TokenReleaseData(
     val notarySignature: TransactionSignature
 )
 
-enum class CordaRPCNetwork(val netName: String) {
-    AUCTION("auction"),
-    GBP("gbp"),
-    CBDC("cbdc")
+enum class CordaRPCNetwork {
+    AUCTION,
+    GBP,
+    CBDC
 }

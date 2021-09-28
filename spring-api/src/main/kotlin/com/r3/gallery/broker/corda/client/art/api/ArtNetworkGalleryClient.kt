@@ -1,12 +1,8 @@
 package com.r3.gallery.broker.corda.client.art.api
 
-import com.r3.gallery.api.ArtworkOwnership
-import com.r3.gallery.api.ProofOfTransferOfOwnership
-import com.r3.gallery.api.UnsignedArtworkTransferTx
-import com.r3.gallery.states.ArtworkState
-
 import com.r3.gallery.api.*
-import java.time.Duration
+import com.r3.gallery.states.ArtworkState
+import net.corda.core.concurrent.CordaFuture
 import java.time.Instant
 
 /**
@@ -27,10 +23,10 @@ interface ArtNetworkGalleryClient {
     fun issueArtwork(
         galleryParty: ArtworkParty,
         artworkId: ArtworkId,
-        expiry: Instant? = Instant.now().plus(Duration.ofDays(3)),
+        expiry: Int = 3,
         description: String = "",
         url: String = ""
-    ): ArtworkOwnership
+    ): CordaFuture<ArtworkState>
 
     /**
      * Award an artwork to a bidder by signing and notarizing an unsigned art transfer transaction,
@@ -55,5 +51,5 @@ interface ArtNetworkGalleryClient {
      * Returns all available artwork states.
      * @return [List][ArtworkState]
      */
-    fun getAllArtwork(): List<ArtworkState>
+    fun getAllArtwork(): List<CordaFuture<List<ArtworkState>>>
 }

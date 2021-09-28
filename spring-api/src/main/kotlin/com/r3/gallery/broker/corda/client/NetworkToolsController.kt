@@ -3,13 +3,13 @@ package com.r3.gallery.broker.corda.client
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.api.NetworkBalancesResponse
 import com.r3.gallery.api.Participant
-import com.r3.gallery.broker.corda.client.art.controllers.asResponse
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.concurrent.CompletableFuture
 
 /**
  * Controller with aggregate access across API layers
@@ -36,41 +36,67 @@ class NetworkToolsController(
     @GetMapping("/participants")
     fun participants(
         @RequestParam("networks", required = false) networks: List<String>?
-    ): ResponseEntity<List<Participant>> {
+    ): CompletableFuture<ResponseEntity<List<Participant>>> {
         logger.info("Request for all participants")
-        return asResponse(networkToolsService.participants(networks))
+        return CompletableFuture.supplyAsync {
+            networkToolsService.participants(networks)
+        }.thenApply {
+            asResponse(it)
+        }
     }
 
     /**
-     * Log returns progressUpdates for Node Level state-machine updates
+     * REST endpoint for log returns progressUpdates for Node Level state-machine updates
      *
      * @param index to retrieve a subset of log updates, defaults to returning full set of all updates
      */
     @GetMapping("/log")
     fun log(
         @RequestParam("index", required = false) index: Int?
-    ): ResponseEntity<List<LogUpdateEntry>> {
+    ): CompletableFuture<ResponseEntity<List<LogUpdateEntry>>> {
         logger.info("Request for logs")
-        return asResponse(networkToolsService.getLogs(index))
+        return CompletableFuture.supplyAsync {
+            networkToolsService.getLogs(index)
+        }.thenApply {
+            asResponse(it)
+        }
     }
 
     /**
-     * Get balances across all parties and networks
+     * REST Get balances across all parties and networks
      */
     @GetMapping("/balance")
-    fun balance(): ResponseEntity<List<NetworkBalancesResponse>> {
+    fun balance(): CompletableFuture<ResponseEntity<List<NetworkBalancesResponse>>> {
         logger.info("Request for balance of parties across network")
-        return asResponse(networkToolsService.getBalance())
+        return CompletableFuture.supplyAsync {
+            networkToolsService.getBalance()
+        }.thenApply { balanceList ->
+            asResponse(
+                balanceList.entries.let {
+                    it.map { x500BalanceMap ->
+                        val completableBalancesFutures = x500BalanceMap.value
+                        val balances = joinFuturesFromList<NetworkBalancesResponse.Balance>(completableBalancesFutures)
+                        NetworkBalancesResponse(
+                                x500 = x500BalanceMap.key,
+                                partyBalances = balances
+                        )
+                    }
+                }
+            )
+        }
     }
 
     /**
      * Initialise the demo by issuing artwork pieces and funds to the demo parties.
      */
     @GetMapping("/init")
-    fun initializeDemo(): ResponseEntity<Unit> {
+    fun initializeDemo(): CompletableFuture<ResponseEntity<Unit>> {
         logger.info("Request for initial issuance to networks.")
-        networkToolsService.clearDemo()
-        networkToolsService.initializeDemo()
-        return asResponse(Unit)
+        return CompletableFuture.runAsync {
+            val initFutures = networkToolsService.initializeDemo()
+            joinFuturesFromList(initFutures, true)
+        }.thenApply {
+            asResponse(Unit)
+        }
     }
 }

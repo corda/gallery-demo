@@ -9,17 +9,18 @@ import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.services.api.Receipt
 import com.r3.gallery.states.ArtworkState
+import net.corda.core.concurrent.CordaFuture
 import net.corda.core.identity.Party
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
 class AtomicSwapServiceImpl(
-    @Autowired val galleryClient: ArtNetworkGalleryClient,
-    @Autowired val bidderClient: ArtNetworkBidderClient,
-    @Autowired val buyerClient: TokenNetworkBuyerClient,
-    @Autowired val sellerClient: TokenNetworkSellerClient,
-    @Autowired val identityRegistry: IdentityRegistry
+        @Autowired val galleryClient: ArtNetworkGalleryClient,
+        @Autowired val bidderClient: ArtNetworkBidderClient,
+        @Autowired val buyerClient: TokenNetworkBuyerClient,
+        @Autowired val sellerClient: TokenNetworkSellerClient,
+        @Autowired val identityRegistry: IdentityRegistry
 ) : AtomicSwapService {
 
     private val galleryParty get() = identityRegistry.getArtworkParty(GALLERY)
@@ -52,24 +53,24 @@ class AtomicSwapServiceImpl(
      *
      * @return Details of the sale, with transaction ids for both legs of the swap.
      */
-    override fun awardArtwork(bid: Receipt.BidReceipt, currency: String): Receipt.SaleReceipt {
+    override fun awardArtwork(bid: Receipt.BidReceipt): Receipt.SaleReceipt {
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
-        val tokenTxId = sellerClient.claimTokens(sellerParty, currency, bid.encumberedTokens, proofOfTransfer.notarySignature)
+        val tokenTxId = sellerClient.claimTokens(sellerParty, bid.currency, bid.encumberedTokens, proofOfTransfer.notarySignature)
 
         return Receipt.SaleReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, proofOfTransfer.transactionHash, tokenTxId)
     }
 
-    override fun cancelBid(bid: Receipt.BidReceipt, currency: String): Receipt.CancellationReceipt {
+    override fun cancelBid(bid: Receipt.BidReceipt): Receipt.CancellationReceipt {
 
         val tokenTxId = sellerClient.releaseTokens(
             sellerParty,
-            currency,
+            bid.currency,
             bid.encumberedTokens)
 
         return Receipt.CancellationReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, tokenTxId)
     }
 
-    override fun getAllArtworks(): List<ArtworkState> {
+    override fun getAllArtworks(): List<CordaFuture<List<ArtworkState>>> {
         return galleryClient.getAllArtwork()
     }
 

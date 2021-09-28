@@ -107,8 +107,6 @@ task deployNodes(type: net.corda.plugins.Cordform, dependsOn: [':gallery-contrac
 
 /**
  * Create docker-compose for Auction Network - Alice, Bob, Charlie
- *
- * Todo: Test and resolve H2 live jdbc connect
  */
 task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gallery-contracts:jar', ':gallery-workflows:jar']) {
     group = "deployment"
@@ -150,12 +148,6 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
             adminAddress("0.0.0.0:10021")
         }
         extraConfig = [
-                h2Settings: [ address: '0.0.0.0:10022' ],
-                dataSourceProperties: [
-                    dataSource: [
-                        password: "test"
-                    ]
-                ],
                 'custom.jvmArgs': [
                         "-Xmx1G",
                         "-XX:+UseG1GC",
@@ -174,12 +166,6 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
             adminAddress("0.0.0.0:10024")
         }
         extraConfig = [
-                h2Settings: [ address: '0.0.0.0:10025' ],
-                dataSourceProperties: [
-                        dataSource: [
-                                password: "test"
-                        ]
-                ],
                 'custom.jvmArgs': [
                         "-Xmx1G",
                         "-XX:+UseG1GC",
@@ -198,12 +184,6 @@ task prepareAuctionDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: ['
             adminAddress("0.0.0.0:10027")
         }
         extraConfig = [
-                h2Settings: [ address: "0.0.0.0:10028" ],
-                dataSourceProperties: [
-                        dataSource: [
-                                password: "test"
-                        ]
-                ],
                 'custom.jvmArgs': [
                         "-Xmx1G",
                         "-XX:+UseG1GC",
@@ -261,12 +241,6 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
             adminAddress("0.0.0.0:10032")
         }
         extraConfig = [
-                h2Settings: [ address: '0.0.0.0:10033' ],
-                dataSourceProperties: [
-                        dataSource: [
-                                password: "test"
-                        ]
-                ],
                 'custom.jvmArgs': [
                         "-Xmx1G",
                         "-XX:+UseG1GC",
@@ -285,12 +259,6 @@ task prepareGbpDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':gal
             adminAddress("0.0.0.0:10035")
         }
         extraConfig = [
-                h2Settings: [ address: '0.0.0.0:10036' ],
-                dataSourceProperties: [
-                        dataSource: [
-                                password: "test"
-                        ]
-                ],
                 'custom.jvmArgs': [
                         "-Xmx1G",
                         "-XX:+UseG1GC",
@@ -348,12 +316,6 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
             adminAddress("0.0.0.0:10040")
         }
         extraConfig = [
-                h2Settings: [ address: '0.0.0.0:10041' ],
-                dataSourceProperties: [
-                        dataSource: [
-                                password: "test"
-                        ]
-                ],
                 'custom.jvmArgs': [
                         "-Xmx1G",
                         "-XX:+UseG1GC",
@@ -372,12 +334,6 @@ task prepareCbdcDockerNodes(type: net.corda.plugins.Dockerform, dependsOn: [':ga
             adminAddress("0.0.0.0:10043")
         }
         extraConfig = [
-                h2Settings: [ address: '0.0.0.0:10044' ],
-                dataSourceProperties: [
-                        dataSource: [
-                                password: "test"
-                        ]
-                ],
                 'custom.jvmArgs': [
                         "-Xmx1G",
                         "-XX:+UseG1GC",

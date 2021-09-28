@@ -12,21 +12,25 @@ import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
 import com.r3.gallery.broker.services.LogService
 import com.r3.gallery.workflows.artwork.DestroyArtwork
 import com.r3.gallery.workflows.token.BurnTokens
-import com.r3.gallery.workflows.webapp.GetBalanceFlow
+import com.r3.gallery.workflows.webapp.GetEncumberedAndAvailableBalanceFlow
+import net.corda.core.identity.CordaX500Name
 import net.corda.core.internal.hash
 import net.corda.core.utilities.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.core.task.SimpleAsyncTaskExecutor
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.*
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CountDownLatch
 import javax.annotation.PostConstruct
 
+/**
+ * A class which processes multi-network utility functions and services [NetworkToolsController]
+ */
 @ConditionalOnProperty(prefix = "mock.controller", name = ["enabled"], havingValue = "false")
-@Component
+@Service
 class NetworkToolsService(
     @Autowired private val connectionManager: ConnectionManager,
     @Autowired private val artNetworkGalleryClient: ArtNetworkGalleryClient,
@@ -41,13 +45,10 @@ class NetworkToolsService(
         const val TIMEOUT = ConnectionServiceImpl.TIMEOUT
     }
 
+    private val balanceCache: MutableMap<CordaX500Name, List<CompletableFuture<NetworkBalancesResponse.Balance>>> = ConcurrentHashMap()
+
     private lateinit var networkClients: List<ConnectionService>
     private lateinit var tokenClients: List<ConnectionService>
-
-    // for caching fetches
-    private val taskExecutor = SimpleAsyncTaskExecutor()
-    private var balanceResult: CopyOnWriteArrayList<NetworkBalancesResponse>? = null
-    private var logResult: CopyOnWriteArrayList<LogUpdateEntry>? = null
 
     @PostConstruct
     private fun postConstruct() {
@@ -56,7 +57,7 @@ class NetworkToolsService(
     }
 
     /**
-     * Converts String network list to ENUM representation
+     * Converts a String network list to ENUM representation
      */
     private fun networksToEnum(networks: List<String>) : List<CordaRPCNetwork> =
         networks.map {
@@ -68,7 +69,7 @@ class NetworkToolsService(
             }
         }
 
-    // Utility fun for aggregating results across multiple connection services
+    /** Utility fun for aggregating results across multiple connection services */
     private fun <T> List<ConnectionService>.runPerConnectionService(block: (ConnectionService) -> T): List<T> {
         return this.map(block)
     }
@@ -78,11 +79,13 @@ class NetworkToolsService(
      *
      * Creates a list of Pairs [displayName (node identity) and NetworkId] across all networks;
      * Constructs Participants and injects grouped list
+     *
+     * @param networks Optional list of network identifiers to filter the results on.
      */
     fun participants(networks: List<String>?) : List<Participant> {
         logger.info("Attempting to fetch participants from all networks: ${CordaRPCNetwork.values()}")
         val allNetworkIds = networkClients.runPerConnectionService {
-            val currentNetwork = it.associatedNetwork.netName
+            val currentNetwork = it.associatedNetwork.name
             logger.info("Polling participants from $currentNetwork")
             it.getNodes(networks?.let { networksToEnum(networks) }, dev = true)
                 .map { nodeInfo ->
@@ -110,112 +113,97 @@ class NetworkToolsService(
     /**
      * Log returns progressUpdates for Node Level state-machine updates
      *
-     * Initialisation of logService and connections on first call
-     * - current implementation is all or nothing (all intended nodes must be
-     * available for logService to correctly init.
+     * @param index Optional position to start returned logs from.
      */
     fun getLogs(index: Int?): List<LogUpdateEntry> {
         logger.info("Starting log retrieval")
-        var initialLatch: CountDownLatch? = null
-        if (this.balanceResult == null) {
-            initialLatch = CountDownLatch(1)
-        }
-
-        taskExecutor.execute {
-            if (!logService.isInitialized) logService.initSubscriptions().also { logService.isInitialized = true }
-            val result = logService.getProgressUpdates(index ?: 0)
-            this.logResult = CopyOnWriteArrayList(result.second)
-            initialLatch?.let { initialLatch.countDown() }
-        }
-
-        initialLatch?.let { initialLatch.await() }
-        return this.logResult!!
+        return logService.getProgressUpdates(index ?: 0)
     }
 
     /**
-     * Returns Balances of all parties
+     * Returns Balances of all parties on each network they belong, with categories for encumbered and available tokens.
      */
-    fun getBalance(): List<NetworkBalancesResponse> {
-        var initialLatch: CountDownLatch? = null
-        if (this.balanceResult == null) {
-            initialLatch = CountDownLatch(1)
-        }
+    fun getBalance(): Map<CordaX500Name, List<CompletableFuture<NetworkBalancesResponse.Balance>>> {
+        return if (balanceCache.isNotEmpty()) balanceCache.also {
+            updateBalanceCache()
+        } else updateBalanceCache().let { balanceCache }
+    }
 
-        taskExecutor.execute {
-            val allBalances = tokenClients.runPerConnectionService {
-                val network = it.associatedNetwork
-                it.allConnections()!!.map { rpc ->
-                    val x500 = rpc.proxy.nodeInfo().legalIdentities.first().name
-                    val currentBalance = rpc.proxy.startFlowDynamic(
-                            GetBalanceFlow::class.java,
-                            network.name
-                    ).returnValue.getOrThrow()
-                    Pair(x500, currentBalance)
-                }
-            }.flatten()
-            val balanceList = allBalances.groupBy { it.first }
-                    .entries.map {
-                        NetworkBalancesResponse(
-                                x500 = it.key.toString(),
-                                partyBalances = it.value.map { balance -> balance.second }
-                        )
-                    }
-            this.balanceResult = CopyOnWriteArrayList(balanceList)
-            initialLatch?.let { initialLatch.countDown() }
-        }
-        initialLatch?.let { initialLatch.await() }
+    private fun updateBalanceCache() {
+        val balance  = tokenClients.runPerConnectionService {
+            it.allProxies()!!.map { connection ->
+                val x500 = connection.key
+                val (network, proxy) = connection.value
+                val balanceFuture = proxy.startFlowDynamic(GetEncumberedAndAvailableBalanceFlow::class.java, network.name).returnValue.toCompletableFuture()
+                        .thenApply { currBalance -> currBalance as NetworkBalancesResponse.Balance }
+                Pair(x500, balanceFuture)
+            }
+        }.flatten()
 
-        return this.balanceResult!!
+        balanceCache.clear()
+        balanceCache.putAll(balance.groupBy { it.first }.mapValues { x500pair -> x500pair.value.map { it.second } })
     }
 
     /**
-     * Reset or Initialize auction demo conditions
+     * TODO - take arguments to choose the artwork and token amounts for default issuance.
+     *
+     * Reset or Initialize auction demo conditions. Will clear existing art and currency states including any
+     * encumbered tokens, and then re-issue to default amounts of (8000 GBP, 5000 CBDC)
+     *
+     * @return [List][CompletableFuture] to return issuance results on completion.
      */
-    fun initializeDemo() {
+    fun initializeDemo(): List<CompletableFuture<out Any>> {
+        logger.info("Issuing new demo data to networks.")
+        val completableFutures: MutableList<CompletableFuture<out Any>> = CopyOnWriteArrayList()
+
+        // clear existing data
+        clearDemo()
+
         // artworks
         val urlPrefix = "/assets/artwork/"
         listOf(
             Pair("A Thousand Plateaus", "A_Thousand_Plateaus.png"),
             Pair("Cities of the Red Night", "Cities_of_the_Red_Night.png"),
-            Pair("The Funeral of Being", "The_Funeral_of_Being.png"),
             Pair("All Watched Over By Machines", "All_Watched_Over_By_Machines_Of_Loving_Grace.png"),
             Pair("The Eerie Bliss", "The_Eerie_Bliss_and_Torture_of_Solitude.png"),
             Pair("The Masque of the Red Death", "The_Masque_of_the_Red_Death.png")
         ).forEach { // issue with default expiry of 3 days.
-            artNetworkGalleryClient.issueArtwork(
+            completableFutures.add(artNetworkGalleryClient.issueArtwork(
                 galleryParty = ALICE,
                 artworkId = UUID.randomUUID(),
                 description = it.first,
                 url = urlPrefix+it.second
-            )
+            ).toCompletableFuture())
         }
 
         // GBP issued to Bob
-        tokenNetworkBuyerClient.issueTokens(BOB, 500000, "GBP")
+        completableFutures.add(tokenNetworkBuyerClient.issueTokens(BOB, 500000, "GBP").toCompletableFuture())
         // CBDC issued to Charlie
-        tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC")
+        completableFutures.add(tokenNetworkBuyerClient.issueTokens(CHARLIE, 8000, "CBDC").toCompletableFuture())
+
+        logService.clearLogs()
+        logService.subscribeToRpcConnectionStateMachines()
+        return completableFutures
     }
 
     /**
      * Consumes all relevant tokens and art to reset the auction demo state
      */
-    fun clearDemo() {
+    private fun clearDemo() {
+        logger.info("Clearing demo data.")
         // destroy (off-ledger any outstanding art pieces
-        connectionManager.auction.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(DestroyArtwork::class.java).returnValue.get()
+        connectionManager.auction.allProxies()!!.map {
+            it.value.second.startFlowDynamic(DestroyArtwork::class.java).returnValue.getOrThrow()
         }
 
         // Release locks and burn tokens on GBP network
-        connectionManager.gbp.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(BurnTokens::class.java, "GBP").returnValue.get()
+        connectionManager.gbp.allProxies()!!.map {
+            it.value.second.startFlowDynamic(BurnTokens::class.java, "GBP").returnValue.getOrThrow()
         }
 
         // Release locks and burn tokens on CBDC network
-        connectionManager.cbdc.allConnections()!!.forEach {
-            it.proxy.startFlowDynamic(BurnTokens::class.java, "CBDC").returnValue.get()
+        connectionManager.cbdc.allProxies()!!.map {
+            it.value.second.startFlowDynamic(BurnTokens::class.java, "CBDC").returnValue.getOrThrow()
         }
-
-        // clear logs from service
-        if (logService.isInitialized) logService.clearLogs()
     }
 }

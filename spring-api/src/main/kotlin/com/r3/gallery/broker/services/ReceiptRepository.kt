@@ -20,17 +20,18 @@ abstract class ReceiptRepository<T: Receipt>() {
     fun store(receipt: T) {
         val bidderName = receipt.bidderName
         val artworkId = receipt.artworkId
-        receipts[(bidderName + artworkId).hashCode()] = receipt
+        val currency = receipt.currency
+        receipts[(bidderName + artworkId + currency).hashCode()] = receipt
     }
 
-    fun retrieve(bidderName: String, artworkId: ArtworkId): T {
-        return receipts[(bidderName + artworkId).hashCode()] ?:
-            throw ReceiptNotFoundException(bidderName, artworkId)
+    fun retrieve(bidderName: String, artworkId: ArtworkId, currency: String): T {
+        return receipts[(bidderName + artworkId + currency).hashCode()] ?:
+            throw ReceiptNotFoundException(bidderName, artworkId, currency)
     }
 
-    fun remove(bidderName: String, artworkId: ArtworkId) {
-        receipts.remove((bidderName + artworkId).hashCode()) ?:
-            throw ReceiptNotFoundException(bidderName, artworkId)
+    fun remove(bidderName: String, artworkId: ArtworkId, currency: String) {
+        receipts.remove((bidderName + artworkId + currency).hashCode()) ?:
+            throw ReceiptNotFoundException(bidderName, artworkId, currency)
     }
 
     fun retrieveAllForId(artworkId: ArtworkId): List<T> {
@@ -41,6 +42,6 @@ abstract class ReceiptRepository<T: Receipt>() {
         return receipts.values.toList()
     }
 
-    class ReceiptNotFoundException(bidderName: String, artworkId: ArtworkId /* = java.util.UUID */)
-        : IllegalArgumentException("Receipt not found for $bidderName, $artworkId")
+    class ReceiptNotFoundException(bidderName: String, artworkId: ArtworkId /* = java.util.UUID */, currency: String)
+        : IllegalArgumentException("Receipt not found for $bidderName, $artworkId, $currency")
 }
