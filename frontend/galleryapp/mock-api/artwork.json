@@ -1,93 +1,44 @@
-[
-  {
-    "artworkId": "4a8c9cf4-3000-4346-9324-2b1d2d954da8",
-    "description": "AppleMan",
-    "url": "https://thumbor.forbes.com/thumbor/960x0/https%3A%2F%2Fblogs-images.forbes.com%2Fchaddscott%2Ffiles%2F2018%2F10%2F12.-Son-of-Man-1200x1575.jpg",
-    "listed": true,
-    "bids": [
-      {
-        "cordaReference": "a1062db53e416d8fa109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48d",
-        "bidderPubKey": "0xb4bc263278d3ф82a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d",
-        "bidderDisplayName": "Bob GBP",
-        "amount": 250,
-        "currencyCode": "GBP",
-        "notary": "O=GBP Notary, L=London, C=GB",
-        "expiryDate": "15:17:08.132263",
-        "accepted": false
-      },
-      {
-        "cordaReference": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
-        "bidderPubKey": "0xfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3ф82a652a8d73a6b",
-        "bidderDisplayName": "Charles CBDC",
-        "amount": 250,
-        "currencyCode": "CBDC",
-        "notary": "O=CBDC Notary, L=London, C=GB",
-        "expiryDate": "15:17:08.132263",
-        "accepted": true
-      }
-    ]
-  },
-  {
-    "artworkId": "9cf44a8c-3000-4346-9324-2954da8b1d2d",
-    "description": "Summerset on the Beach",
-    "url": "https://render.fineartamerica.com/images/rendered/default/print/8/6.5/break/images-medium-5/summerset-sailboats-paul-brent.jpg",
-    "listed": true,
-    "bids": [
-      {
-        "cordaReference": "16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa109f23b7094a21e5b2645e",
-        "bidderPubKey": "0xd73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3382a652a8",
-        "bidderDisplayName": "Bob GBP",
-        "amount": 25000.33,
-        "currencyCode": "GBP",
-        "notary": "O=GBP Notary, L=London, C=GB",
-        "expiryDate": "15:17:08.132263",
-        "accepted": false
-      },
-      {
-        "cordaReference": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
-        "bidderPubKey": "0xfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3182a652a8d73a6b",
-        "bidderDisplayName": "Charles CBDC",
-        "amount": 1999.00,
-        "currencyCode": "CBDC",
-        "notary": "O=CBDC Notary, L=London, C=GB",
-        "expiryDate": "15:17:08.132263",
-        "accepted": true
-      }
-    ]
-  },
-  {
-    "artworkId": "9cf44a8c-3000-4346-9324-2954da8b1d2d4",
-    "description": "American Gothic",
-    "url": "https://www.galerie-sakura.com/media/main/produit/32f978fb9eb0a9685bfe4031af7b98dc6faf23c2.jpg",
-    "listed": true,
-    "bids": [
-      {
-        "cordaReference": "16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa109f23b7094a21e5b2645e",
-        "bidderPubKey": "0xd73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3382a652a8",
-        "bidderDisplayName": "Bob GBP",
-        "amount": 25000.33,
-        "currencyCode": "GBP",
-        "notary": "O=GBP Notary, L=London, C=GB",
-        "expiryDate": "15:17:08.132263",
-        "accepted": false
-      },
-      {
-        "cordaReference": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
-        "bidderPubKey": "0xfd8ec0ba1a63923bbb4f38147fb8a943da26db4bc263278d3182a652a8d73a6b",
-        "bidderDisplayName": "Charles CBDC",
-        "amount": 1999.00,
-        "currencyCode": "CBDC",
-        "notary": "O=CBDC Notary, L=London, C=GB",
-        "expiryDate": "15:17:08.132263",
-        "accepted": false
-      }
-    ]
-  },
-  {
-    "artworkId": "9cf44a8c-3000-4346-9324-2954da8b1d2d3",
-    "description": "In the car",
-    "url": "https://www.invaluable.com/blog/wp-content/uploads/2017/10/Invaluable-Roy-Lichtenstein-Hero.jpg",
-    "listed": true,
-    "bids": []
-  }
-]
+[ {
+  "artworkId" : "36787477-62b5-4ca5-bd36-8a834f98fac1",
+  "description" : "Cities of the Red Night",
+  "url" : "/assets/artwork/Cities_of_the_Red_Night.png",
+  "listed" : true,
+  "expiryDate" : "Thu Sep 30 13:52:00 GMT 2021",
+  "bids" : [ ]
+}, {
+  "artworkId" : "90c40afe-ed9a-45d9-a72b-7135fc3f7fa5",
+  "description" : "All Watched Over By Machines",
+  "url" : "/assets/artwork/All_Watched_Over_By_Machines_Of_Loving_Grace.png",
+  "listed" : true,
+  "expiryDate" : "Thu Sep 30 13:52:01 GMT 2021",
+  "bids" : [ ]
+}, {
+  "artworkId" : "909beaa8-5514-44d5-8661-09071aacb301",
+  "description" : "The Eerie Bliss",
+  "url" : "/assets/artwork/The_Eerie_Bliss_and_Torture_of_Solitude.png",
+  "listed" : true,
+  "expiryDate" : "Thu Sep 30 13:52:02 GMT 2021",
+  "bids" : [ ]
+}, {
+  "artworkId" : "42158f8b-be23-40d6-b656-c72cd6a98e1f",
+  "description" : "The Masque of the Red Death",
+  "url" : "/assets/artwork/The_Masque_of_the_Red_Death.png",
+  "listed" : true,
+  "expiryDate" : "Thu Sep 30 13:52:02 GMT 2021",
+  "bids" : [ ]
+}, {
+  "artworkId" : "16ec354c-0076-404e-a2fd-b446430b8615",
+  "description" : "A Thousand Plateaus",
+  "url" : "/assets/artwork/A_Thousand_Plateaus.png",
+  "listed" : true,
+  "expiryDate" : "Thu Sep 30 13:52:00 GMT 2021",
+  "bids" : [ {
+    "cordaReference" : "9BA133DE54BD6A4B6A26B61F7F158BC28059EE05A3A2496600F583CAF3D97DBE",
+    "bidderPublicKey" : "5A9C48B1FEDDCDA9AAAFCF67EE8F55BD2B2D0465D38A6F0A69A64A7E4C804B8E",
+    "bidderDisplayName" : "O=Bob, L=San Francisco, C=US",
+    "amount" : "123.00",
+    "currencyCode" : "GBP",
+    "notary" : "GBP Notary",
+    "accepted" : true
+  } ]
+} ]

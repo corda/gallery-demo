@@ -1,55 +1,37 @@
-[
-  {
-    "displayName": "Alice GalleryShop",
-    "networkIds": [
-      {
-        "network": "auction",
-        "x500": "O=Alice, L=London, C=GB",
-        "publicKey": "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
-      },
-      {
-        "network": "gbp",
-        "x500": "O=Alice, L=London, C=GB",
-        "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
-      },
-      {
-        "network": "xdc",
-        "x500": "O=Alice, L=London, C=GB",
-        "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
-      }
-    ],
-    "type": "ParticipantType.GalleryOwner"
-  },
-  {
-    "displayName": "Bob GBP",
-    "networkIds": [
-      {
-        "network": "auction",
-        "x500": "O=Bob, L=San Francisco, C=US",
-        "publicKey": "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
-      },
-      {
-        "network": "gbp",
-        "x500": "O=Bob, L=San Francisco, C=US",
-        "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
-      }
-    ],
-    "type": "ParticipantType.Bidder"
-  },
-  {
-    "displayName": "Charles CBDC",
-    "networkIds": [
-      {
-        "network": "auction",
-        "x500": "O=Charlie, L=Mumbai, C=IN",
-        "publicKey": "0xdfe3d63278d3282a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
-      },
-      {
-        "network": "xdc",
-        "x500": "O=Charlie, L=Mumbai, C=IN",
-        "publicKey": "0xb4bc263278d3882a652a8d73a6bfd8ec0ba1a63923bbb4f38147fb8a943da26d"
-      }
-    ],
-    "type": "ParticipantType.Bidder"
-  }
-]
+[ {
+  "displayName" : "Alice",
+  "x500" : "O=Alice, L=London, C=GB",
+  "networkIds" : [ {
+    "network" : "AUCTION",
+    "publicKey" : "99FCB6E180965B2C4EE28D6ABB5BB7CEB9A91D1E42DADB3520216B75034A267B"
+  }, {
+    "network" : "CBDC",
+    "publicKey" : "48D60DD7670B5DE591C424F6599A8D9CD4F3F3C01C2AC5C333A38D18927C54AA"
+  }, {
+    "network" : "GBP",
+    "publicKey" : "5AFDF064BB0664E27948AB8FD2C98C17DE4C836D3369FEC7EC7E51D60C6E99B3"
+  } ],
+  "type" : "GALLERY"
+}, {
+  "displayName" : "Bob",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "networkIds" : [ {
+    "network" : "AUCTION",
+    "publicKey" : "BEE17E64E824D60DA4F665295F130E34DCF8994CEB3E350658B1B32F12FBA906"
+  }, {
+    "network" : "GBP",
+    "publicKey" : "5A9C48B1FEDDCDA9AAAFCF67EE8F55BD2B2D0465D38A6F0A69A64A7E4C804B8E"
+  } ],
+  "type" : "BIDDER"
+}, {
+  "displayName" : "Charlie",
+  "x500" : "O=Charlie, L=Mumbai, C=IN",
+  "networkIds" : [ {
+    "network" : "AUCTION",
+    "publicKey" : "D4006F989052D111748CC1A497B9C10BA90F58660C711873629D96B8E5741873"
+  }, {
+    "network" : "CBDC",
+    "publicKey" : "4157589542C4578822011DBAA11CFF07D185642E826A513CFEE478CBE9994554"
+  } ],
+  "type" : "BIDDER"
+} ]

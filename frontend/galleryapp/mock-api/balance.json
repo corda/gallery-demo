@@ -1,37 +1,26 @@
-[
-  {
-    "artworkParty": "O=Alice, L=London, C=GB",
-    "balances": [
-      {
-        "currencyCode": "GBP",
-        "encumberedFunds": 0,
-        "availableFunds": 50
-      },
-      {
-        "currencyCode": "CBDC",
-        "encumberedFunds": 0,
-        "availableFunds": 1000
-      }
-    ]
-  },
-  {
-    "artworkParty": "O=Bob, L=San Francisco, C=US",
-    "balances": [
-      {
-        "currencyCode": "GBP",
-        "encumberedFunds": 400,
-        "availableFunds": 50
-      }
-    ]
-  },
-  {
-    "artworkParty": "O=Charlie, L=Mumbai, C=IN",
-    "balances": [
-      {
-        "currencyCode": "CBDC",
-        "encumberedFunds": 0,
-        "availableFunds": 1000
-      }
-    ]
-  }
-]
+[ {
+  "x500" : "O=Alice, L=London, C=GB",
+  "partyBalances" : [ {
+    "currencyCode" : "CBDC",
+    "encumberedFunds" : 0,
+    "availableFunds" : 0
+  }, {
+    "currencyCode" : "GBP",
+    "encumberedFunds" : 0.00,
+    "availableFunds" : 123.00
+  } ]
+}, {
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "partyBalances" : [ {
+    "currencyCode" : "GBP",
+    "encumberedFunds" : 0.00,
+    "availableFunds" : 4877.00
+  } ]
+}, {
+  "x500" : "O=Charlie, L=Mumbai, C=IN",
+  "partyBalances" : [ {
+    "currencyCode" : "CBDC",
+    "encumberedFunds" : 0,
+    "availableFunds" : 8000
+  } ]
+} ]

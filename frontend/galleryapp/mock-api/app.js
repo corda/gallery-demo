@@ -18,7 +18,7 @@ app.get('/network/balance', function(req, res) {
     res.json(balance);
 });
 app.get('/network/log', function(req, res) {
-    res.json(log);
+    res.json(log.slice(req.query.index));
 });
 app.get('/network/participants', function(req, res) {
     res.json(participant);
