@@ -34,7 +34,7 @@ function ActivityLog({ title, inline, logs }: Props) {
         <div className={styles.log}>
           {logs
             .sort((logA, logB) => (logA.timestamp > logB.timestamp ? -1 : 1))
-            .map((log) => (
+            .map((log, i) => (
               <LogItem key={log.logRecordId} log={log} />
             ))}
         </div>

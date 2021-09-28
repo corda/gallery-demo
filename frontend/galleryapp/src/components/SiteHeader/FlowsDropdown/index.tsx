@@ -5,12 +5,14 @@ import React, { useContext, useState } from "react";
 import FlowDiagram from "@Components/FlowDiagram";
 import { LogsContext } from "@Context/logs";
 import { FlowData, Log } from "@Models";
-import config from "@Config";
+import dayjs from "dayjs";
+import { UsersContext } from "@Context/users";
 
 function FlowsDropdown() {
   const [toggledModal, setToggleModal] = useState(false);
   const [selectedFlow, setSelectedFlow] = useState<FlowData | null>(null);
   const { logs } = useContext(LogsContext);
+  const { networkColours } = useContext(UsersContext);
   const tmpFlowsObj: { [key: string]: Log } = {};
 
   logs.forEach((log) => {
@@ -61,12 +63,14 @@ function FlowsDropdown() {
                 <span
                   className={`${styles.label}`}
                   style={{
-                    backgroundColor: config.networks[flow.network]?.color,
+                    backgroundColor: networkColours[flow.network],
                   }}
                 >
                   {flow.x500}
                 </span>
-                <span className={styles.timeStamp}>{flow.timestamp.split(" ")[3]}</span>
+                <span className={styles.timeStamp}>
+                  {dayjs(flow.timestamp).format("HH:mm:ss:SSS")}
+                </span>
               </Option>
             ))}
         </Dropdown>

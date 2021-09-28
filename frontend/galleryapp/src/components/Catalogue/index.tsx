@@ -28,7 +28,7 @@ function Catalogue({ lots }: Props) {
           </tr>
         </thead>
         <tbody>
-          {lots
+          {[...lots]
             .sort((a, b) => {
               return a.description < b.description ? -1 : 1;
             })

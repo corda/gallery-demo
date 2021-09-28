@@ -1,72 +1,622 @@
-[
-  {
-    "associatedFlow": "com.r3.gallery.workflows.IssuedArtworkFlow",
-    "network": "auction",
-    "x500": "O=Alice, L=London, C=GB",
-    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb01",
-    "timestamp": "15:17:08.132263",
-    "message": "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]"
-  },
-  {
-    "associatedFlow": "com.r3.gallery.workflows.BidOnArtworkFlow",
-    "network": "GBP",
-    "x500": "O=Bob, L=San Francisco, C=US",
-    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb02",
-    "timestamp": "15:17:08.132263",
-    "message": "Something has happened here on [83HFJKF8736YHG09SDJ]"
-  },
-  {
-    "associatedFlow": "com.r3.gallery.workflows.BidOnArtworkFlow",
-    "network": "CBDC",
-    "x500": "O=Charles, L=London, C=GB",
-    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb03",
-    "timestamp": "15:17:08.132263",
-    "message": "[<Unlocked>300 GBP|83HFJKF8736YHG09SDJ] -> [Wallet|SDF7SDF8G9H00ME8569]"
-  },
-  {
-    "associatedFlow": "com.r3.gallery.workflows.FinaliseArtworkTransfer",
-    "network": "auction",
-    "x500": "O=Alice, L=London, C=GB",
-    "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb04",
-    "timestamp": "15:17:08.132263",
-    "message": "[<Locked>300 GBP|83HFJKF8736YHG09SDJ] <- [Wallet|SDF7SDF8G9H00ME8569]",
-    "completed":  {
-      "associatedStage": "tx3",
-      "logRecordId": "d145ac7f-6e16-49dc-99c2-f72ca0f39eb01",
-      "states": [
-        {
-          "properties": {
-            "assetType": "CBDC",
-            "amount": 250,
-            "issuer": "O=Bob, L=San Francisco, C=US",
-            "owner": "CompositeKey C(O=Bob, L=San Francisco, C=US,O=Alice, L=London, C=GB)"
-          },
-          "participants": ["O=Bob, L=San Francisco, C=US"]
-        },
-        {
-          "properties": {
-            "creator": "O=Bob, L=San Francisco, C=US",
-            "eventualOwner": "O=Alice, L=London, C=GB",
-            "txHash": "109f23b7094a21e5b2645e16c5cf532fc90e4d8fbf5d48da1062db53e416d8fa",
-            "controllingNotary": "O=CBDC Notary, L=London, C=GB",
-            "timeWindow": "2015-06-02T21:34:33.616Z"
-          },
-          "participants": ["O=Alice, L=London, C=GB", "O=Bob, L=San Francisco, C=US"]
-        },
-        {
-          "properties": {
-            "assetType": "CBDC",
-            "amount": 250,
-            "issuer": "O=Bob, L=San Francisco, C=US",
-            "owner": "C(O=Alice,L=London,C=GB)"
-          },
-          "participants": ["O=Alice, L=London, C=GB"]
-        }
-      ],
-      "signers": {
-        "O=Alice, L=London, C=GB": true,
-        "O=CBDC Notary, L=London, C=GB": false
-      }
+[ {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "de1b7b89-7d30-451f-99a1-be40a6ba6511",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Starting com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "e73f4156-84ec-4c9b-9e35-59115063d6a6",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Receiving draft transfer transaction request from bidder."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "f521c29f-26cc-413d-8886-d1eda9add0b8",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Looking up artwork item to draft transaction for."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "83a5f4dc-88a1-4ac3-a26e-5761a0118d20",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Generating transaction based on requested artwork item."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "ebf84508-8354-4049-a105-1573124ff6b2",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Verifying contract constraints."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "b794f1d8-f708-4d76-865d-5bc32c756263",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Sending unsigned draft transfer transaction to bidder."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "115da37a-011f-4f58-957b-f54dedb5cf6c",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Sending draft transfer transaction's dependencies."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "4ab3820d-47cf-4bfe-9c1b-ce2abe32eab0",
+  "timestamp" : "2021-09-27T13:53:04.197Z",
+  "message" : "Done com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "4cbee7f6-e401-4553-99af-36e3d5b9a716",
+  "timestamp" : "2021-09-27T13:53:05.024Z",
+  "message" : "Starting com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "4be0d81c-89a8-4b39-af01-2ed6cb74996a",
+  "timestamp" : "2021-09-27T13:53:05.024Z",
+  "message" : "Requesting draft transfer transaction from gallery"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "6a71ed42-cfc0-4fce-b024-42ed24699570",
+  "timestamp" : "2021-09-27T13:53:05.024Z",
+  "message" : "Verifying gallery's draft transaction and its dependencies"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "0ffe5afa-3b44-4423-bf47-ac8d347e0022",
+  "timestamp" : "2021-09-27T13:53:05.024Z",
+  "message" : "Starting com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "5a763667-e833-43e5-b878-f8aa3bc252b2",
+  "timestamp" : "2021-09-27T13:53:05.024Z",
+  "message" : "Starting com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "eac03e0b-142b-42ef-8e6f-4567e2c3e6ef",
+  "timestamp" : "2021-09-27T13:53:05.024Z",
+  "message" : "Verifying draft transaction controlling notary params to relay to token's network sibling node"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "5171b55c-a11c-4c99-acd4-4cb9b79080e0",
+  "timestamp" : "2021-09-27T13:53:05.024Z",
+  "message" : "Done com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "8f6a7954-7eb7-4f20-b0e1-0080e782186a",
+  "timestamp" : "2021-09-27T13:53:05.166Z",
+  "message" : "",
+  "completed" : {
+    "associatedStage" : "com.r3.gallery.workflows.RequestDraftTransferOfOwnershipFlow",
+    "logRecordId" : "8f6a7954-7eb7-4f20-b0e1-0080e782186a",
+    "states" : [ {
+      "properties" : {
+        "artworkId" : "16ec354c-0076-404e-a2fd-b446430b8615",
+        "description" : "A Thousand Plateaus",
+        "expiry" : "2021-09-30T13:52:00.723Z",
+        "linearId" : "57af2b95-780e-45fc-81a6-e6aede1da717",
+        "owner" : "O=Alice, L=London, C=GB",
+        "participants" : "[O=Alice, L=London, C=GB]",
+        "url" : "/assets/artwork/A_Thousand_Plateaus.png"
+      },
+      "participants" : [ "O=Alice, L=London, C=GB" ]
+    }, {
+      "properties" : {
+        "artworkId" : "16ec354c-0076-404e-a2fd-b446430b8615",
+        "description" : "A Thousand Plateaus",
+        "expiry" : "2021-09-30T13:52:00.723Z",
+        "linearId" : "57af2b95-780e-45fc-81a6-e6aede1da717",
+        "owner" : "O=Bob, L=San Francisco, C=US",
+        "participants" : "[O=Bob, L=San Francisco, C=US]",
+        "url" : "/assets/artwork/A_Thousand_Plateaus.png"
+      },
+      "participants" : [ "O=Bob, L=San Francisco, C=US" ]
+    } ],
+    "signers" : {
+      "O=Alice, L=London, C=GB" : false,
+      "O=Bob, L=San Francisco, C=US" : false,
+      "O=Notary Service, L=London, C=GB" : false
     }
   }
-]
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "7e98ef1c-8fd8-4bbc-9680-2e949854f64e",
+  "timestamp" : "2021-09-27T13:53:10.652Z",
+  "message" : "Starting com.r3.gallery.workflows.OfferEncumberedTokensFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "4b426ecb-8171-4061-9de7-f2618131500b",
+  "timestamp" : "2021-09-27T13:53:10.652Z",
+  "message" : "Generating lock state for encumbered token transaction"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "d5aa4c2e-0f5d-446f-86b0-59a18721e2e3",
+  "timestamp" : "2021-09-27T13:53:10.652Z",
+  "message" : "Generating encumbered token transaction"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "09c69d15-8f61-4e37-860e-38fd4f7d0710",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Verifying contract constraints."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "13afd0b9-faf8-41d5-a716-de86632beff1",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Signing transaction with our private key."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "d06f3a0c-493c-4b30-96f0-4092f62094f5",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Collecting transaction signatures from signers."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "7b3424c2-b728-48e3-bf95-fd9da33a507f",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Obtaining notary signature and recording transaction."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "a5e5c0a4-aec4-4ab7-b907-29048c1ef6e5",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Requesting signature by notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "96e2aaaf-e6ca-43e4-9ed0-e7dfe27aaba1",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Requesting signature by Notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "545a2ad1-2832-4ab5-bae7-7e83797a9671",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Validating response from Notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "5d928303-0b01-4081-95c1-ed7cebc2e9ae",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Broadcasting transaction to participants"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "b0ba37a7-670f-4e86-ad06-2dce109742f7",
+  "timestamp" : "2021-09-27T13:53:10.653Z",
+  "message" : "Done com.r3.gallery.workflows.OfferEncumberedTokensFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "b4ae309c-2200-4b95-9e09-bd88b8fdede8",
+  "timestamp" : "2021-09-27T13:53:10.829Z",
+  "message" : "",
+  "completed" : {
+    "associatedStage" : "com.r3.gallery.workflows.OfferEncumberedTokensFlow",
+    "logRecordId" : "b4ae309c-2200-4b95-9e09-bd88b8fdede8",
+    "states" : [ {
+      "properties" : {
+        "amount" : "5000.00 TokenType(tokenIdentifier='GBP', fractionDigits=2) issued by Bob",
+        "holder" : "O=Bob, L=San Francisco, C=US",
+        "issuedTokenType" : "TokenType(tokenIdentifier='GBP', fractionDigits=2) issued by Bob",
+        "issuer" : "O=Bob, L=San Francisco, C=US",
+        "tokenType" : "TokenType(tokenIdentifier='GBP', fractionDigits=2)",
+        "tokenTypeJarHash" : "null",
+        "participants" : "[O=Bob, L=San Francisco, C=US]"
+      },
+      "participants" : [ "O=Bob, L=San Francisco, C=US" ]
+    }, {
+      "properties" : {
+        "amount" : "123.00 TokenType(tokenIdentifier='GBP', fractionDigits=2) issued by Bob",
+        "holder" : "Anonymous(DL6cGh8hLFwTRZgbC3RFw7noxarmcAdCKnMDJVmQEyECRj)",
+        "issuedTokenType" : "TokenType(tokenIdentifier='GBP', fractionDigits=2) issued by Bob",
+        "issuer" : "O=Bob, L=San Francisco, C=US",
+        "tokenType" : "TokenType(tokenIdentifier='GBP', fractionDigits=2)",
+        "tokenTypeJarHash" : "null",
+        "participants" : "[Anonymous(DL6cGh8hLFwTRZgbC3RFw7noxarmcAdCKnMDJVmQEyECRj)]"
+      },
+      "participants" : [ "Anonymous(DL6cGh8hLFwTRZgbC3RFw7noxarmcAdCKnMDJVmQEyECRj)" ]
+    }, {
+      "properties" : {
+        "amount" : "4877.00 TokenType(tokenIdentifier='GBP', fractionDigits=2) issued by Bob",
+        "holder" : "O=Bob, L=San Francisco, C=US",
+        "issuedTokenType" : "TokenType(tokenIdentifier='GBP', fractionDigits=2) issued by Bob",
+        "issuer" : "O=Bob, L=San Francisco, C=US",
+        "tokenType" : "TokenType(tokenIdentifier='GBP', fractionDigits=2)",
+        "tokenTypeJarHash" : "null",
+        "participants" : "[O=Bob, L=San Francisco, C=US]"
+      },
+      "participants" : [ "O=Bob, L=San Francisco, C=US" ]
+    }, {
+      "properties" : {
+        "controllingNotary" : "O=Notary Service, L=London, C=GB",
+        "creator" : "O=Bob, L=San Francisco, C=US",
+        "participants" : "[O=Bob, L=San Francisco, C=US, O=Alice, L=London, C=GB]",
+        "receiver" : "O=Alice, L=London, C=GB",
+        "timeWindow" : "(∞, 2021-09-30T13:52:00.723Z)",
+        "txHash" : "SignableData(txId=C7EAC6ECC8A358B3DD165404A24DEB09B73E49D932651D825E4C5DBA0F8B6245, signatureMetadata=SignatureMetadata(platformVersion=4, schemeNumberID=4))"
+      },
+      "participants" : [ "O=Bob, L=San Francisco, C=US", "O=Alice, L=London, C=GB" ]
+    } ],
+    "signers" : {
+      "O=Bob, L=San Francisco, C=US" : true,
+      "O=Alice, L=London, C=GB" : true,
+      "O=Notary Service, L=London, C=GB" : true
+    }
+  }
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "57af5ce4-21fd-494b-bcec-3a9d9c4a1931",
+  "timestamp" : "2021-09-27T13:53:11.544Z",
+  "message" : "Starting com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "f2a06741-3076-4f86-8606-c748e553a687",
+  "timestamp" : "2021-09-27T13:53:11.544Z",
+  "message" : "Starting com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "b9f45976-e6f2-4c10-9dbb-873ad72b9e33",
+  "timestamp" : "2021-09-27T13:53:11.544Z",
+  "message" : "Starting com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "ee3039ef-33b2-4ca6-ad52-ad5a740e9c3e",
+  "timestamp" : "2021-09-27T13:53:11.544Z",
+  "message" : "Starting com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "7e65e3e6-35cf-4c3e-a578-8c3bb03d47cb",
+  "timestamp" : "2021-09-27T13:53:11.544Z",
+  "message" : "Done com.r3.gallery.workflows.OfferEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "3849c93a-0d15-42f9-b815-332a171a9726",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Starting com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "35744fad-cb32-4b43-b060-cc33721899ce",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Verifying contract constraints."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "1ae4374e-7b24-4738-a33e-57733fabb559",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Signing transaction with our private key."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "75e38d9c-7b75-4b23-8dcd-6fd832d24041",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Gathering transaction participants' identities"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "a20796c3-c552-4a8f-914a-a9dd707e377c",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Gathering transaction signers' identities"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "c49d475e-0766-42cf-9145-4e6c81741877",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Collecting transaction signatures from signers."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "4571dd2c-9fb4-4be3-9398-9612154cd02f",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Starting com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "73841c5c-6325-4f79-b996-377d81404037",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Collecting signatures from counterparties."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "8a5404f8-1953-4872-b2d0-871a5c4ff81b",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Starting com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "ceeb790d-595c-4ffa-abe7-8896654ddbb9",
+  "timestamp" : "2021-09-27T13:53:22.207Z",
+  "message" : "Verifying collected signatures."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "325f66f3-1c29-49c0-a7e8-320555d054fa",
+  "timestamp" : "2021-09-27T13:53:22.208Z",
+  "message" : "Obtaining notary signature and recording transaction."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "dc881307-2458-45d9-880d-648627b300f6",
+  "timestamp" : "2021-09-27T13:53:22.208Z",
+  "message" : "Requesting signature by notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "a39d3c71-34ef-4579-9f85-3005fcb86c4b",
+  "timestamp" : "2021-09-27T13:53:22.208Z",
+  "message" : "Requesting signature by Notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "250e680d-0c58-4dab-acba-a96f12b52b7b",
+  "timestamp" : "2021-09-27T13:53:22.208Z",
+  "message" : "Validating response from Notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "cd30c52a-e75a-45a5-9399-df3880fc8c0f",
+  "timestamp" : "2021-09-27T13:53:22.208Z",
+  "message" : "Broadcasting transaction to participants"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "d2b30f52-e21f-487b-9181-266381c480c4",
+  "timestamp" : "2021-09-27T13:53:22.208Z",
+  "message" : "Done com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "58ffea28-7072-4557-b90a-13477af71ad8",
+  "timestamp" : "2021-09-27T13:53:22.245Z",
+  "message" : "Starting com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "9b3681f4-c3d0-4124-80b9-52d3d497a67c",
+  "timestamp" : "2021-09-27T13:53:22.245Z",
+  "message" : "Starting com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "024d583f-e4b8-4071-a82c-dd456d4d1c10",
+  "timestamp" : "2021-09-27T13:53:22.245Z",
+  "message" : "Starting com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "28a11a6e-0b96-4195-be2e-3da40187e1c5",
+  "timestamp" : "2021-09-27T13:53:22.245Z",
+  "message" : "Starting com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler",
+  "network" : "AUCTION",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "ecea3059-ef4b-41bf-bf43-24f4b3ebfb77",
+  "timestamp" : "2021-09-27T13:53:22.245Z",
+  "message" : "Done com.r3.gallery.workflows.SignAndFinaliseTxForPushHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+  "network" : "AUCTION",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "2b49d507-103c-4462-8ab3-41cd9ded6679",
+  "timestamp" : "2021-09-27T13:53:22.336Z",
+  "message" : "",
+  "completed" : {
+    "associatedStage" : "com.r3.gallery.workflows.SignAndFinalizeTransferOfOwnership",
+    "logRecordId" : "2b49d507-103c-4462-8ab3-41cd9ded6679",
+    "states" : [ {
+      "properties" : {
+        "artworkId" : "16ec354c-0076-404e-a2fd-b446430b8615",
+        "description" : "A Thousand Plateaus",
+        "expiry" : "2021-09-30T13:52:00.723Z",
+        "linearId" : "57af2b95-780e-45fc-81a6-e6aede1da717",
+        "owner" : "O=Alice, L=London, C=GB",
+        "participants" : "[O=Alice, L=London, C=GB]",
+        "url" : "/assets/artwork/A_Thousand_Plateaus.png"
+      },
+      "participants" : [ "O=Alice, L=London, C=GB" ]
+    }, {
+      "properties" : {
+        "artworkId" : "16ec354c-0076-404e-a2fd-b446430b8615",
+        "description" : "A Thousand Plateaus",
+        "expiry" : "2021-09-30T13:52:00.723Z",
+        "linearId" : "57af2b95-780e-45fc-81a6-e6aede1da717",
+        "owner" : "O=Bob, L=San Francisco, C=US",
+        "participants" : "[O=Bob, L=San Francisco, C=US]",
+        "url" : "/assets/artwork/A_Thousand_Plateaus.png"
+      },
+      "participants" : [ "O=Bob, L=San Francisco, C=US" ]
+    } ],
+    "signers" : {
+      "O=Alice, L=London, C=GB" : true,
+      "O=Bob, L=San Francisco, C=US" : true,
+      "O=Notary Service, L=London, C=GB" : true
+    }
+  }
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "60fcc657-609a-4b56-a59b-ad1a8d3f2749",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Starting com.r3.gallery.workflows.UnlockEncumberedTokensFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "3f5a00cc-4096-47a5-9983-ec2642db4dc6",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Gathering encumbered transaction to unlock based on transaction's hash."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "69b8688c-1d05-4ea3-a143-1f0faaa9bc1b",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Generating transaction based on unlock parameters."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "b8d589f4-1d46-451a-912f-ca22148b4d85",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Verifying contract constraints."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "2c980ddb-5366-449d-a275-ed53a4f7fdf2",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Signing transaction with our private key."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "2c22ca1b-469e-45a2-b5a5-51529ba6eea9",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Obtaining notary signature and recording transaction."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "e7c29487-3938-4902-b90f-0179e8909b81",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Requesting signature by notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "c1d5f7f2-f80b-45e9-89ed-d9d27d0988c2",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Requesting signature by Notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "0854cfe0-287b-4d73-89cd-c05393379ff7",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Validating response from Notary service"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "63942af2-71e7-4ce9-b24b-c6187ce7100f",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Broadcasting transaction to participants"
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlow",
+  "network" : "GBP",
+  "x500" : "O=Alice, L=London, C=GB",
+  "logRecordId" : "a8cdc9f8-a0b5-4d1e-9caf-b4fb5370002d",
+  "timestamp" : "2021-09-27T13:53:23.299Z",
+  "message" : "Done com.r3.gallery.workflows.UnlockEncumberedTokensFlow."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "ce53d7dc-13d2-4a1a-829f-d6c0d85a6cf7",
+  "timestamp" : "2021-09-27T13:53:23.366Z",
+  "message" : "Starting com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "26e28025-c043-4d3e-bdf6-921df40bd2ce",
+  "timestamp" : "2021-09-27T13:53:23.366Z",
+  "message" : "Starting com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "7e5433a8-c15a-418a-9803-f7b8cfecd5f8",
+  "timestamp" : "2021-09-27T13:53:23.366Z",
+  "message" : "Starting com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "e59ba4cf-2a33-494b-9530-a452a56d90cb",
+  "timestamp" : "2021-09-27T13:53:23.366Z",
+  "message" : "Starting com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler."
+}, {
+  "associatedFlow" : "com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler",
+  "network" : "GBP",
+  "x500" : "O=Bob, L=San Francisco, C=US",
+  "logRecordId" : "ef67a30d-2172-4661-b3d2-7743375ba352",
+  "timestamp" : "2021-09-27T13:53:23.366Z",
+  "message" : "Done com.r3.gallery.workflows.UnlockEncumberedTokensFlowHandler."
+} ]

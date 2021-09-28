@@ -65,7 +65,7 @@ function GalleryBidModal({ open, onClose, selectedArtwork, user }: Props) {
             />
             <Select
               label="Asset"
-              onChange={(event) => {
+              onChange={(event): void => {
                 setTokenType(event.target.value);
               }}
               value={tokenType}

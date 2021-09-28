@@ -1,29 +1,15 @@
 export interface Config {
   gallery: string;
   apiHost: string;
-  networks: {
-    [k: string]: {
-      color: string;
-    };
-  };
+  networkColours: string[];
 }
 
 const config: Config = {
   gallery: "gallery-id",
   apiHost: process.env.REACT_APP_API_HOST
     ? process.env.REACT_APP_API_HOST
-    : "http://gallery-webappapi.cordapayments-sandbox.com",
-  networks: {
-    AUCTION: {
-      color: "#00a37e",
-    },
-    CBDC: {
-      color: "#F7DC6F",
-    },
-    GBP: {
-      color: "#C1B3F3",
-    },
-  },
+    : "http://localhost:1337",
+  networkColours: ["#00a37e", "#F7DC6F", "#C1B3F3", "#f04a50", "#b1b3c1", "#b5930b"],
 };
 
 export default config;

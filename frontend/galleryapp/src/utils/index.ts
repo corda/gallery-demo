@@ -33,8 +33,9 @@ export async function apiCall<T, U = void>(
   path: string,
   params?: U
 ): Promise<T | null> {
+  const parameters = type === "get" ? { params } : params;
   try {
-    const response = await axios[type](`${config.apiHost}${path}`, params);
+    const response = await axios[type](`${config.apiHost}${path}`, parameters);
     return response.data;
   } catch (error) {
     console.error(error);

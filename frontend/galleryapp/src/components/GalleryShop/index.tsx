@@ -40,7 +40,7 @@ function GalleryShop({ lots, x500 }: Props) {
     <section className={styles.main}>
       <h3>Gallery</h3>
       <ul className={styles.lotList}>
-        {lots
+        {[...lots]
           .sort((a, b) => {
             return a.description < b.description ? -1 : 1;
           })
