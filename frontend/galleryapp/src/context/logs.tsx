@@ -15,9 +15,9 @@ const contextDefaultValues: LogsContextInterface = {
 
 export const LogsContext = createContext<LogsContextInterface>(contextDefaultValues);
 
-function sortLogs(logA: Log, logB:Log) {
+function sortLogs(logA: Log, logB: Log) {
   if (logA.timestamp === logB.timestamp) return 0;
-  return (logA.timestamp < logB.timestamp) ? 1 : -1;
+  return logA.timestamp < logB.timestamp ? 1 : -1;
 }
 
 export const LogsProvider: FC = ({ children }) => {

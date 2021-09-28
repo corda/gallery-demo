@@ -1,7 +1,8 @@
 import { apiCall } from "@Utils";
 import {
   Balance,
-  GalleryLot, GetLogParams,
+  GalleryLot,
+  GetLogParams,
   Log,
   Participant,
   PostBidAcceptanceParams,
@@ -10,7 +11,8 @@ import {
 
 export const getParticipants = () => apiCall<Participant[]>("get", "/network/participants");
 
-export const getLogs = (index: number) => apiCall<Log[], GetLogParams>("get", "/network/log", {index});
+export const getLogs = (index: number) =>
+  apiCall<Log[], GetLogParams>("get", "/network/log", { index });
 
 export const getBalances = () => apiCall<Balance[]>("get", "/network/balance");
 

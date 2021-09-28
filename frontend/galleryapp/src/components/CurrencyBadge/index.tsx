@@ -1,6 +1,6 @@
 import { Badge } from "@r3/r3-tooling-design-system";
-import {FC, useContext} from "react";
-import {UsersContext} from "@Context/users";
+import { FC, useContext } from "react";
+import { UsersContext } from "@Context/users";
 
 interface Props {
   currencyCode: string;

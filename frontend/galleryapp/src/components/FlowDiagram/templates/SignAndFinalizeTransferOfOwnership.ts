@@ -1,10 +1,10 @@
 import { FlowData } from "@Models";
 
 const labelStyle = {
-  "fontSize": "14px",
-  "fontWeight": "bold",
+  fontSize: "14px",
+  fontWeight: "bold",
   fill: "#49505f",
-  "fontFamily": "Monaco",
+  fontFamily: "Monaco",
 };
 
 const template = (data: FlowData) => [

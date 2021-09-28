@@ -109,5 +109,5 @@ export interface PostBidAcceptanceParams {
 }
 
 export interface GetLogParams {
-  index: number
+  index: number;
 }

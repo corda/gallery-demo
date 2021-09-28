@@ -3,9 +3,9 @@ import { Log } from "@Models";
 import Locked from "@Assets/padlock.svg";
 import Unlocked from "@Assets/unlocked.svg";
 import LogDirectionArrow from "@Assets/logDirectionArrow.svg";
-import dayjs from 'dayjs'
-import {useContext} from "react";
-import {UsersContext} from "@Context/users";
+import dayjs from "dayjs";
+import { useContext } from "react";
+import { UsersContext } from "@Context/users";
 
 interface Props {
   log: Log;
@@ -15,10 +15,7 @@ function LogItem({ log }: Props) {
   const { networkColours } = useContext(UsersContext);
   return (
     <div className={styles.main}>
-      <span
-        className={styles.colourCode}
-        style={{ background: networkColours[log.network]}}
-      />
+      <span className={styles.colourCode} style={{ background: networkColours[log.network] }} />
       <span className={styles.timestamp}>{dayjs(log.timestamp).format("HH:mm:ss:SSS")}</span>
       <span className={styles.message}>{formatter(log.message)}</span>
     </div>
