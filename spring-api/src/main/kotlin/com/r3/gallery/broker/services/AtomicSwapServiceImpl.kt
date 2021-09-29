@@ -36,6 +36,10 @@ class AtomicSwapServiceImpl(
 
     /**
      * The bidder bids for an artwork.
+     *
+     * a. Request draft transaction from the Gallery on Auction network
+     * b. Send encumbered tokens from Buyer to Seller on the Consideration network
+     *
      * @param bidderName X500 name of the bidder.
      * @param artworkId the artwork to bid for.
      * @param bidAmount the bidder is willing to pay.
@@ -82,13 +86,14 @@ class AtomicSwapServiceImpl(
     }
 
     /**
-     * Executes a pre-(time-window expiry) release of encumbered tokens back to the original holder.
+     * The gallery cancel the losing bid, returning the offered tokens to the buyer.
+     *
      * Note: This is a best-behavior action by the seller to release the lock if another bid has been accepted and finalised.
      * Should the seller refuse to initiate this action, the buyer is still protected in that the time-window on the
      * lock will allow them to initiate a claim after expiry.
      *
-     * @param bid represented by a [BidReceipt]
-     * @return [CancellationReceipt] with details of the tx
+     * @param bid receipt of the losing bid.
+     * @return Details of the cancelled bid.
      */
     override fun cancelBid(bid: Receipt.BidReceipt): Receipt.CancellationReceipt {
 
@@ -111,8 +116,10 @@ class AtomicSwapServiceImpl(
 
     /**
      * Resolves a [Party] from its name and currency.
+     *
      * @param buyerParty the X500 name of the party
      * @param currency network the party belongs to.
+     * @return [Party]
      */
     override fun getPartyFromNameAndCurrency(buyerParty: TokenParty, currency: String): Party {
         return buyerClient.resolvePartyFromNameAndCurrency(buyerParty, currency)

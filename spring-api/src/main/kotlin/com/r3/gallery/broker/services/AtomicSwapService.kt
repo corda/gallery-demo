@@ -22,6 +22,10 @@ interface AtomicSwapService {
 
     /**
      * The bidder bids for an artwork.
+     *
+     * a. Request draft transaction from the Gallery on Auction network
+     * b. Send encumbered tokens from Buyer to Seller on the Consideration network
+     *
      * @param bidderName X500 name of the bidder.
      * @param artworkId the artwork to bid for.
      * @param bidAmount the bidder is willing to pay.
@@ -32,6 +36,11 @@ interface AtomicSwapService {
 
     /**
      * The gallery awards the artwork to the successful bid.
+     *
+     * a. Finalising the draft transaction (sign notarise the artwork transfer) by the Gallery on the Auction network.
+     * b. Sending the notary signature of that transaction from the Gallery to it's counter-identity Seller on the
+     * consideration network, then using that proof to claim the encumbered tokens.
+     *
      * @param bid receipt of the winning bid.
      * @return Details of the sale, with transaction ids for both legs of the swap.
      */
@@ -39,20 +48,29 @@ interface AtomicSwapService {
 
     /**
      * The gallery cancel the losing bid, returning the offered tokens to the buyer.
+     *
+     * Note: This is a best-behavior action by the seller to release the lock if another bid has been accepted and finalised.
+     * Should the seller refuse to initiate this action, the buyer is still protected in that the time-window on the
+     * lock will allow them to initiate a claim after expiry.
+     *
      * @param bid receipt of the losing bid.
      * @return Details of the cancelled bid.
      */
     fun cancelBid(bid: BidReceipt): CancellationReceipt
 
     /**
-     * Lists all artworks for sale by the gallery.
+     * Returns all artwork across auction networks
+     *
+     * @return list of [CordaFuture] representing the artworks held by each gallery
      */
     fun getAllArtworks(): List<CordaFuture<List<ArtworkState>>>
 
     /**
      * Resolves a [Party] from its name and currency.
+     *
      * @param buyerParty the X500 name of the party
      * @param currency network the party belongs to.
+     * @return [Party]
      */
     fun getPartyFromNameAndCurrency(buyerParty: TokenParty, currency: String): Party
 }
