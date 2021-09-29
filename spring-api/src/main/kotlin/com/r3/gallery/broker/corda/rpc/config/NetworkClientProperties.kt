@@ -3,6 +3,9 @@ package com.r3.gallery.broker.corda.rpc.config
 import com.r3.gallery.api.CordaRPCNetwork
 import org.springframework.stereotype.Component
 
+/**
+ * Stores connection configurations parsed from application.properties to represent AuctionNetwork
+ */
 @Component("AuctionNetworkProperties")
 class AuctionNetworkProperties(properties: RpcProperties) : ClientProperties {
 
@@ -32,6 +35,9 @@ class AuctionNetworkProperties(properties: RpcProperties) : ClientProperties {
         )
 }
 
+/**
+ * Stores connection configurations parsed from application.properties to represent GbpNetwork
+ */
 @Component("GbpNetworkProperties")
 class GbpNetworkProperties(properties: RpcProperties) : ClientProperties {
 
@@ -54,6 +60,9 @@ class GbpNetworkProperties(properties: RpcProperties) : ClientProperties {
         )
 }
 
+/**
+ * Stores connection configurations parsed from application.properties to represent CbdcNetwork
+ */
 @Component("CbdcNetworkProperties")
 class CbdcNetworkProperties(properties: RpcProperties) : ClientProperties {
 

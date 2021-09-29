@@ -15,8 +15,8 @@ import net.corda.core.contracts.UniqueIdentifier
 
 
 /**
- * Jackson Serialization mappings for custom Payment types. Handles encoding of JSON objects returned by
- * AgentController. To create a custom mapping, add a 'mixin' class to package config/mixin and add to mapper here.
+ * Jackson Serialization mappings for custom types. Handles encoding of JSON objects returned by
+ * Gallery Cordapp Controllers. To create a custom mapping, add a 'mixin' class to package config/mixin and add to mapper here.
  */
 @Configuration
 class SerializationConfig {

@@ -36,12 +36,12 @@ class ArtNetworkBidderClientImpl(
     }
 
     /**
-     * TODO Move to AtomicSwapService
      * Used by bidder to request an unsigned draft transaction of the artwork transfer from gallery
      *
      * @param bidder of the artwork
      * @param gallery holding the artwork
      * @param artworkId represented the target artwork
+     * @return [ValidatedUnsignedArtworkTransferTx] wrapping a byte transaction and signature and notary data.
      */
     override fun requestDraftTransferOfOwnership(
         bidder: ArtworkParty,

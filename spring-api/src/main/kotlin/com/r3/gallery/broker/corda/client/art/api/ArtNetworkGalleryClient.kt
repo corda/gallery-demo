@@ -49,6 +49,7 @@ interface ArtNetworkGalleryClient {
 
     /**
      * Returns all available artwork states.
+     *
      * @return [List][ArtworkState]
      */
     fun getAllArtwork(): List<CordaFuture<List<ArtworkState>>>

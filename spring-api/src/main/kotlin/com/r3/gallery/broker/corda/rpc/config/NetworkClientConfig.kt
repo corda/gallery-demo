@@ -5,8 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
 /**
- * A configuration class to be instantiated inline with injectables
- * required for Corda RPC Connections
+ * A configuration class to be instantiated inline with injectables. Required for Corda RPC Connections
  */
 data class NetworkClientConfig(
     val nodeName: String,
@@ -20,8 +19,7 @@ data class NetworkClientConfig(
 }
 
 /**
- * Loads configuration injections from applications.properties
- * to single model
+ * Data model for storing applications.properties values defined under `rpc` key.
  */
 @ConstructorBinding
 @ConfigurationProperties("rpc")

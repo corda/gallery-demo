@@ -16,6 +16,7 @@ interface TokenNetworkBuyerClient {
      * @param buyer to issue tokens to (for demo purposes tokens are self-issued)
      * @param amount to issue
      * @param currency string representation of the token description
+     * @return [CordaFuture][SignedTransaction]
      */
     fun issueTokens(buyer: TokenParty, amount: Long, currency: String = "GBP"): CordaFuture<SignedTransaction>
 
@@ -27,6 +28,7 @@ interface TokenNetworkBuyerClient {
      * @param amount of tokens
      * @param currency representing the token type description
      * @param lockedOn [ValidatedUnsignedArtworkTransferTx] to use as a requirement for notary signature
+     * @return [TransactionHash]
      */
     fun transferEncumberedTokens(buyer: TokenParty,
                                  seller: TokenParty,
@@ -42,11 +44,15 @@ interface TokenNetworkBuyerClient {
      * @param buyer who wishes to release the tokens
      * @param currency of the token
      * @param encumberedTokens [TransactionHash]
+     * @return [TransactionHash]
      */
     fun releaseTokens(buyer: TokenParty, currency: String, encumberedTokens: TransactionHash): TransactionHash
 
     /**
      * Returns a [Party] given a buyer.
+     *
+     * @param buyer x500 name
+     * @return [Party]
      */
     fun resolvePartyFromNameAndCurrency(buyer: TokenParty /* = kotlin.String */, currency: String): Party
 }

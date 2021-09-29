@@ -19,7 +19,7 @@ internal fun String.toUUID() : UUID {
 /** wraps a RESTful response in an entity with OK status */
 internal fun <T> asResponse(obj: T) : ResponseEntity<T> = ResponseEntity.status(HttpStatus.OK).body(obj)
 
-/** Simultaneously resolves a list of Completable Futures and returns a list of results. */
+/** Simultaneously resolves a list of Completable Futures and returns a list of results using Rx join to fetch. */
 fun <T> joinFuturesFromList(futures: List<CompletableFuture<out T>>, returnUnit: Boolean = false): List<T> {
     return CompletableFuture.allOf(*futures.toTypedArray())
             .let { _ ->

@@ -42,6 +42,7 @@ class TokenNetworkBuyerClientImpl(
      * @param buyer to issue tokens to (for demo purposes tokens are self-issued)
      * @param amount to issue
      * @param currency string representation of the token description
+     * @return [CordaFuture][SignedTransaction]
      */
     override fun issueTokens(buyer: TokenParty, amount: Long, currency: String): CordaFuture<SignedTransaction> {
         logger.info("Starting IssueTokensFlow via $buyer for $amount $currency")
@@ -60,6 +61,7 @@ class TokenNetworkBuyerClientImpl(
      * @param amount of tokens
      * @param currency representing the token type description
      * @param lockedOn [ValidatedUnsignedArtworkTransferTx] to use as a requirement for notary signature
+     * @return [TransactionHash]
      */
     override fun transferEncumberedTokens(
         buyer: TokenParty,
@@ -95,6 +97,7 @@ class TokenNetworkBuyerClientImpl(
      * @param buyer who wishes to release the tokens
      * @param currency of the token
      * @param encumberedTokens [TransactionHash]
+     * @return [TransactionHash]
      */
     override fun releaseTokens(
         buyer: TokenParty,
@@ -108,6 +111,12 @@ class TokenNetworkBuyerClientImpl(
         return stx.id.toString()
     }
 
+    /**
+     * Returns a [Party] given a buyer.
+     *
+     * @param buyer x500 name
+     * @return [Party]
+     */
     override fun resolvePartyFromNameAndCurrency(buyer: TokenParty, currency: String): Party {
         return try {
             return connectionManager.cbdc.wellKnownPartyFromName(buyer, buyer)!!

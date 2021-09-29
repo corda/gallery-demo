@@ -17,6 +17,7 @@ interface TokenNetworkSellerClient {
      * @param currency of the tokens
      * @param encumberedTokens [TransactionHash] of the encumbrance
      * @param notarySignature proof of action that the seller has satisfied their requirement and is entitled to the tokens.
+     * @return [TransactionHash]
      */
     fun claimTokens(
         sellerParty: TokenParty,
@@ -33,6 +34,7 @@ interface TokenNetworkSellerClient {
      * @param seller choosing to release the tokens
      * @param currency of the tokens
      * @param encumberedTokens [TransactionHash]
+     * @return [TransactionHash]
      */
     fun releaseTokens(seller: TokenParty, currency: String, encumberedTokens: TransactionHash): TransactionHash
 

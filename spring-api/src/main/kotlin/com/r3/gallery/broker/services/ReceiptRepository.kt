@@ -4,9 +4,6 @@ import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.broker.services.api.Receipt
 import org.springframework.stereotype.Component
 
-/**
- * Stores in memory Receipts
- */
 @Component
 class BidReceiptRepository: ReceiptRepository<Receipt.BidReceipt>()
 @Component
@@ -14,6 +11,10 @@ class SaleReceiptRepository: ReceiptRepository<Receipt.SaleReceipt>()
 @Component
 class CancelReceiptRepository: ReceiptRepository<Receipt.CancellationReceipt>()
 
+/**
+ * Stores in memory Receipts for tracking auction bid status'
+ * Implementations against [Receipt.BidReceipt], [Receipt.SaleReceipt], [Receipt.CancellationReceipt]
+ */
 abstract class ReceiptRepository<T: Receipt>() {
     private val receipts: MutableMap<Int, T> = HashMap()
 

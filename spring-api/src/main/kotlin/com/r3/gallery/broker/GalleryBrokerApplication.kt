@@ -15,6 +15,9 @@ import java.util.concurrent.Executor
 @EnableConfigurationProperties(RpcProperties::class)
 class GalleryBrokerApplication
 
+/**
+ * Spring controller entry point - run to bring up the swaps orchestration service.
+ */
 fun main(args: Array<String>) {
 	runApplication<GalleryBrokerApplication>(*args)
 }

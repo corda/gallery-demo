@@ -12,8 +12,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.concurrent.CompletableFuture
 
 /**
- * Controller with aggregate access across API layers
- * for x-network queries and generic demo operations.
+ * Controller for x-network queries and generic demo operations.
  */
 @CrossOrigin
 @RestController
@@ -32,6 +31,7 @@ class NetworkToolsController(
      * REST endpoint for returning participants across all networks.
      *
      * @param networks optional list of networks to filter on
+     * @return list of participants as a future
      */
     @GetMapping("/participants")
     fun participants(
@@ -49,6 +49,7 @@ class NetworkToolsController(
      * REST endpoint for log returns progressUpdates for Node Level state-machine updates
      *
      * @param index to retrieve a subset of log updates, defaults to returning full set of all updates
+     * @return list of [LogUpdateEntry] as a future
      */
     @GetMapping("/log")
     fun log(
@@ -64,6 +65,8 @@ class NetworkToolsController(
 
     /**
      * REST Get balances across all parties and networks
+     *
+     * @return list of [NetworkBalancesResponse] as a future
      */
     @GetMapping("/balance")
     fun balance(): CompletableFuture<ResponseEntity<List<NetworkBalancesResponse>>> {
@@ -88,6 +91,8 @@ class NetworkToolsController(
 
     /**
      * Initialise the demo by issuing artwork pieces and funds to the demo parties.
+     *
+     * @return [Unit]
      */
     @GetMapping("/init")
     fun initializeDemo(): CompletableFuture<ResponseEntity<Unit>> {

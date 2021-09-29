@@ -6,6 +6,7 @@ import com.r3.gallery.api.ValidatedUnsignedArtworkTransferTx
 import com.r3.gallery.broker.corda.client.asResponse
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
+import com.r3.gallery.broker.services.BidService
 import net.corda.core.transactions.SignedTransaction
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
@@ -16,8 +17,8 @@ import java.util.concurrent.CompletableFuture
 /**
  * REST endpoints for Buyers on a consideration (GBP or CBDC) network.
  *
- * These endpoints are for TESTING only and not called by the UI. They can be called directly to control certain stages
- * of the atomic swap.
+ * These endpoints are for testing only and are not called by bundled UI as the are processes executed via the
+ * [BidService]. They can be called directly to control certain stages of the atomic swap.
  */
 @CrossOrigin
 @RestController
@@ -32,11 +33,10 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     /**
      * REST endpoint to Issue tokens on a consideration network
      *
-     * TODO: Not currently supported in UI. This endpoint is for future use.
-     *
      * @param buyerParty to issue the tokens
      * @param amount of tokens
      * @param currency description of the token type
+     * @return [SignedTransaction] as a future
      */
     @PutMapping("/issue-tokens")
     fun issueTokens(
@@ -53,7 +53,6 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     }
 
     /**
-     * TODO: This is an intermediate request endpoint used to test and will move to BidService placeBid
      * REST endpoint to transfer encumbered tokens after receiving a draft artwork transfer response
      *
      * @param buyerParty to create the encumbered transaction
@@ -61,6 +60,7 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
      * @param amount of tokens
      * @param currency description of the token type
      * @param validatedUnsignedArtworkTransferTx to use for the lock on the encumbrance
+     * @return [TransactionHash] as a future
      */
     @PostMapping("/transfer-encumbered-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun transferEncumberedTokens(
@@ -79,13 +79,13 @@ class TokenNetworkBuyerController(private val buyerClient: TokenNetworkBuyerClie
     }
 
     /**
-     * TODO: This manual release is not currently implemented in the UI. The scenario is if the seller accepts no winner.
      * REST endpoint for releasing tokens at buyer request after an auction expiry where the seller did not respond
      * with a proof-of-action.
      *
      * @param buyerParty requesting release
      * @param currency of tokens
      * @param encumberedTokensTxHash hash of the encumbered tokens transaction.
+     * @return [TransactionHash] as a future
      */
     @PostMapping("/release-encumbered-tokens")
     fun transferEncumberedTokens(

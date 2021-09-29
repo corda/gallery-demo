@@ -3,6 +3,7 @@ package com.r3.gallery.broker.corda.client.token.controllers
 import com.r3.gallery.api.TokenParty
 import com.r3.gallery.api.TokenReleaseData
 import com.r3.gallery.api.TransactionHash
+import com.r3.gallery.broker.services.BidService
 import com.r3.gallery.broker.corda.client.asResponse
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.corda.rpc.service.ConnectionServiceImpl
@@ -15,8 +16,8 @@ import java.util.concurrent.CompletableFuture
 /**
  * REST endpoints for Sellers on a consideration (GBP or CBDC) network.
  *
- * These endpoints are for TESTING only and not called by the UI. They can be called directly to control certain stages
- * of the atomic swap.
+ * These endpoints are for testing only and are not called by bundled UI as the are processes executed via the
+ * [BidService]. They can be called directly to control certain stages of the atomic swap.
  */
 @CrossOrigin
 @RestController
@@ -29,13 +30,13 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     }
 
     /**
-     * TODO: Testing endpoint, the claim will be an intermediary process of the BidService/acceptBid hook.
      * REST endpoint for seller to claim tokens after finalising a draft transfer of artwork which satisfies the encumbrance
      * lock of a bid.
      *
      * @param sellerParty making the claim
      * @param currency of the tokens
      * @param tokenReleaseData object containing encumberedTokens tx hash and notary signature proof-of-action.
+     * @return [TransactionHash] as a future
      */
     @PostMapping("/claim-tokens", consumes = [MediaType.APPLICATION_JSON_VALUE])
     fun claimTokens(
@@ -52,7 +53,6 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
     }
 
     /**
-     * TODO: Testing endpoint, the claim will be an intermediary process of the BidService/acceptBid hook.
      * REST endpoint to release tokens which are pending POA/encumbered in the case that another bid was accepted, or
      * that the seller no longer wishes to continue the auction. In this case these tokens will be reverted/released
      * to original bidders.
@@ -60,6 +60,7 @@ class TokenNetworkSellerController(private val sellerClient: TokenNetworkSellerC
      * @param sellerParty initiating the release and listed as 'receiver' of the tokens on the lock
      * @param currency of the tokens
      * @param encumberedTokensTxHash
+     * @return [TransactionHash] as a future
      */
     @PostMapping("/release-encumbered-tokens")
     fun releaseTokens(

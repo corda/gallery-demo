@@ -14,6 +14,9 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 
+/**
+ * Implementation of [BidService]
+ */
 @Component
 class BidServiceImpl(
     @Autowired val swapService: AtomicSwapService,
@@ -28,6 +31,14 @@ class BidServiceImpl(
 
     private val listAvailableArtworkCache: MutableList<CompletableFuture<List<AvailableArtwork>>> = CopyOnWriteArrayList()
 
+    /**
+     * Places a bid initiated by a Bidder and stores a receipt in a [ReceiptRepository]
+     *
+     * @param bidderName x500 name of a valid bidder on the Auction network
+     * @param artworkId the unique identifier of the artwork being bid on
+     * @param bidAmount the amount to bid in Long (conversions from decimal are executed prior to this call)
+     * @param currency used to map the bid to the correct consideration network
+     */
     override fun placeBid(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String) {
         logger.info("Processing bid $bidderName, $artworkId, $bidAmount, $currency in BidService")
 
@@ -36,6 +47,15 @@ class BidServiceImpl(
         bidRepository.store(bidReceipt)
     }
 
+    /**
+     * Awards an artwork, initiated by a Gallery, stores a sales receipt (for accepted bid),
+     * and set of cancellation receipts (for all non-accepted bids).
+     *
+     * @param bidderName x500 name of the bidder whose bid is being accepted
+     * @param artworkId the unique identifier of the artwork to be transferred/sold
+     * @param encumberedCurrency the currency of the bid which was placed
+     * @return [List][Receipt] a receipt summary of the auction including sale and cancellation receipts.
+     */
     override fun awardArtwork(bidderName: String, artworkId: ArtworkId, encumberedCurrency: String): List<Receipt> {
         logger.info("Processing award artwork $bidderName, $artworkId, $encumberedCurrency in BidService")
 
@@ -58,11 +78,11 @@ class BidServiceImpl(
     }
 
     /**
-     * TODO populate bids on spring restart by using ledger.
-     * Lists available artwork held by a particular gallery
+     * Returns a list of futures referencing a list of available artworks (later transformed to List<AvailableArtwork>
+     * Receipts for bids on the artwork are embedded in the result.
      *
-     * @param galleryParty to query for artwork
-     * @return [List][AvailableArtwork]
+     * @param galleryParty the party whose RPC connection initiates the query
+     * @return list of [CompletableFuture]
      */
     override fun listAvailableArtworks(galleryParty: ArtworkParty): List<CompletableFuture<List<AvailableArtwork>>> {
         logger.info("Listing available artworks via $galleryParty")
@@ -71,6 +91,7 @@ class BidServiceImpl(
         } else updateArtworkCache().let { listAvailableArtworkCache }
     }
 
+    /** Helper function to update n-1 result cache for faster polling response */
     private fun updateArtworkCache() {
         val artworks = swapService.getAllArtworks()
         val completableFutureArtworkList = artworks.map { artworkFuture -> artworkFuture.toCompletableFuture() }

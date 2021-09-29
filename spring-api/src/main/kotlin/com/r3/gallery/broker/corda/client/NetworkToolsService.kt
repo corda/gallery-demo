@@ -58,6 +58,9 @@ class NetworkToolsService(
 
     /**
      * Converts a String network list to ENUM representation
+     *
+     * @param networks to convert
+     * @return [List][CordaRPCNetwork] generated from param.
      */
     private fun networksToEnum(networks: List<String>) : List<CordaRPCNetwork> =
         networks.map {
@@ -81,6 +84,7 @@ class NetworkToolsService(
      * Constructs Participants and injects grouped list
      *
      * @param networks Optional list of network identifiers to filter the results on.
+     * @return [List][Participant]
      */
     fun participants(networks: List<String>?) : List<Participant> {
         logger.info("Attempting to fetch participants from all networks: ${CordaRPCNetwork.values()}")
@@ -114,6 +118,7 @@ class NetworkToolsService(
      * Log returns progressUpdates for Node Level state-machine updates
      *
      * @param index Optional position to start returned logs from.
+     * @return [List][LogUpdateEntry]
      */
     fun getLogs(index: Int?): List<LogUpdateEntry> {
         logger.info("Starting log retrieval")
@@ -122,6 +127,8 @@ class NetworkToolsService(
 
     /**
      * Returns Balances of all parties on each network they belong, with categories for encumbered and available tokens.
+     *
+     * @return [Map] k - CordaX500Name, v - list of futures which will resolve to Balances held, for each network identity of key.
      */
     fun getBalance(): Map<CordaX500Name, List<CompletableFuture<NetworkBalancesResponse.Balance>>> {
         return if (balanceCache.isNotEmpty()) balanceCache.also {
@@ -129,6 +136,7 @@ class NetworkToolsService(
         } else updateBalanceCache().let { balanceCache }
     }
 
+    /** Helper function to update n-1 result cache for faster polling response */
     private fun updateBalanceCache() {
         val balance  = tokenClients.runPerConnectionService {
             it.allProxies()!!.map { connection ->
@@ -145,8 +153,6 @@ class NetworkToolsService(
     }
 
     /**
-     * TODO - take arguments to choose the artwork and token amounts for default issuance.
-     *
      * Reset or Initialize auction demo conditions. Will clear existing art and currency states including any
      * encumbered tokens, and then re-issue to default amounts of (8000 GBP, 5000 CBDC)
      *

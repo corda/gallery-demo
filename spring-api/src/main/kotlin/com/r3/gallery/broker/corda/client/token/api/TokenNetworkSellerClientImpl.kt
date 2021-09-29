@@ -36,6 +36,7 @@ class TokenNetworkSellerClientImpl(
      * @param currency of the tokens
      * @param encumberedTokens [TransactionHash] of the encumbrance
      * @param notarySignature proof of action that the seller has satisfied their requirement and is entitled to the tokens.
+     * @return [TransactionHash]
      */
     override fun claimTokens(
         sellerParty: TokenParty,
@@ -66,6 +67,7 @@ class TokenNetworkSellerClientImpl(
      * @param seller choosing to release the tokens
      * @param currency of the tokens
      * @param encumberedTokens [TransactionHash]
+     * @return [TransactionHash]
      */
     override fun releaseTokens(
         seller: TokenParty,

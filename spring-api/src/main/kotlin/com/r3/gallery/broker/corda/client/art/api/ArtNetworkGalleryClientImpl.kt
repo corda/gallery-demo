@@ -103,6 +103,7 @@ class ArtNetworkGalleryClientImpl(
 
     /**
      * Returns all available artwork states.
+     *
      * @return [List][ArtworkState]
      */
     override fun getAllArtwork(): List<CordaFuture<List<ArtworkState>>> {

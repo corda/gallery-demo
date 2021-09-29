@@ -272,6 +272,7 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
      * Returns the progress updates across the proxies as an index and list from the requested idx.
      *
      * @param retrievalIdx starting index for log record retrieval
+     * @return [List] of [LogUpdateEntry] each entry referring to a progress update associated with a flow step.
      */
     fun getProgressUpdates(retrievalIdx: LogRetrievalIdx = 0): List<LogUpdateEntry> {
         subscribeToRpcConnectionStateMachines()
@@ -283,14 +284,13 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
         } else updateCache(retrievalIdx, lastIndex).let { progressCache }
     }
 
+    /** Helper function to update n-1 result cache for faster polling response */
     private fun updateCache(retrievalIdx: LogRetrievalIdx, lastIndex: LogRetrievalIdx) {
         progressCache.clear()
         progressCache.addAll(progressUpdates.subList(retrievalIdx, lastIndex))
     }
 
-    /**
-     * Clears / resets logs in memory
-     */
+    /** Clears / resets logs in memory. */
     fun clearLogs() {
         progressSubscriptions.clear()
         progressUpdates.clear()
