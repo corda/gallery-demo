@@ -1,5 +1,7 @@
 # Cross-chain Swaps - gallery-demo
 
+![](/frontend/galleryapp/resources/home-screen.png)
+
 A demo of swaps in an auction scenario with three distinct Corda Networks. This worked example is an implementation of the design presented at [CordaCon2021](https://www.cordacon.com/agenda/session/630202). The slides from this presentation outlining the architecture are available here in the [repo](Cross%20Chain%20Swaps%20-%20CordaCon2021.pdf).
 
 The example simulates an Auction scenario with potentially distrusting parties spread across distinct Cordapp domains (Corda Networks). For brevity, the example uses a single Cordapp to encapsulate the artwork and consideration states (ArtworkState, TokenType-GBP, TokenType-CBDC) and their associated contracts and flows; additionally, a single Spring/Orchestration layer is used to coordinate and execute cross-network interactions between an organization's Auction Network identity, and their associated consideration network identity.
