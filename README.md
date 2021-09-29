@@ -39,7 +39,7 @@ This demo sidesteps the problem of inter-chain identity, discovery and messaging
  - Alice (Seller)
  - Charlie (Buyer)
 
-** Note: That each identity across distinct networks with the same identifier is owned/controlled by the same organization. The 
+** Note: That each identity across distinct networks with the same identifier is owned/controlled by the same organization.
 
 ### Modules:
 
