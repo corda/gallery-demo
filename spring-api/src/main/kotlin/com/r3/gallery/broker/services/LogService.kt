@@ -4,6 +4,7 @@ import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
+import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
 import com.r3.gallery.workflows.webapp.ContractStatesFromTxFlow
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.identity.CordaX500Name
@@ -227,8 +228,8 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
                     Pair(initiatorProxy.partyFromKey(pKey)!!.name, hasSigned)
                 }
             }
-            is WireTransaction -> {
-                wtx = result
+            is ValidatedDraftTransferOfOwnership -> {
+                wtx = result.tx
                 signers = wtx.requiredSigningKeys.associate { pKey ->
                     Pair(initiatorProxy.partyFromKey(pKey)!!.name, false) // no signatures are applied
                 }
