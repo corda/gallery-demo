@@ -43,7 +43,7 @@ class LockContract : Contract {
 
                 val signer = ourCommand.signers.single()
 
-                require(signer == lockState.getCompositeKey()) {
+                require(signer == lockState.compositeKey) {
                     "The lock state must be signed by a composite key derived from an equal weighting of the two participants"
                 }
 
@@ -86,7 +86,7 @@ class LockContract : Contract {
                 val encumberedTxReceiver = lockState.receiver
                 val encumberedTxUntilTime = lockState.timeWindow.untilTime!!
                 val allowedOutputs: Set<FungibleToken> = tx.inputsOfType(FungibleToken::class.java).map {
-                    if(it.holder.owningKey == lockState.getCompositeKey()) it.withNewHolder(encumberedTxIssuer) else it
+                    if(it.holder.owningKey == lockState.compositeKey) it.withNewHolder(encumberedTxIssuer) else it
                 }.toSet()
                 val actualOutputs: Set<FungibleToken> = tx.outputsOfType(FungibleToken::class.java).toSet()
 

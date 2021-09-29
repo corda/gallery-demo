@@ -10,12 +10,14 @@ import net.corda.core.utilities.ProgressTracker
 
 /**
  * Sign and finalise the unsigned art transfer [WireTransaction] and return the [SignedTransaction].
- * @property wireTransaction transaction to sign and finalise.
+ * @property wireTransaction the unsigned transaction to sign and finalise.
+ * @return the transfer of ownership transaction, signed and finalised.
  */
 @StartableByRPC
 @InitiatingFlow
 class SignAndFinalizeTransferOfOwnership(
-    private val wireTransaction: WireTransaction) : FlowLogic<SignedTransaction>() {
+    private val wireTransaction: WireTransaction
+) : FlowLogic<SignedTransaction>() {
 
     @Suppress("ClassName")
     companion object {
@@ -26,6 +28,7 @@ class SignAndFinalizeTransferOfOwnership(
         object COLLECTING_SIGNATURES : ProgressTracker.Step("Collecting transaction signatures from signers.") {
             override fun childProgressTracker() = CollectSignaturesFlow.tracker()
         }
+
         object FINALISING_TRANSACTION : ProgressTracker.Step("Obtaining notary signature and recording transaction.") {
             override fun childProgressTracker() = FinalityFlow.tracker()
         }
@@ -67,7 +70,13 @@ class SignAndFinalizeTransferOfOwnership(
             .filter { it != ourIdentity }
 
         progressTracker.currentStep = COLLECTING_SIGNATURES
-        val signedTx = subFlow(CollectSignaturesInitiatingFlow(selfSignedTx, otherSigners))
+        val signedTx = subFlow(
+            CollectSignaturesInitiatingFlow(
+                selfSignedTx,
+                otherSigners,
+                COLLECTING_SIGNATURES.childProgressTracker()
+            )
+        )
 
         progressTracker.currentStep = FINALISING_TRANSACTION
         val sessions = otherParticipants.map { initiateFlow(it) }
@@ -89,7 +98,8 @@ class SignAndFinalizeTransferOfOwnership(
             window = this.timeWindow,
             privacySalt = this.privacySalt,
             references = this.references.toMutableList(),
-            serviceHub = serviceHub)
+            serviceHub = serviceHub
+        )
     }
 }
 

@@ -24,13 +24,15 @@ import net.corda.core.utilities.unwrap
  * notary identity and signature metadata to produce trusted data for the trusting node in the Token Network.
  * @param galleryParty the party identifying the gallery in the Art Network.
  * @param artworkLinearId the Artwork state linear id to transfer.
+ * @return the [ValidatedDraftTransferOfOwnership] representing the validated draft transfer of ownership transaction,
+ *         the controlling notary Party, notary signature's metadata.
  */
 @InitiatingFlow
 @StartableByRPC
 class RequestDraftTransferOfOwnershipFlow(
     private val galleryParty: Party,
     private val artworkLinearId: UniqueIdentifier
-) : FlowLogic<Pair<WireTransaction, ValidatedDraftTransferOfOwnership>>() {
+) : FlowLogic<ValidatedDraftTransferOfOwnership>() {
 
     @Suppress("ClassName")
     companion object {
@@ -46,15 +48,14 @@ class RequestDraftTransferOfOwnershipFlow(
     )
 
     @Suspendable
-    override fun call(): Pair<WireTransaction, ValidatedDraftTransferOfOwnership> {
+    override fun call(): ValidatedDraftTransferOfOwnership {
 
         progressTracker.currentStep = REQUESTING_DRAFTTX
         val session = initiateFlow(galleryParty)
         val wireTx = session.sendAndReceive<WireTransaction>(artworkLinearId).unwrap { it }
 
         progressTracker.currentStep = VERIFYING_DRAFTTX
-        val txMerkleTree = wireTx.generateWireTransactionMerkleTree()
-        val txOk = receiveAndVerifyTxDependencies(session, wireTx) && verifyShareConditions(wireTx, txMerkleTree)
+        val txOk = receiveAndVerifyTxDependencies(session, wireTx) && verifyShareConditions(wireTx)
                 && verifySharedTx(wireTx)
 
         if (!txOk) {
@@ -71,9 +72,15 @@ class RequestDraftTransferOfOwnershipFlow(
             Crypto.findSignatureScheme(notaryIdentity.owningKey).schemeNumberID
         )
 
-        return Pair(wireTx, ValidatedDraftTransferOfOwnership(wireTx, notaryIdentity, signatureMetadata))
+        return ValidatedDraftTransferOfOwnership(wireTx, notaryIdentity, signatureMetadata)
     }
 
+    /**
+     * Receive and verify all [wireTransaction]'s dependencies.
+     * @param otherSession the session with the other party.
+     * @param wireTransaction the transaction whose dependencies are to be verified.
+     * @return true if all dependencies can be successfully validated, false otherwise.
+     */
     @Suspendable
     private fun receiveAndVerifyTxDependencies(otherSession: FlowSession, wireTransaction: WireTransaction): Boolean {
         return wireTransaction.getDependencies().all {
@@ -87,12 +94,19 @@ class RequestDraftTransferOfOwnershipFlow(
         }
     }
 
+    /**
+     * Verify whether the transaction meets the minimum requirements for sharing with the other network's trusting
+     * Party.
+     * @param wireTransaction the [WireTransaction] to verify.
+     * @return true if the requirements are met, false otherwise.
+     */
     @Suspendable
-    private fun verifyShareConditions(wireTransaction: WireTransaction, expectedMerkleTree: MerkleTree): Boolean {
+    private fun verifyShareConditions(wireTransaction: WireTransaction): Boolean {
         val id = wireTransaction.id
         val suppliedMerkleTree = wireTransaction.merkleTree
         val timeWindow = wireTransaction.timeWindow
         val notary = wireTransaction.notary
+        val expectedMerkleTree = wireTransaction.generateWireTransactionMerkleTree()
 
         return !listOf(
             (expectedMerkleTree != suppliedMerkleTree) to
@@ -111,6 +125,11 @@ class RequestDraftTransferOfOwnershipFlow(
         }
     }
 
+    /**
+     * Verify the [WireTransaction] can be fully resolved, verified and its contract code successfully executed.
+     * @param wireTransaction the [WireTransaction] to verify.
+     * @return true if successfully verified, false otherwise.
+     */
     @Suspendable
     private fun verifySharedTx(wireTransaction: WireTransaction): Boolean {
         val ledgerTx = wireTransaction.toLedgerTransaction(serviceHub)

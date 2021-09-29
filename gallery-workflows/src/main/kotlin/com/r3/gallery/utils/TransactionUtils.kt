@@ -5,6 +5,9 @@ import net.corda.core.crypto.*
 import net.corda.core.transactions.SignedTransaction
 import net.corda.core.transactions.WireTransaction
 
+/**
+ * Get all transaction's dependencies from the transaction's inputs and references.
+ */
 fun WireTransaction.getDependencies(): Set<SecureHash> {
     return this.inputs.map { it.txhash }.toSet() + this.references.map { it.txhash }.toSet()
 }
@@ -60,7 +63,6 @@ fun WireTransaction.generateWireTransactionMerkleTree(): MerkleTree {
 /**
  * Return the [TransactionSignature] for the notary of this [SignedTransaction]
  * @return [TransactionSignature] representing the party's signature on this transaction.
- * @throws
  */
 fun SignedTransaction.getNotaryTransactionSignature(): TransactionSignature {
     return this.sigs.single { it.by == this.notary!!.owningKey }

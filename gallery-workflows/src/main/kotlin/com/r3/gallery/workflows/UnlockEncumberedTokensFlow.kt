@@ -18,6 +18,7 @@ import net.corda.core.utilities.ProgressTracker
  * Unlock the token states encumbered by the transaction identified by [encumberedTxHash].
  * @property encumberedTxHash the TX ID of the encumbered token offer transaction
  * @property notarySignature the [TransactionSignature] required to unlock the lock state.
+ * @return the claim token transaction, signed and finalised.
  */
 @StartableByRPC
 @InitiatingFlow
