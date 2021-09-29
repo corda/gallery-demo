@@ -1,19 +1,10 @@
-[//]: # (TODO: Update with diagrams and latest arch description and module mapping)
-[//]: # (TODO: Git squash redundant commit msgs)
-
 # gallery-demo
 
-A demo of swaps in an auction scenario with three distinct Corda Networks. This worked example is an implementation of the design presented at CordaCon2021. The slides from this presentation outlining the architecture are available here in the repo.
-
-
+A demo of swaps in an auction scenario with three distinct Corda Networks. This worked example is an implementation of the design presented at [CordaCon2021](https://www.cordacon.com/agenda/session/630202). The slides from this presentation outlining the architecture are available here in the [repo](Cross%20Chain%20Swaps%20-%20CordaCon2021.pdf).
 
 The example simulates an Auction scenario with potentially distrusting parties spread across distinct Cordapp domains (Corda Networks). For brevity, the example uses a single Cordapp to encapsulate the artwork and consideration states (ArtworkState, TokenType-GBP, TokenType-CBDC) and their associated contracts and flows; additionally, a single Spring/Orchestration layer is used to coordinate and execute cross-network interactions between an organization's Auction Network identity, and their associated consideration network identity.
 
-
-
 In a more "REAL" deployment you can imagine the structure of the total solution would include three distinct Cordapps (Auction, GBP, CBDC) as well as individual off-ledger orchestration services managed, and controlled exclusively by each party.
-
-
 
 The key to this 'simulation' is that we have limited these actions to operate completely independently and disjoint from each other. Whereby, the Gallery can only receive a result or instruction from its own identity on another network, and the same holds for the Bidding parties. Additionally, in the Cordapp a ContractState and its associated flows cannot transact or interact directly with another ContractState or its flows. Any evolutions based on data from an asset represented on another network will receive its instruction or payload via the orchestration service triggered from the source network.
 ### Participants: 
