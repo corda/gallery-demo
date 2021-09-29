@@ -220,17 +220,17 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
         var wtx: WireTransaction? = null
         var stx: SignedTransaction? = null
         when (result) {
-            is Pair<*,*> -> {
-                wtx = result.first as WireTransaction
-                signers = wtx.requiredSigningKeys.associate { pKey ->
-                    Pair(initiatorProxy.partyFromKey(pKey)!!.name, false) // no signatures are applied
-                }
-            }
             is SignedTransaction -> {
                 stx = result
                 signers = stx.requiredSigningKeys.associate { pKey ->
                     val hasSigned: Boolean = !stx.getMissingSigners().contains(pKey)
                     Pair(initiatorProxy.partyFromKey(pKey)!!.name, hasSigned)
+                }
+            }
+            is WireTransaction -> {
+                wtx = result
+                signers = wtx.requiredSigningKeys.associate { pKey ->
+                    Pair(initiatorProxy.partyFromKey(pKey)!!.name, false) // no signatures are applied
                 }
             }
             else -> { throw IllegalStateException("Unexpected result in $this. $result.") }
