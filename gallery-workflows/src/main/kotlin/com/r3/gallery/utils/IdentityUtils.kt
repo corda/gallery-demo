@@ -6,6 +6,12 @@ import net.corda.core.identity.Party
 import net.corda.core.node.ServiceHub
 import java.security.PublicKey
 
+/**
+ * Create a composite key from two identities, and register it as the local node's identity.
+ * @param ourParty the registrant's identity.
+ * @param otherParty the other identity to compose the owning key with.
+ * @return the [CompositeKey] from the two identities.
+ */
 @Suspendable
 fun ServiceHub.registerCompositeKey(ourParty: Party, otherParty: Party): PublicKey {
     val compositeKey = CompositeKey.Builder()

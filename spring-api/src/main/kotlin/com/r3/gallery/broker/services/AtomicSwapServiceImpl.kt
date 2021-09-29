@@ -8,7 +8,6 @@ import com.r3.gallery.broker.corda.client.art.api.ArtNetworkGalleryClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkBuyerClient
 import com.r3.gallery.broker.corda.client.token.api.TokenNetworkSellerClient
 import com.r3.gallery.broker.services.api.Receipt
-import com.r3.gallery.broker.services.api.Receipt.*
 import com.r3.gallery.states.ArtworkState
 import net.corda.core.concurrent.CordaFuture
 import net.corda.core.identity.Party
@@ -16,33 +15,34 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 /**
- * Implementation of [AtomicSwapService]
+ * A service for cross-network atomic swaps.
+ * @param galleryClient RPC client for the gallery node in the art network.
+ * @param bidderClient RPC client for the bidder node in the art network.
+ * @param buyerClient RPC client for the buyer node in the token networks (CBDC, GBO)
+ * @param sellerClient RPC client for the seller node in the token networks (CBDC, GBO)
+ * @param identityRegistry for known identities.
  */
 @Component
 class AtomicSwapServiceImpl(
-        @Autowired val galleryClient: ArtNetworkGalleryClient,
-        @Autowired val bidderClient: ArtNetworkBidderClient,
-        @Autowired val buyerClient: TokenNetworkBuyerClient,
-        @Autowired val sellerClient: TokenNetworkSellerClient,
-        @Autowired val identityRegistry: IdentityRegistry
+    @Autowired val galleryClient: ArtNetworkGalleryClient,
+    @Autowired val bidderClient: ArtNetworkBidderClient,
+    @Autowired val buyerClient: TokenNetworkBuyerClient,
+    @Autowired val sellerClient: TokenNetworkSellerClient,
+    @Autowired val identityRegistry: IdentityRegistry
 ) : AtomicSwapService {
 
     private val galleryParty get() = identityRegistry.getArtworkParty(GALLERY)
     private val sellerParty get() = identityRegistry.getTokenParty(GALLERY)
 
     /**
-     * Creates a bid for artwork through a Pre-Setup phase of atomic swap.
-     *
-     * a. Request draft transaction from the Gallery on Auction network
-     * b. Send encumbered tokens from Buyer to Seller on the Consideration network
-     *
-     * @param bidderName x500 name of a valid bidder on the Auction network
-     * @param artworkId the unique identifier of the artwork being bid on
-     * @param bidAmount the amount to bid in Long (conversions from decimal are executed prior to this call)
-     * @param currency used to map the bid to the correct consideration network
-     * @return [BidReceipt]
+     * The bidder bids for an artwork.
+     * @param bidderName X500 name of the bidder.
+     * @param artworkId the artwork to bid for.
+     * @param bidAmount the bidder is willing to pay.
+     * @param currency the bidder is paying with.
+     * @return Details of the sale, with transaction ids for both legs of the swap.
      */
-    override fun bidForArtwork(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String): BidReceipt {
+    override fun bidForArtwork(bidderName: String, artworkId: ArtworkId, bidAmount: Long, currency: String): Receipt.BidReceipt {
 
         val bidderParty = identityRegistry.getArtworkParty(bidderName)
         val buyerParty = identityRegistry.getTokenParty(bidderName)
@@ -55,7 +55,7 @@ class AtomicSwapServiceImpl(
 
         val unsignedArtworkTransferTx = UnsignedArtworkTransferTx(validatedUnsignedTx.transactionBytes)
 
-        return BidReceipt(
+        return Receipt.BidReceipt(
                 bidderName,
                 artworkId,
                 bidAmount,
@@ -65,20 +65,20 @@ class AtomicSwapServiceImpl(
     }
 
     /**
-     * Awards an artwork by completion of a Proof-of-Action phase of the atomic swap.
+     * The gallery awards the artwork to the successful bid.
      *
      * a. Finalising the draft transaction (sign notarise the artwork transfer) by the Gallery on the Auction network.
      * b. Sending the notary signature of that transaction from the Gallery to it's counter-identity Seller on the
      * consideration network, then using that proof to claim the encumbered tokens.
      *
-     * @param bid represented by a [BidReceipt]
-     * @return [SaleReceipt] with details of the tx
+     * @param bid receipt of the winning bid.
+     * @return Details of the sale, with transaction ids for both legs of the swap.
      */
-    override fun awardArtwork(bid: BidReceipt): SaleReceipt {
+    override fun awardArtwork(bid: Receipt.BidReceipt): Receipt.SaleReceipt {
         val proofOfTransfer = galleryClient.finaliseArtworkTransferTx(galleryParty, bid.unsignedArtworkTransferTx)
         val tokenTxId = sellerClient.claimTokens(sellerParty, bid.currency, bid.encumberedTokens, proofOfTransfer.notarySignature)
 
-        return SaleReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, proofOfTransfer.transactionHash, tokenTxId)
+        return Receipt.SaleReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, proofOfTransfer.transactionHash, tokenTxId)
     }
 
     /**
@@ -90,14 +90,14 @@ class AtomicSwapServiceImpl(
      * @param bid represented by a [BidReceipt]
      * @return [CancellationReceipt] with details of the tx
      */
-    override fun cancelBid(bid: BidReceipt): CancellationReceipt {
+    override fun cancelBid(bid: Receipt.BidReceipt): Receipt.CancellationReceipt {
 
         val tokenTxId = sellerClient.releaseTokens(
             sellerParty,
             bid.currency,
             bid.encumberedTokens)
 
-        return CancellationReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, tokenTxId)
+        return Receipt.CancellationReceipt(bid.bidderName, bid.artworkId, bid.amount, bid.currency, tokenTxId)
     }
 
     /**
@@ -110,9 +110,9 @@ class AtomicSwapServiceImpl(
     }
 
     /**
-     * Returns a Buyer [Party] object retrieved from a consideration network.
-     *
-     * @return [Party]
+     * Resolves a [Party] from its name and currency.
+     * @param buyerParty the X500 name of the party
+     * @param currency network the party belongs to.
      */
     override fun getPartyFromNameAndCurrency(buyerParty: TokenParty, currency: String): Party {
         return buyerClient.resolvePartyFromNameAndCurrency(buyerParty, currency)

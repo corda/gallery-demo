@@ -30,8 +30,7 @@ internal class CollectSignaturesForComposites(
         // create new sessions to signers and trigger the signing responder flow
         val sessions = signers.map { initiateFlow(it) }
 
-        // We filter out any responses that are not
-        // `TransactionSignature`s (i.e. refusals to sign).
+        // We filter out any responses that are not TransactionSignature`s (i.e. refusals to sign).
         val signatures = sessions
             .map { it.sendAndReceive<Any>(stx).unwrap { data -> data } }
             .filterIsInstance<TransactionSignature>()

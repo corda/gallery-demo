@@ -9,7 +9,8 @@ import net.corda.core.flows.StartableByRPC
 import net.corda.core.node.services.queryBy
 
 /**
- * Find all artwork states for the local node owned by the node itself
+ * Find all artwork states for the local node owned by the node itself.
+ * @return the [List] of [ArtworkState]'s [StateAndRef]s.
  */
 @StartableByRPC
 @InitiatingFlow
@@ -18,10 +19,6 @@ class FindOwnedArtworksFlow :
 
     @Suspendable
     override fun call(): List<StateAndRef<ArtworkState>> {
-        return serviceHub
-            .vaultService
-            .queryBy<ArtworkState>()
-            .states
-            .filter { it.state.data.owner == ourIdentity }
+        return serviceHub.vaultService.queryBy<ArtworkState>().states.filter { it.state.data.owner == ourIdentity }
     }
 }

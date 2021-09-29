@@ -17,10 +17,11 @@ import java.time.Instant
 
 /**
  * Self-issue an artwork with [artworkId] for auction until [expiry].
- * @param artworkId the UUID of the artwork
- * @param expiry the Instant until which the transaction can be notarised
- * @param description of the artwork item
- * @param url of the artwork
+ * @param artworkId the UUID of the artwork.
+ * @param expiry the Instant until which the transaction can be notarised.
+ * @param description of the artwork item.
+ * @param url of the artwork.
+ * @return the [ArtworkState] representing the artwork item.
  */
 @StartableByRPC
 @InitiatingFlow

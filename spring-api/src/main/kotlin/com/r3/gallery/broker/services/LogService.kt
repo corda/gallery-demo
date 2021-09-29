@@ -4,6 +4,7 @@ import com.r3.gallery.api.CordaRPCNetwork
 import com.r3.gallery.api.LogUpdateEntry
 import com.r3.gallery.broker.corda.rpc.service.ConnectionManager
 import com.r3.gallery.broker.corda.rpc.service.ConnectionService
+import com.r3.gallery.states.ValidatedDraftTransferOfOwnership
 import com.r3.gallery.workflows.webapp.ContractStatesFromTxFlow
 import net.corda.core.flows.StateMachineRunId
 import net.corda.core.identity.CordaX500Name
@@ -222,17 +223,17 @@ class LogService(@Autowired private val connectionManager: ConnectionManager) {
         var wtx: WireTransaction? = null
         var stx: SignedTransaction? = null
         when (result) {
-            is Pair<*,*> -> {
-                wtx = result.first as WireTransaction
-                signers = wtx.requiredSigningKeys.associate { pKey ->
-                    Pair(initiatorProxy.partyFromKey(pKey)!!.name, false) // no signatures are applied
-                }
-            }
             is SignedTransaction -> {
                 stx = result
                 signers = stx.requiredSigningKeys.associate { pKey ->
                     val hasSigned: Boolean = !stx.getMissingSigners().contains(pKey)
                     Pair(initiatorProxy.partyFromKey(pKey)!!.name, hasSigned)
+                }
+            }
+            is ValidatedDraftTransferOfOwnership -> {
+                wtx = result.tx
+                signers = wtx.requiredSigningKeys.associate { pKey ->
+                    Pair(initiatorProxy.partyFromKey(pKey)!!.name, false) // no signatures are applied
                 }
             }
             else -> { throw IllegalStateException("Unexpected result in $this. $result.") }

@@ -4,6 +4,8 @@ import com.r3.corda.lib.tokens.money.GBP
 import com.r3.gallery.api.ArtworkId
 import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
+import com.r3.gallery.workflows.internal.issueArtwork
+import com.r3.gallery.workflows.internal.mockNetwork
 import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
@@ -28,26 +30,11 @@ class InitAndClearTests {
 
     @Before
     fun setup() {
-        val notaries = listOf(
-                MockNetworkNotarySpec(CordaX500Name("Notary", "London", "GB")),
-                MockNetworkNotarySpec(CordaX500Name("Notary", "Zurich", "CH"))
-        )
-
-        network = MockNetwork(
-                MockNetworkParameters(
-                        cordappsForAllNodes = listOf(
-                                TestCordapp.findCordapp("com.r3.gallery.contracts"),
-                                TestCordapp.findCordapp("com.r3.gallery.workflows"),
-                                TestCordapp.findCordapp("com.r3.corda.lib.tokens.contracts")
-                        )
-                ).withNotarySpecs(notaries)
-        )
+        network = mockNetwork()
         seller = network.createPartyNode()
         gallery = network.createPartyNode()
         bidder = network.createPartyNode()
         buyer = network.createPartyNode()
-
-        network.runNetwork()
     }
 
     @After
@@ -57,29 +44,18 @@ class InitAndClearTests {
 
     @Test
     fun `burn tokens clears issued`() {
-
-        val galleryParty = gallery.info.chooseIdentity()
-        val sellerParty = seller.info.chooseIdentity()
         val buyerParty = buyer.info.chooseIdentity()
 
-        buyer.startFlow(IssueTokensFlow(1000.GBP, buyerParty)).apply {
-            network.runNetwork()
-        }
+        buyer.startFlow(IssueTokensFlow(1000.GBP, buyerParty)).getOrThrow()
 
-        var balance = buyer.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.toCompletableFuture().get()
+        var balance = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
 
         assert(balance == 1000.GBP)
 
         // burn tokens
-        buyer.startFlow(BurnTokens("GBP")).apply {
-            network.runNetwork()
-        }
+        buyer.startFlow(BurnTokens("GBP")).getOrThrow()
 
-        balance = buyer.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.toCompletableFuture().get()
+        balance = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
 
         assert(balance == 0.GBP)
     }
@@ -92,70 +68,38 @@ class InitAndClearTests {
         val buyerParty = buyer.info.chooseIdentity()
 
         // issue to buyer and seller tokens
-        buyer.startFlow(IssueTokensFlow(1000.GBP, buyerParty)).apply {
-            network.runNetwork()
-        }
-        seller.startFlow(IssueTokensFlow(1000.GBP, sellerParty)).apply {
-            network.runNetwork()
-        }
+        buyer.startFlow(IssueTokensFlow(1000.GBP, buyerParty))
+        seller.startFlow(IssueTokensFlow(1000.GBP, sellerParty))
 
-        var balance = buyer.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.getOrThrow()
-        var sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.getOrThrow()
+        var balance = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
+        var sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).getOrThrow()
 
         assert(balance == 1000.GBP)
         assert(sellerBalance == 1000.GBP)
 
         // issue an artwork state to encumber tokens on
-        val artworkState = issueArtwork(gallery)
+        val artworkState = gallery.issueArtwork()
         val artworkLinearId = UniqueIdentifier.fromString(artworkState.linearId.toString())
         val verifiedDraftTx =
-                bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).apply {
-                    network.runNetwork()
-                }.getOrThrow().second
+                bidder.startFlow(RequestDraftTransferOfOwnershipFlow(galleryParty, artworkLinearId)).getOrThrow()
 
         // encumber some tokens
-        val signedTokensOfferTx =
-                buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).apply {
-                    network.runNetwork()
-                }.getOrThrow()
+        buyer.startFlow(OfferEncumberedTokensFlow(sellerParty, verifiedDraftTx, 10.GBP)).getOrThrow()
 
-        balance = buyer.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.getOrThrow()
-        sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.getOrThrow()
+        balance = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
+        sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).getOrThrow()
 
         assert(balance == 990.GBP)
         assert(sellerBalance == 1000.GBP)
 
         // BURN tokens from both perspectives
-        buyer.startFlow(BurnTokens("GBP")).apply {
-            network.runNetwork()
-        }
-        seller.startFlow(BurnTokens("GBP")).apply {
-            network.runNetwork()
-        }
+        buyer.startFlow(BurnTokens("GBP")).getOrThrow()
+        seller.startFlow(BurnTokens("GBP")).getOrThrow()
 
-        balance = buyer.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.getOrThrow()
-        sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).apply {
-            network.runNetwork()
-        }.getOrThrow()
+        balance = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
+        sellerBalance = seller.startFlow(GetBalanceFlow(GBP)).getOrThrow()
 
         assert(balance == 0.GBP)
         assert(sellerBalance == 0.GBP)
-    }
-
-    private fun issueArtwork(node: StartedMockNode): ArtworkState {
-        val flow = IssueArtworkFlow(ArtworkId.randomUUID(), Instant.now().plusSeconds(5000L))
-        val future: Future<ArtworkState> = node.startFlow(flow)
-        network.runNetwork()
-        return future.getOrThrow()
     }
 }

@@ -110,7 +110,7 @@ internal fun TransactionBuilder.addMoveTokens(
                 notary = notary!!,
                 encumbrance = previousEncumbrance
             )
-            addCommand(LockContract.Encumber(), lockState.getCompositeKey())
+            addCommand(LockContract.Encumber(), lockState.compositeKey)
         }
     }
 
