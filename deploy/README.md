@@ -1,16 +1,6 @@
-[//]: # (TODO: Update with a default network diagram and inst for adding/removing nodes)
 # Deploy Module - Running Local Nodes
 
-### A) DeployNodes / Cordform Task - Single Net
-
-```
-./gradlew deployNodes
-./deploy/build/nodes/runnodes
-```
-- Spawns local SINGLE NETWORK node instances with CRaSH interfaces via Xterm.
-- Use and modify node blocks, for simple initial Cordapp testing
-
-### B) Network PrepareDockerNodes / Dockerform Tasks - Multi Net
+### Preparing Docker Nodes / Dockerform Tasks - Multi Net
 
 #### Prereqs:
 1. [Docker Desktop or Docker *NIX](https://docs.docker.com/docker-for-mac/install/)
@@ -27,11 +17,12 @@ allocate a higher ram limit to support Corda nodes. If you have 16GB try setting
 
 ```shell
 ./gradlew prepareAllDockerNodes     # generate config for all networks
-./gradlew prepareAuctionDockerNodes # config for Auction Network - Alice, Bob, Charlie
-./gradlew prepareGbpDockerNodes     # config for GBP Network - Alice, Bob
-./gradlew prepareCbdcDockerNodes    # config for CBDC Network - Alice, Charlie
 ```
-- generates a docker compose file for associated networks
+- Generates a docker compose file for associated networks
+- Optionally, you may choose to prepare individual networks via:
+  - `./gradlew prepareAuctionDockerNodes # config for Auction Network - Alice, Bob, Charlie` 
+  - `./gradlew prepareGbpDockerNodes     # config for GBP Network - Alice, Bob` 
+  - `./gradlew prepareCbdcDockerNodes    # config for CBDC Network - Alice, Charlie`
 
 #### Up/Down the networks
 
