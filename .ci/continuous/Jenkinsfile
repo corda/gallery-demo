@@ -34,31 +34,6 @@ pipeline {
                 sh "./gradlew integrationTest"
             }
         }
-
-        stage('Docker image pull') {
-            steps {
-                timeout(60) {
-                    sh '''
-                        docker pull postgres:9.6
-                        docker pull roastario/freighter-base:latest
-                        docker pull roastario/notary-and-network-map:4.0
-                        '''
-                }
-            }
-        }
-
-        stage('Freighter Tests') {
-            steps {
-                timeout(60) {
-                    sh '''
-                        export ARTIFACTORY_USERNAME=\"\${ARTIFACTORY_CREDENTIALS_USR}\"
-                        export ARTIFACTORY_PASSWORD=\"\${ARTIFACTORY_CREDENTIALS_PSW}\"
-                        ./gradlew --parallel -Pfreighter.forks=2 freighterTest --info --stacktrace --no-daemon
-                        '''
-                }
-            }
-        }
-
     }
 
     post {

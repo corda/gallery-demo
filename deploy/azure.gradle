@@ -195,7 +195,7 @@ task buildAllNetworks(type: Task, dependsOn: [
         'buildGbpNetwork',
         'buildCbdcNetwork'
 ]) {
-    group = "deployment k8s"
+    group = "k8s deploy"
 }
 
 /**
@@ -262,7 +262,7 @@ task buildAll(type: Task, dependsOn: [
         'buildFrontEndAndSpringService',
         'buildMockFrontEndAndSpringService'
 ]) {
-    group = "deployment k8s"
+    group = "k8s deploy"
 }
 
 /**

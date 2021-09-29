@@ -73,7 +73,7 @@ task copyImageSources(type: Copy) {
 
 task createAndPushDockerImages(type: ImageTask, dependsOn: 'copyImageSources') {
     description = "Pushes gallery docker images to ACR"
-    group = "deployment k8s"
+    group = "k8s deploy"
     resourceImageAndVersion = [
             new Triple(new File(project.buildDir, "dockerBuild/frontend"),frontend_docker_image_name, rootProject.ext.'image.suffix'),
             new Triple(new File(project.buildDir, "dockerBuild/frontend"), mock_frontend_docker_image_name, rootProject.ext.'image.suffix'),

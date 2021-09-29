@@ -38,13 +38,13 @@ dependencies {
 }
 
 task<JavaExec>("runSpringApp") {
-    group = "deployment"
+    group = "deployment runners"
     classpath = sourceSets.main.get().runtimeClasspath
     main = "com.r3.gallery.broker.GalleryBrokerApplicationKt"
 }
 
 task<JavaExec>("runSpringAppMock") {
-    group = "deployment"
+    group = "deployment runners"
     classpath = sourceSets.main.get().runtimeClasspath
     main = "com.r3.gallery.broker.GalleryBrokerApplicationKt"
     environment("MOCK_CONTROLLER_ENABLED", true)
