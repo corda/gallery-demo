@@ -79,3 +79,14 @@ reinitialize a downed node periodically.
 ### Launching Frontend
 
 See /frontend/galleryapp/[README.md](/frontend/galleryapp/README.md)
+
+After installing, the frontend will be available at [http://localhost:3000](http://localhost:3000)
+
+### Loading Initial Data
+
+To bring Gallery Artwork and Buyer tokens on ledger, click the `Reset Data` tab in the configuration menu of the Frontend.
+- Alternatively you could target the initialization directly via a curl or browser request
+  to [http://localhost:3000/network/init](http://localhost:3000/network/init)
+
+![](loaddata.png)
+
