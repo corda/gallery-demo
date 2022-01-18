@@ -7,6 +7,7 @@ import com.r3.gallery.utils.getNotaryTransactionSignature
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import com.r3.gallery.workflows.internal.issueArtwork
 import com.r3.gallery.workflows.internal.mockNetwork
+import com.r3.gallery.workflows.internal.moveClock
 import com.r3.gallery.workflows.internal.queryArtworkState
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
@@ -99,6 +100,9 @@ class RevertEncumberedTokenFlowTests {
 
         val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
 
+        moveClock(setOf(gallery, seller, buyer, bidder, network.defaultNotaryNode), 6000)
+        network.waitQuiescent()
+
         seller.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTx.id)).getOrThrow()
 
         val buyerBalanceAfterRedeem = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
@@ -135,6 +139,9 @@ class RevertEncumberedTokenFlowTests {
 
         val buyerBalanceAfterOffer = buyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
         val otherBuyerBalanceAfterOffer = otherBuyer.startFlow(GetBalanceFlow(GBP)).getOrThrow()
+
+        moveClock(setOf(gallery, seller, buyer, bidder, otherBuyer, otherBidder, network.defaultNotaryNode), 6000)
+        network.waitQuiescent()
 
         seller.startFlow(RevertEncumberedTokensFlow(signedTokensOfferTx.id)).getOrThrow()
         seller.startFlow(RevertEncumberedTokensFlow(otherSignedTokensOfferTx.id)).getOrThrow()
@@ -189,6 +196,8 @@ class RevertEncumberedTokenFlowTests {
         // claim winning bidder's tokens
         seller.startFlow(UnlockEncumberedTokensFlow(signedTokensOfferTx.id, requiredSignature)).getOrThrow()
 
+        moveClock(setOf(gallery, seller, buyer, bidder, otherBuyer, otherBidder, network.defaultNotaryNode), 6000)
+        network.waitQuiescent()
         // early-revert token to losing bidder
         seller.startFlow(RevertEncumberedTokensFlow(otherSignedTokensOfferTx.id)).getOrThrow()
 

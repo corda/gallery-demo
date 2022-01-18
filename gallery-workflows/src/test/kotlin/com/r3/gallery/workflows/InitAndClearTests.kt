@@ -6,6 +6,7 @@ import com.r3.gallery.states.ArtworkState
 import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import com.r3.gallery.workflows.internal.issueArtwork
 import com.r3.gallery.workflows.internal.mockNetwork
+import com.r3.gallery.workflows.internal.moveClock
 import com.r3.gallery.workflows.token.BurnTokens
 import com.r3.gallery.workflows.token.GetBalanceFlow
 import com.r3.gallery.workflows.token.IssueTokensFlow
@@ -92,6 +93,9 @@ class InitAndClearTests {
         assert(balance == 990.GBP)
         assert(sellerBalance == 1000.GBP)
 
+        // ensure clock is shifted before reverting encumbered tokens
+        moveClock(setOf(gallery, seller, buyer, bidder, network.defaultNotaryNode), 6000)
+        network.waitQuiescent()
         // BURN tokens from both perspectives
         buyer.startFlow(BurnTokens("GBP")).getOrThrow()
         seller.startFlow(BurnTokens("GBP")).getOrThrow()
