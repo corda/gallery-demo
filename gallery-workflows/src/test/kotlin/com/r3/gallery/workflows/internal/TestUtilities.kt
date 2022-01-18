@@ -6,11 +6,11 @@ import com.r3.gallery.workflows.artwork.IssueArtworkFlow
 import net.corda.core.node.services.Vault
 import net.corda.core.node.services.vault.QueryCriteria
 import net.corda.core.utilities.getOrThrow
-import net.corda.testing.node.MockNetwork
-import net.corda.testing.node.MockNetworkParameters
-import net.corda.testing.node.StartedMockNode
-import net.corda.testing.node.TestCordapp
+import net.corda.testing.node.*
+import java.sql.Time
+import java.time.Duration
 import java.time.Instant
+import java.time.temporal.TemporalUnit
 
 internal fun StartedMockNode.issueArtwork(): ArtworkState {
     val flow = IssueArtworkFlow(ArtworkId.randomUUID(), Instant.now().plusSeconds(5000L))
@@ -40,4 +40,11 @@ internal fun mockNetwork() : MockNetwork {
     )
 
     return network
+}
+
+internal fun moveClock(startedMockNodes: Set<StartedMockNode>, shiftInSeconds: Long){
+    val now = Instant.now()
+    startedMockNodes.forEach {
+        (it.services.clock as TestClock).setTo(now.plusSeconds(shiftInSeconds))
+    }
 }

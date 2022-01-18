@@ -7,6 +7,7 @@ import com.r3.gallery.states.LockState
 import com.r3.gallery.utils.addMoveTokens
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndRef
+import net.corda.core.contracts.TimeWindow
 import net.corda.core.crypto.SecureHash
 import net.corda.core.flows.*
 import net.corda.core.node.StatesToRecord
@@ -60,12 +61,16 @@ class RevertEncumberedTokensFlow(private val encumberedTxHash: SecureHash) : Flo
         }
 
         val outputStates = tokensStates.map { it.state.data.withNewHolder(encumberedTxIssuer) }
-
+        // enforce time window on the revert transaction to fall only after the time window to claim the encumbered tokens has expired
+        val timeWindowForRevert = TimeWindow.fromOnly(
+            lockState.state.data.timeWindow.untilTime!!.plusSeconds(31)
+        )
         progressTracker.currentStep = GENERATING_TRANSACTION
         val txBuilder = TransactionBuilder(notary = encumberedTx.notary!!)
             .addMoveTokens(tokensStates, outputStates, listOf())
             .addInputState(lockState)
             .addCommand(Command(LockContract.Revert(), ourIdentity.owningKey))
+            .setTimeWindow(timeWindowForRevert)
 
         progressTracker.currentStep = VERIFYING_TRANSACTION
         txBuilder.verify(serviceHub)

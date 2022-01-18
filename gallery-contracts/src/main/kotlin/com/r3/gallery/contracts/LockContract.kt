@@ -80,7 +80,6 @@ class LockContract : Contract {
                 }
             }
             is Revert -> {
-                val now = Instant.now()
                 val lockState = tx.inRefsOfType(LockState::class.java).single().state.data
                 val encumberedTxIssuer = lockState.creator
                 val encumberedTxReceiver = lockState.receiver
@@ -94,8 +93,14 @@ class LockContract : Contract {
                     "Token offer can be retired exclusively by either its issuer or its receiver"
                 }
 
-                require(now.isAfter(encumberedTxUntilTime) or ourCommand.signers.contains(encumberedTxReceiver.owningKey)) {
-                    "Token offer can be retired by its issuer only after the offer expires"
+                require (tx.timeWindow != null
+                        && tx.timeWindow!!.fromTime!=null
+                        && tx.timeWindow!!.fromTime!!.isAfter(encumberedTxUntilTime.plusSeconds(30))){
+                    "Reversal of Encumbered tokens requires a time window that starts only after the time-window to " +
+                            "claim the encumbered tokens"
+                }
+                require(ourCommand.signers.contains(encumberedTxReceiver.owningKey)) {
+                    "Token offer can be retired by its issuer"
                 }
 
                 require(allowedOutputs == actualOutputs) {
